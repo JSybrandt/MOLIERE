@@ -1,0 +1,6 @@
+Found TIDS:3
+Constructing Graph
+Found 20243742 nodes
+Starting Traversal
+Running Dijkstra's, looking for 3 goals.
+./runner.sh: line 18: 17629 Killed                  /home/jsybran/projects/queries/cpp/runDijkstra $GRAPH_FILE $TID_FILE $ID_A $OUT_FILE

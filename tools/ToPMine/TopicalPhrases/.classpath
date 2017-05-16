@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry excluding="topicmodel/PhraseLDA_CVB0.java" kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="lib" path="lib/mallet.jar"/>
+	<classpathentry kind="lib" path="lib/snowball-20051019.jar"/>
+	<classpathentry kind="lib" path="lib/trove-2.0.2.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

@@ -1,0 +1,10 @@
+1 formation_assay body_fluid application methanol_poison
+8 delineate intimate_detail backbone_conformation pyridine_nucleotide_coenzyme aqueous_solution
+4 effect_of_chloroquine culture_fibroblast release_of_lysosomal_hydrolases inhibit_the_uptake
+5 atomic_model polypeptide_backbone myohemerythrin hemerythrin
+8 metal_substitute anhydrase halide_ion probe study
+6 study oxygen_binding_energy hemoglobin_molecule
+7 mature adrenal effect_of_morphine
+2 comparison procaine isocarboxazid metabolize_in_vitro_by_liver_microsomes
+9 radiochemical_assay glutathione s-epoxide transferase enhance_by_phenobarbital rat_liver_in_vivo
+10 digitoxin metabolism_in_rat_liver_microsomes

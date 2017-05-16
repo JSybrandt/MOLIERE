@@ -1,0 +1,6 @@
+1.runDataPreparation.sh 	-> output the dataset needed by various algorithms
+
+2.runCPM.sh			-> do contiguous pattern mining and document partition
+
+3. runPhrLDA.sh			-> do 
+

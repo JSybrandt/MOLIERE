@@ -1,0 +1,32 @@
+#!/bin/bash
+
+binFolder="bin/"
+jarFolder="lib/mallet.jar"
+classpath="$binFolder:$jarFolder"
+classname="topicmodel/RunPhraseLDA"
+echo $classpath
+
+#input
+trainFile="abstract_dblp_output/abstract_dblp_normalLDA.txt" 		# the training File 	e.g. dblp_titles_partitionedTraining
+testFile="abstract_dblp_output/abstract_dblp_partitionedTest.txt"  		# the test File		e.g. dblp_titles_partitionedTest
+
+#output
+wordTopicAssign="abstract_dblp_NormLDA/abstract_dblp_wordTopicAssign.txt"	#the topic assignment of each phrase
+topicFile="abstract_dblp_NormLDA/abstract_dblp_topics.txt"			#the word count(distribution) for each topic
+paraFile="abstract_dblp_NormLDA/abstract_dblp_phrLDA_info.txt"			#the information about the phraseLDA
+K=50										# number of topics
+iter=1000									#number of iterations
+usePhraseLDA=1
+optBurnin=199
+alpha=0.1
+optInterval=50
+
+
+echo $trainFile
+echo $testFile
+echo $wordTopicAssign
+echo $topicFile
+echo $paraFile
+echo $K
+echo $iter
+java -Xmx20g -cp $classpath  $classname $trainFile $testFile $wordTopicAssign $topicFile $paraFile $K $iter $usePhraseLDA $optBurnin $alpha $optInterval
