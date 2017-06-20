@@ -44,7 +44,7 @@ struct pNode{
 
 template<class K, class V>
 struct pQueue{
-  pQueue(){ head = nullptr;}
+  pQueue(){ head = nullptr; currSize = 0;}
   ~pQueue(){
     for(auto p : key2Node)
       delete p.second;
@@ -68,6 +68,7 @@ struct pQueue{
     pNode<K,V>* node = new pNode<K,V>(key,val);
     key2Node[key] = node;
     head = merge(head,node);
+    currSize++;
   }
 
   //Push either adds or decreases key
@@ -89,6 +90,7 @@ struct pQueue{
       delete node;
       head = merge(head,merge(left,right));
       key2Node.erase(key);
+      currSize--;
     }
   }
   void change(K key, V val){
@@ -118,6 +120,11 @@ struct pQueue{
       cout << "*" << endl;
     }
   }
+  unsigned int size(){
+    return this->currSize;
+  }
   pNode<K,V>* head;
   unordered_map<K, pNode<K,V>*> key2Node;
+private:
+  unsigned int currSize;
 };

@@ -1,3 +1,4 @@
 #!/bin/bash
 module load gcc
-./runDijkstra -g example/testGraph.edges -s 0 -o example/output.txt -v -n 15
+module load openmpi
+./runDijkstra -g example/testGraph.edges -s 10 -t example/targets -o example/output.txt -v -n 15 -a 10 -C 2 -K 2 -N 3

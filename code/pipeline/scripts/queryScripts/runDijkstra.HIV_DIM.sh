@@ -21,10 +21,10 @@ module load gcc
 
 PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
 
-DATA=/zfs/safrolab/users/jsybran/moliere/data
-TARGET_FILE=$DATA/geneData/geneList.indices
-GRAPH_FILE=$DATA/network/final.edges
-SOURCE_NODE=25228039 #:hiv_associate_dementia
-OUT_FILE=$DATA/results/hiv_associate_dementia.dijkstra
+DATA=/scratch2/jsybran/moliere
+TARGET_FILE=$DATA/geneList.indices
+GRAPH_FILE=$DATA/final.edges
+SOURCE_NODE=24139454
+OUT_FILE=$DATA/hiv_associate_dementia.dijkstra
 
 runDijkstra -g $GRAPH_FILE -s $SOURCE_NODE -t $TARGET_FILE -n 10000 -o $OUT_FILE

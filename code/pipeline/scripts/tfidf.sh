@@ -22,7 +22,7 @@ module load gcc
 PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
 
 DATA=/zfs/safrolab/users/jsybran/moliere/data
-ABSTRACT_FILE=$DATA/processedText/abstracts.txt
+ABSTRACT_FILE=$DATA/processedText/filtered_abstracts.txt
 KEYWORD_FILE=$DATA/processedText/termList.txt
 EDGE_FILE=$DATA/network/tfidf.edges
 
