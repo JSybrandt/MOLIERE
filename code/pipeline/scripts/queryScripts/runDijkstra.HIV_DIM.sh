@@ -7,15 +7,18 @@
 #PBS -M jsybran@clemson.edu
 #PBS -m ea
 
-# usage: ./runDijkstra --graphFile=string --sourceNode=string --outputFile=string [options] ... 
-# options:
-#   -g, --graphFile           input graph file (string)
-#   -s, --sourceNode          id representing the source (string)
-#   -t, --intendedTargets     intended targets. (string [=])
-#   -o, --outputFile          Output paths and neighborhoods (string)
-#   -v, --verbose             outputs debug information
-#   -n, --neighSize           number of nearby abstracts to include (unsigned int [=1000])
-#   -?, --help                print this message
+#  -g, --graphFile          input graph file (string)
+#  -s, --sourceIdx          id representing the source (unsigned int)
+#  -t, --intendedTargets    intended targets. (string [=])
+#  -o, --outputFile         Output paths and neighborhoods (string)
+#  -v, --verbose            outputs debug information
+#  -n, --neighSize          number of nearby abstracts to include (unsigned int [=1000])
+#  -a, --numAbstracts       number of abstracts in the network (unsigned int)
+#  -b, --abstractOffset     the index of the first abstract in the label file. (unsigned int [=0])
+#  -N, --cloudSetN          abstract cloud param: number of new abstracts adjacent to those on path. (unsigned int [=2000])
+#  -C, --cloudSetC          abstract cloud param: number of new abstracts from keyword overlap (unsigned int [=500])
+#  -K, --cloudSetK          abstract cloud param: number of new abstracts from keywords (unsigned int [=500])
+#  -?, --help               print this message
 
 module load gcc
 
@@ -26,5 +29,6 @@ TARGET_FILE=$DATA/geneList.indices
 GRAPH_FILE=$DATA/final.edges
 SOURCE_NODE=24139454
 OUT_FILE=$DATA/hiv_associate_dementia.dijkstra
+NUM_ABSTRACTS=22281873
 
-runDijkstra -g $GRAPH_FILE -s $SOURCE_NODE -t $TARGET_FILE -n 10000 -o $OUT_FILE
+runDijkstra -g $GRAPH_FILE -s $SOURCE_NODE -t $TARGET_FILE -a $NUM_ABSTRACTS -o $OUT_FILE

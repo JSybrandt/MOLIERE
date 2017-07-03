@@ -95,20 +95,11 @@ def processPath(path):
         print("Processing:", outPath)
 
     with open(outPath, "w") as outFile:
-        sData = label2Data.getData(path["start"])
-        eData = label2Data.getData(path["end"])
-        outFile.write("{} 1 {} 1\n".format(sData, eData))
-        for data in [label2Data.getData(l.strip())
-                     for l in path["neigh"].split()]:
-            if(data.isdigit() and data in pmid2bag):  # its a pmid
-                if(verbose):
-                    print("PMID:", data)
-                bag = pmid2bag[data]
-                outFile.write(str(bag) + "\n")
-            else:
-                if(verbose):
-                    print("KEYWORD:", data)
-                outFile.write(data + "1\n")
+        # remember, the path has a bunch of line numbers (-1)
+        for pmidId in [
+                label2Data.getData(l.strip()) for l in path["neigh"].split()]:
+            bag = pmid2bag[pmidId]
+            outFile.write(str(bag) + "\n")
 
 
 def main():

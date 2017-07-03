@@ -3,5 +3,8 @@
 module load python
 module load sqlite
 
-./dijk2Data.py -l /zfs/safrolab/users/jsybran/moliere/data/network/final.labels -p ./example/miniQuery.dijkstra -o example/out/ -a ./example/miniAbstracts.txt -v
+rm -rf ./example/out
+mkdir ./example/out
+
+./dijk2Data.py -l ./example/labels.txt -p ./example/miniQuery.dijkstra -o example/out/ -a ./example/miniAbstracts.txt -v
 

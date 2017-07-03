@@ -26,7 +26,7 @@ module load gcc
 
 PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
 
-DATA=/zfs/safrolab/users/jsybran/moliere/data
+DATA=/zfs/safrolab/users/jsybran/moliere/data/hydrologySubset
 CENT_FILE=$DATA/network/centroids
 KEY_FILE=$DATA/network/terms
 TFIDF=$DATA/network/tfidf

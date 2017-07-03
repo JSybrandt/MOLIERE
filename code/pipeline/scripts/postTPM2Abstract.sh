@@ -27,3 +27,6 @@ PMID=$TEXT/pmid.txt
 OUT=$TEXT/abstracts.txt
 
 postTPM2Abstract -t $CANON_POST_TPM -p $PMID -o $OUT
+
+# append PMID to ids
+sed -ie 's/^/PMID/' $OUT

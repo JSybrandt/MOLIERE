@@ -27,12 +27,12 @@ module load sqlite
 
 PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
 
-DATA=/zfs/safrolab/users/jsybran/moliere/data
-LABEL_FILE=$DATA/network/final.labels
-SOURCE_NODE=25228039 #:hiv_associate_dementia
-DIJK_FILE=$SCRATCH/hiv_associate_dementia.dijkstra
-AB_FILE=$DATA/processedText/abstracts.txt
-OUT_DIR=$SCRATCH/HIV_DATA_FILES
+DATA=/scratch2/jsybran/moliere
+LABEL_FILE=$DATA/final.labels
+SOURCE_NODE=24139454 #:hiv_associate_dementia
+DIJK_FILE=$DATA/hiv_associate_dementia.dijkstra
+AB_FILE=$DATA/filtered_abstracts.txt
+OUT_DIR=$DATA/HIV_DATA_FILES
 
 mkdir $OUT_DIR
 

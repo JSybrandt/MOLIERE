@@ -13,10 +13,10 @@ module load gnu-parallel
 module load gcc
 module load mpich2
 
-DATA=/zfs/safrolab/users/jsybran/moliere/data
-DATA_DIR=$SCRATCH/HIV_DATA_FILES
-MODEL_DIR=$SCRATCH/HIV_MODEL_FILES
-VIEW_DIR=$SCRATCH/HIV_VIEW_FILES
+DATA=/scratch2/jsybran/moliere/
+DATA_DIR=$DATA/HIV_DATA_FILES
+MODEL_DIR=$DATA/HIV_MODEL_FILES
+VIEW_DIR=$DATA/HIV_VIEW_FILES
 
 mkdir $MODEL_DIR
 mkdir $VIEW_DIR

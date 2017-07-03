@@ -27,7 +27,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/lib
 
 PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
 
-DATA=/zfs/safrolab/users/jsybran/moliere/data
+DATA=/zfs/safrolab/users/jsybran/moliere/data/hydrologySubset
 CENTROID2VEC_FILE=$DATA/fastText/canon.vec
 GRAPH_FILE=$DATA/network/terms.edges
 LABEL_FILE=$DATA/network/terms.labels
