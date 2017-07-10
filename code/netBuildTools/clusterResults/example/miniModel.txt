@@ -1,0 +1,799 @@
+TOPIC:  0 1989.0
+
+activity 432.0
+formation 110.0
+function 100.0
+lead 72.0
+preference 49.0
+--
+TOPIC:  1 1899.0
+
+high 205.0
+common 94.0
+discuss 77.0
+difference 65.0
+operation 61.0
+--
+TOPIC:  2 2444.0
+
+study 119.0
+observe 100.0
+ligand 92.0
+crystal_structure 91.0
+base 84.0
+--
+TOPIC:  3 1934.0
+
+natural 83.0
+surface 81.0
+abnormality 64.0
+reduce 62.0
+produce 49.0
+--
+TOPIC:  4 1841.0
+
+initial 164.0
+study 97.0
+continue 55.0
+follow 53.0
+tumor 44.0
+--
+TOPIC:  5 1851.0
+
+disease 184.0
+limit 91.0
+hiv-1 57.0
+effect 44.0
+main 43.0
+--
+TOPIC:  6 2020.0
+
+organ 143.0
+evaluate 132.0
+participant 78.0
+interest 54.0
+genotype 51.0
+--
+TOPIC:  7 1882.0
+
+procedure 88.0
+relate 83.0
+protection 83.0
+presence 75.0
+total 59.0
+--
+TOPIC:  8 1777.0
+
+found 87.0
+include 75.0
+18 69.0
+characteristic 54.0
+injection 53.0
+--
+TOPIC:  9 1896.0
+
+enhance 143.0
+relate 78.0
+result 72.0
+consequence 58.0
+alter 48.0
+--
+TOPIC:  10 2012.0
+
+combination 220.0
+identify 171.0
+site 119.0
+agent 63.0
+long 40.0
+--
+TOPIC:  11 1991.0
+
+bind 201.0
+number 194.0
+specie 119.0
+collect 105.0
+term 68.0
+--
+TOPIC:  12 1942.0
+
+time 102.0
+variant 98.0
+multiple 80.0
+family 80.0
+investigate 71.0
+--
+TOPIC:  13 2030.0
+
+factor 155.0
+possibility 98.0
+important 82.0
+monitoring 77.0
+cns 77.0
+--
+TOPIC:  14 2213.0
+
+type 268.0
+transfusion 250.0
+residue 77.0
+blood_transfusion 64.0
+assign 52.0
+--
+TOPIC:  15 1881.0
+
+solution 147.0
+show 106.0
+signal 70.0
+amp 68.0
+ph 46.0
+--
+TOPIC:  16 1992.0
+
+case 386.0
+sample 185.0
+due 97.0
+exposure 86.0
+rapid 52.0
+--
+TOPIC:  17 1921.0
+
+function 209.0
+method 161.0
+molecule 153.0
+yield 59.0
+pml 37.0
+--
+TOPIC:  18 2107.0
+
+region 219.0
+form 162.0
+conclude 80.0
+significantly 76.0
+connection 66.0
+--
+TOPIC:  19 2330.0
+
+group 389.0
+rbc 185.0
+therapy 88.0
+weak 57.0
+comparison 56.0
+--
+TOPIC:  20 1963.0
+
+protein 424.0
+modulate 103.0
+pathway 80.0
+depletion 49.0
+strategy 35.0
+--
+TOPIC:  21 2053.0
+
+study 378.0
+serum 124.0
+observe 105.0
+red_cell 89.0
+differentiation 73.0
+--
+TOPIC:  22 1957.0
+
+assay 109.0
+mutant 93.0
+day 76.0
+essential 72.0
+result 40.0
+--
+TOPIC:  23 1845.0
+
+role 171.0
+fragment 59.0
+mobility 54.0
+circulate 44.0
+recognition 36.0
+--
+TOPIC:  24 1926.0
+
+brain 201.0
+astrocyte 73.0
+finding_suggest 63.0
+research 58.0
+show 49.0
+--
+TOPIC:  25 2054.0
+
+detect 107.0
+frequency 98.0
+evaluate 93.0
+relationship 68.0
+transition 63.0
+--
+TOPIC:  26 1967.0
+
+show 311.0
+investigate 109.0
+kinetics 78.0
+phase 71.0
+analyze 57.0
+--
+TOPIC:  27 1821.0
+
+early 91.0
+contribute 89.0
+adult 64.0
+power 37.0
+tat 34.0
+--
+TOPIC:  28 1882.0
+
+include 259.0
+addition 142.0
+find 110.0
+important 96.0
+impairment 42.0
+--
+TOPIC:  29 1867.0
+
+7 111.0
+plasma 61.0
+pc 59.0
+introduction 46.0
+14 43.0
+--
+TOPIC:  30 2243.0
+
+complex 291.0
+rat 98.0
+small 94.0
+distribution 82.0
+center 61.0
+--
+TOPIC:  31 1914.0
+
+effect 412.0
+year 82.0
+include 62.0
+make 37.0
+resistance 34.0
+--
+TOPIC:  32 2113.0
+
+report 318.0
+correlation 102.0
+condition 100.0
+find 88.0
+free 63.0
+--
+TOPIC:  33 1876.0
+
+mechanism 163.0
+enzyme 119.0
+intermediate 67.0
+result_suggest 61.0
+inactivation 50.0
+--
+TOPIC:  34 1931.0
+
+isolate 147.0
+hand 96.0
+basis 53.0
+acute 53.0
+beta 46.0
+--
+TOPIC:  35 1938.0
+
+derive 168.0
+find 75.0
+versus 59.0
+lipid 55.0
+study 53.0
+--
+TOPIC:  36 1915.0
+
+demonstrate 107.0
+target 105.0
+compare 67.0
+respond 44.0
+randomize 37.0
+--
+TOPIC:  37 2080.0
+
+suggest 199.0
+sequence 163.0
+response 153.0
+great 99.0
+heterogeneity 46.0
+--
+TOPIC:  38 1968.0
+
+reaction 151.0
+improve 110.0
+identify 104.0
+prevent 89.0
+vitro 63.0
+--
+TOPIC:  39 2000.0
+
+dna 134.0
+subject 110.0
+subsequent 73.0
+generate 72.0
+relate 59.0
+--
+TOPIC:  40 1926.0
+
+predict 131.0
+clinical 100.0
+link 60.0
+amount 44.0
+emergency 38.0
+--
+TOPIC:  41 2028.0
+
+suggest 203.0
+demonstrate 91.0
+result_suggest 69.0
+form 50.0
+damage 44.0
+--
+TOPIC:  42 1867.0
+
+include 65.0
+persistent 62.0
+animal 61.0
+strong 56.0
+conventional 43.0
+--
+TOPIC:  43 2040.0
+
+cell 487.0
+state 167.0
+inhibition 95.0
+evidence 68.0
+place 50.0
+--
+TOPIC:  44 1826.0
+
+direct 118.0
+application 99.0
+work 82.0
+information 68.0
+hemolysis 52.0
+--
+TOPIC:  45 1754.0
+
+estimate 106.0
+red_blood_cell 56.0
+observe 56.0
+investigate 53.0
+hemoglobin 42.0
+--
+TOPIC:  46 2197.0
+
+infection 216.0
+virus 181.0
+determine 87.0
+replication 47.0
+population 46.0
+--
+TOPIC:  47 1899.0
+
+normal 137.0
+result 130.0
+establish 125.0
+addition 107.0
+strain 76.0
+--
+TOPIC:  48 1832.0
+
+immune 80.0
+indication 69.0
+successful 62.0
+support 60.0
+se 52.0
+--
+TOPIC:  49 2162.0
+
+patient 554.0
+incidence 74.0
+risk 62.0
+identification 55.0
+management 51.0
+--
+TOPIC:  50 2461.0
+
+donor 248.0
+blood 243.0
+blood_donor 86.0
+frequently 57.0
+phenotype 50.0
+--
+TOPIC:  51 1895.0
+
+study 112.0
+addition 74.0
+cluster 63.0
+culture 57.0
+analysis 55.0
+--
+TOPIC:  52 1841.0
+
+examine 148.0
+occur 120.0
+observe 77.0
+severe 62.0
+feature 54.0
+--
+TOPIC:  53 1830.0
+
+addition 168.0
+similar 110.0
+replacement 60.0
+compare 58.0
+event 57.0
+--
+TOPIC:  54 1985.0
+
+measure 224.0
+rate 138.0
+reverse 70.0
+simultaneous 39.0
+total 34.0
+--
+TOPIC:  55 1840.0
+
+determine 136.0
+analysis 119.0
+analyse 71.0
+cancer 63.0
+hb 40.0
+--
+TOPIC:  56 1830.0
+
+- 148.0
+find 133.0
+remain 58.0
+define 56.0
+unknown 40.0
+--
+TOPIC:  57 1904.0
+
+compare 114.0
+vivo 82.0
+concentration 65.0
+make 61.0
+effect 56.0
+--
+TOPIC:  58 1952.0
+
+interaction 217.0
+contrast 166.0
+analyze 92.0
+local 55.0
+affect 54.0
+--
+TOPIC:  59 1752.0
+
+follow 74.0
+show 62.0
+fraction 56.0
+pregnancy 54.0
+pathology 41.0
+--
+TOPIC:  60 1885.0
+
+presence 122.0
+consist 96.0
+loss 90.0
+lesion 75.0
+origin 48.0
+--
+TOPIC:  61 1939.0
+
+previously 88.0
+contrast 88.0
+set 77.0
+reveal 73.0
+extent 58.0
+--
+TOPIC:  62 2010.0
+
+hiv 177.0
+expression 176.0
+hiv_infection 118.0
+detect 104.0
+variable 54.0
+--
+TOPIC:  63 2085.0
+
+system 303.0
+structure 172.0
+part 107.0
+result 60.0
+origin 37.0
+--
+TOPIC:  64 1873.0
+
+finally 74.0
+exist 59.0
+modification 58.0
+field 46.0
+couple 46.0
+--
+TOPIC:  65 1893.0
+
+give 141.0
+9 67.0
+100 47.0
+reach 34.0
+70 32.0
+--
+TOPIC:  66 2079.0
+
+control 318.0
+similar 125.0
+increase 122.0
+stimulation 81.0
+describe 81.0
+--
+TOPIC:  67 2098.0
+
+unit 147.0
+peptide 105.0
+compare 96.0
+remain 78.0
+start 50.0
+--
+TOPIC:  68 1950.0
+
+result 107.0
+impact 68.0
+receptor 65.0
+laboratory 54.0
+graft 54.0
+--
+TOPIC:  69 2094.0
+
+involve 106.0
+technique 91.0
+transplantation 87.0
+single 83.0
+standard 78.0
+--
+TOPIC:  70 1927.0
+
+individual 184.0
+sensitivity 110.0
+neuron 80.0
+change 77.0
+gt 75.0
+--
+TOPIC:  71 1832.0
+
+tissue 109.0
+inhibitor 91.0
+carry 58.0
+rare 45.0
+compare 45.0
+--
+TOPIC:  72 2001.0
+
+low 150.0
+domain 78.0
+reference 59.0
+ratio 59.0
+integrate 58.0
+--
+TOPIC:  73 1840.0
+
+process 195.0
+efficiency 119.0
+time 90.0
+donation 79.0
+act 50.0
+--
+TOPIC:  74 2068.0
+
+result 382.0
+specific 208.0
+assess 102.0
+present 81.0
+secondary 55.0
+--
+TOPIC:  75 2614.0
+
+2 508.0
+1 412.0
+3 326.0
+4 140.0
+reactive 85.0
+--
+TOPIC:  76 1894.0
+
+follow 130.0
+mouse 125.0
+age 103.0
+outcome 51.0
+label 50.0
+--
+TOPIC:  77 1795.0
+
+treat 67.0
+treatment 62.0
+program 62.0
+period 61.0
+result_show 57.0
+--
+TOPIC:  78 1880.0
+
+data 216.0
+obtain 178.0
+represent 60.0
+response 49.0
+substitution 47.0
+--
+TOPIC:  79 1851.0
+
+characterize 163.0
+significantly 94.0
+induce 92.0
+difference 74.0
+range 65.0
+--
+TOPIC:  80 1962.0
+
+decrease 176.0
+component 158.0
+effect 73.0
+8 65.0
+infusion 50.0
+--
+TOPIC:  81 2156.0
+
+treatment 255.0
+increase 160.0
+major 138.0
+depend 70.0
+evidence 52.0
+--
+TOPIC:  82 1711.0
+
+preparation 93.0
+response 72.0
+woman 67.0
+week 53.0
+find 45.0
+--
+TOPIC:  83 2058.0
+
+positive 183.0
+present 132.0
+change 107.0
+area 57.0
+describe 52.0
+--
+TOPIC:  84 1980.0
+
+5 200.0
+10 118.0
+6 116.0
+child 78.0
+4 54.0
+--
+TOPIC:  85 1968.0
+
+gene 118.0
+provide 101.0
+aggregation 77.0
+primary 66.0
+chain 59.0
+--
+TOPIC:  86 1834.0
+
+platelet 152.0
+require 97.0
+reduce 87.0
+22 58.0
+apparent 52.0
+--
+TOPIC:  87 2564.0
+
+residue 116.0
+structure 115.0
+conformation 92.0
+block 82.0
+fold 67.0
+--
+TOPIC:  88 1900.0
+
+recipient 122.0
+membrane 86.0
+concentration 72.0
+disorder 59.0
+order 55.0
+--
+TOPIC:  89 2082.0
+
+large 173.0
+water 95.0
+stage 69.0
+dynamic 66.0
+channel 47.0
+--
+TOPIC:  90 1890.0
+
+potential 107.0
+local 88.0
+confirm 49.0
+macrophage 43.0
+viral 42.0
+--
+TOPIC:  91 1971.0
+
+associate 307.0
+approach 64.0
+repeat 61.0
+reveal 56.0
+extend 49.0
+--
+TOPIC:  92 2372.0
+
+antibody 227.0
+antigen 130.0
+ca 68.0
+alloantibody 59.0
+identification 50.0
+--
+TOPIC:  93 1991.0
+
+level 197.0
+select 174.0
+observe 98.0
+image 49.0
+unique 46.0
+--
+TOPIC:  94 1852.0
+
+production 170.0
+addition 75.0
+recovery 53.0
+good 44.0
+pool 39.0
+--
+TOPIC:  95 1981.0
+
+test 314.0
+find 162.0
+present 70.0
+detect 62.0
+25 52.0
+--
+TOPIC:  96 1841.0
+
+model 271.0
+experiment 122.0
+diagnosis 70.0
+reflect 64.0
+compare 50.0
+--
+TOPIC:  97 1946.0
+
+lack 80.0
+study 78.0
+base 78.0
+profile 53.0
+enable 49.0
+--
+TOPIC:  98 1926.0
+
+development 262.0
+human 170.0
+aid 72.0
+review 67.0
+microglia 51.0
+--
+TOPIC:  99 1912.0
+
+perform 210.0
+influence 100.0
+general 72.0
+promote 44.0
+hepatic 35.0

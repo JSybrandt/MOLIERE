@@ -255,6 +255,21 @@ vector<nodeIdx> parseTargets(string targetPath){
   return res;
 }
 
+nodeIdx countPMID(string labelFilePath){
+  fstream lFile(labelFilePath, ios::in);
+  string label;
+  nodeIdx count = 0;
+  while(lFile >> label){
+    if(label.substr(0,4) == "PMID"){
+      count++;
+    } else {
+      break;
+    }
+  }
+  lFile.close();
+  return count;
+}
+
 int main (int argc, char** argv){
 
   cmdline::parser p;
@@ -265,7 +280,8 @@ int main (int argc, char** argv){
   p.add<string>("outputFile", 'o', "Output paths and neighborhoods", true, "");
   p.add("verbose", 'v', "outputs debug information");
   p.add<unsigned int>("neighSize", 'n', "number of nearby abstracts to include", false, 1000);
-  p.add<nodeIdx>("numAbstracts", 'a', "number of abstracts in the network");
+  p.add<nodeIdx>("numAbstracts", 'a', "number of abstracts in the network", false, 0);
+  p.add<string>("labelFile", 'l', "Label file accompanying the edges file. Used to count PMIDS", false, "");
   p.add<nodeIdx>("abstractOffset", 'b', "the index of the first abstract in the label file.", false, 0);
   p.add<unsigned int>("cloudSetN", 'N', "abstract cloud param: number of new abstracts adjacent to those on path.", false, 2000);
   p.add<unsigned int>("cloudSetC", 'C', "abstract cloud param: number of new abstracts from keyword overlap", false, 500);
@@ -277,6 +293,7 @@ int main (int argc, char** argv){
   nodeIdx sourceIdx =  p.get<nodeIdx>("sourceIdx");
   string targetPath =  p.get<string>("intendedTargets");
   string outputPath =  p.get<string>("outputFile");
+  string labelPath =  p.get<string>("labelFile");
   verbose = p.exist("verbose");
   unsigned int neighSize = p.get<unsigned int>("neighSize");
   nodeIdx numAbstracts = p.get<nodeIdx>("numAbstracts");
@@ -284,6 +301,20 @@ int main (int argc, char** argv){
   unsigned int cloudSetN = p.get<unsigned int>("cloudSetN");
   unsigned int cloudSetC = p.get<unsigned int>("cloudSetC");
   unsigned int cloudSetK = p.get<unsigned int>("cloudSetK");
+
+  if(labelPath == "" && numAbstracts == 0){
+    cerr << "Must supply either the path to the graph's label file, or the number of abstracts." << endl;
+    exit(1);
+  }
+
+  if(labelPath != ""){
+    nodeIdx count = countPMID(labelPath);
+    if(numAbstracts != 0 && numAbstracts != count){
+      cerr << "Warning, user supplied #abstracts = " << numAbstracts
+           << " but supplied a label file with " << count << " abstracts.";
+    }
+    numAbstracts = count;
+  }
 
   // CONSTRUCTING GRAPH
   if(verbose) cout << "Constructing Graph" << endl;

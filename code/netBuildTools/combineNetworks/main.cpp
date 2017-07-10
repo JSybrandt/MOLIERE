@@ -107,7 +107,16 @@ int main(int argc, char** argv){
   if(verbose) cout << "Reading AB file" << endl;
   string labelA, labelB;
   while(netABFile >> labelA >> labelB >> w){
-    resEdgeFile << word2int[labelA] << " " << word2int[labelB] << " " << w*netWeightAB << endl;
+    if(word2int.find(labelA) != word2int.end() &&
+       word2int.find(labelB) != word2int.end()){
+      resEdgeFile << word2int[labelA] << " " << word2int[labelB] << " " << w*netWeightAB << endl;
+    } else if(verbose) {
+      cerr << "Failed to match '" << labelA << "' - '" << labelB << "'" << endl;
+      if(word2int.find(labelA) == word2int.end())
+        cerr << "\tFAIL:" << labelA << endl;
+      if(word2int.find(labelB) == word2int.end())
+        cerr << "\tFAIL:" << labelB << endl;
+    }
   }
 
   if(verbose) cout << "Done, closing files" << endl;

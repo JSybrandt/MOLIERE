@@ -21,6 +21,8 @@ class abstract:
 
 
 def addDate(cursor, pmid, year):
+    print("Attempting to add", pmid, year)
+    return
     cursor.execute("""
     UPDATE abstracts SET year={} WHERE pmid={};
     """.format(year, pmid))

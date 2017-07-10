@@ -32,5 +32,5 @@ CENTROID2VEC_FILE=$DATA/fastText/canon.vec
 GRAPH_FILE=$DATA/network/terms.edges
 LABEL_FILE=$DATA/network/terms.labels
 
-runFlann -d $CENTROID2VEC_FILE -g $GRAPH_FILE -l $LABEL_FILE -neui -k 100
+runFlann -d $CENTROID2VEC_FILE -g $GRAPH_FILE -l $LABEL_FILE -neu -k 100
 

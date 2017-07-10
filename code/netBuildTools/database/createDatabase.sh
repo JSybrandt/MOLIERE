@@ -13,5 +13,4 @@ module load sqlite
 
 # ./populateAbstractDB.py -d /zfs/safrolab/users/jsybran/moliere/data/database/abstracts.db -a /zfs/safrolab/users/jsybran/moliere/data/processedText/abstracts.txt -r
 
-./fillDates.py -v -x /zfs/safrolab/users/jsybran/moliere/data/rawData -d /zfs/safrolab/users/jsybran/moliere/data/database/abstracts.db
-popd
+./fillDates.py -x /zfs/safrolab/users/jsybran/moliere/data/rawData -d /zfs/safrolab/users/jsybran/moliere/data/database/abstracts.db

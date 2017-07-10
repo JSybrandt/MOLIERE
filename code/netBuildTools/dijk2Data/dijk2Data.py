@@ -5,9 +5,9 @@ Requires sqlite3
 Finds publish dates from medline xml and adds to db
 """
 
-import sqlite3
 import argparse
 from multiprocessing.pool import ThreadPool
+import sys
 
 
 class bagOfWords:
@@ -63,10 +63,19 @@ class labelNum2Data:
         if(verbose):
             print("Loading labels from", labelPath)
         with open(labelPath, "r") as labelFile:
-            self.l2d = [line.strip() for line in labelFile]
+            self.l2d = [line.strip() for line in labelFile]  # if line[0:4] == "PMID"]
+        if(verbose):
+            for i in self.l2d:
+                print("Label:", i)
 
     def getData(self, labelNum):
-        return self.l2d[int(labelNum)]
+        if int(labelNum) < len(self.l2d):
+            return self.l2d[int(labelNum)]
+        else:
+            print("Failed to find label",
+                  labelNum, "only have", len(self.l2d),
+                  file=sys.stderr)
+            return None
 
 
 def getShortestPathJob(dijkPath):
@@ -87,10 +96,8 @@ def getShortestPathJob(dijkPath):
 
 def processPath(path):
     global verbose, label2Data, outDirPath, pmid2bag
-    if(verbose):
-        print("Starting:", path["start"], path["end"])
-        print("loaded", len(pmid2bag), "pmids")
-    outPath = outDirPath + "/" + path["start"] + "-" + path["end"]
+    outPath = outDirPath + "/" + label2Data.getData(int(path["start"])) \
+                         + "---" + label2Data.getData(int(path["end"]))
     if(verbose):
         print("Processing:", outPath)
 
@@ -98,8 +105,12 @@ def processPath(path):
         # remember, the path has a bunch of line numbers (-1)
         for pmidId in [
                 label2Data.getData(l.strip()) for l in path["neigh"].split()]:
-            bag = pmid2bag[pmidId]
-            outFile.write(str(bag) + "\n")
+            if pmidId is not None:
+                if pmidId in pmid2bag:
+                    bag = pmid2bag[pmidId]
+                    outFile.write(str(bag) + "\n")
+                else:
+                    print("Fount bad id:", pmidId, file=sys.stderr)
 
 
 def main():

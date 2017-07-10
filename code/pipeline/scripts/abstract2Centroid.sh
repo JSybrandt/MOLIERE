@@ -11,8 +11,8 @@ module load gcc
 
 PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
 
-DATA=/zfs/safrolab/users/jsybran/moliere/data/
-DICT_FILE=$DATA/fastText/canon.vec
+DATA=/zfs/safrolab/users/jsybran/moliere/data/hydrologySubset
+DICT_FILE=$DATA/../fastText/canon.vec
 ABS_FILE=$DATA/processedText/abstracts.txt
 CEN_FILE=$DATA/fastText/centroids.data
 

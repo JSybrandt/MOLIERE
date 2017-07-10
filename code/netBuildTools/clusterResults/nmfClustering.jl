@@ -40,7 +40,8 @@ function main()
 
   args = parse_args(ARGS, s)
 
-  if !args["cluster-topics"] && !args["cluster-keywords"]
+  if (!args["cluster-topics"] && !args["cluster-keywords"]) ||
+     (args["cluster-topics"] && args["cluster-keywords"])
     error("Must set either --cluster-topics or --cluster-keywords")
     exit(1)
   end
@@ -87,6 +88,20 @@ function main()
     =#
     println("Found $(length(keywords)) keywords in total.")
   end
+
+  if clusterTopics
+    RunTopicClustering(keywordVecFilePath, topics)
+  elseif clusterKeywords
+    RunKeywordClustering(topics)
+  end
+
+end
+
+function RunKeywordClustering(topics::Array{Topic})
+
+end
+
+function RunTopicClustering(vecFile::String, topics::Array{Topic})
 
   verbose && println("Loading vectors")
   word2vec = Dict{String, Vector{Float32}}()
@@ -140,8 +155,13 @@ function main()
     end
   end
 
+  RunNMFk(TopicMatrix)
+end
+
+function RunNMFk(A :: Matrix)
   trailKs = 2:5
-  res = NMFk.execute(TopicMatrix, trailKs)
+  res = NMFk.execute(A, trailKs)
+
   # res is a 5 dim array with:
   # Ws, Hs, Fit, Sil, AIC
   largestDrop = 0
@@ -168,7 +188,6 @@ function main()
     clusterId = findmax(clusters[:, topic])[2]
     verbose && println("Topic: $(topic-1)\tCluter: $clusterId")
   end
-
 end
 
 main()

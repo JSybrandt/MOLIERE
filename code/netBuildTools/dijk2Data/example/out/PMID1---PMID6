@@ -1,0 +1,10 @@
+body_fluid 1 application 1 formation_assay 1 methanol_poison 1
+metal_substitute 1 halide_ion 1 study 1 anhydrase 1 probe 1
+effect_of_chloroquine 1 inhibit_the_uptake 1 culture_fibroblast 1 release_of_lysosomal_hydrolases 1
+atomic_model 1 hemerythrin 1 myohemerythrin 1 polypeptide_backbone 1
+metal_substitute 1 halide_ion 1 study 1 anhydrase 1 probe 1
+hemoglobin_molecule 1 oxygen_binding_energy 1 study 1
+effect_of_morphine 1 mature 1 adrenal 1
+isocarboxazid 1 comparison 1 metabolize_in_vitro_by_liver_microsomes 1 procaine 1
+glutathione 1 transferase 1 rat_liver_in_vivo 1 s-epoxide 1 radiochemical_assay 1 enhance_by_phenobarbital 1
+digitoxin 1 metabolism_in_rat_liver_microsomes 1
