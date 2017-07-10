@@ -1,8 +1,0 @@
-#!/bin/bash
-module load gcc openmpi
-clear
-rm -rf bin
-mkdir bin
-g++ main.cpp -O3 -fopenmp -lsqlite3 -o ./bin/dijkstra2Datafiles
-ln -fs ./bin/dijkstra2Datafiles
-
