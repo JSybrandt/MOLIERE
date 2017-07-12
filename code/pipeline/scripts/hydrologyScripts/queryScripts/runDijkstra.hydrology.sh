@@ -1,9 +1,8 @@
 #!/bin/bash
-#PBS -N HIVOMPQ
-#PBS -l select=1:ncpus=24:mem=500gb,walltime=72:00:00
-#PBS -q bigmem
-#PBS -o /home/jsybran/jobLogs/HIVOMPQ.out
-#PBS -e /home/jsybran/jobLogs/HIVOMPQ.err
+#PBS -N dijkHydro
+#PBS -l select=1:ncpus=16:mem=50gb,walltime=24:00:00
+#PBS -o /home/jsybran/jobLogs/dijkHydro.out
+#PBS -e /home/jsybran/jobLogs/dijkHydro.err
 #PBS -M jsybran@clemson.edu
 #PBS -m ea
 

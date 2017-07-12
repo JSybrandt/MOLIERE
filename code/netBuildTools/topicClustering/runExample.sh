@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./topicClustering --topic-file ./example/model.txt --keyword-vector-file ./example/canon.vec --cluster-keywords -v
+./topicClustering.jl -t ./examples/model.txt -k ./example/canon.vec -v

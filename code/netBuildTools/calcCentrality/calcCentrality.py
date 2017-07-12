@@ -43,9 +43,9 @@ def main():
         print("Loaded:")
         overview(graph)
 
-    centRunner =  centrality.EstimateBetweenness(graph, samples,
-                                                 normalized=True,
-                                                 parallel=True)
+    centRunner = centrality.EstimateBetweenness(graph, int(samples),
+                                                normalized=True,
+                                                parallel=True)
     centRunner.run()
     with open(outPath, "w") as outFile:
         count = 0

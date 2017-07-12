@@ -29,5 +29,5 @@ GRAPH_FILE=$DATA/centAndPhrases.edges
 SAMPLES=1000
 CENTRALITY_FILE=$DATA/centrality.data
 
-calcCentrality.py -g $GRAPH_FILE -o $CENTRALITY_FILE -s $SAMPLES
+calcCentrality.py -g $GRAPH_FILE -o $CENTRALITY_FILE -s $SAMPLES -v
 

@@ -1,9 +1,8 @@
 #!/bin/bash
-#PBS -N mkBgsHIV
-#PBS -l select=1:ncpus=24:mem=500gb,walltime=72:00:00
-#PBS -q bigmem
-#PBS -o /home/jsybran/jobLogs/mkBgsHIV.out
-#PBS -e /home/jsybran/jobLogs/mkBgsHIV.err
+#PBS -N mkbgHydro
+#PBS -l select=1:ncpus=16:mem=50gb,walltime=24:00:00
+#PBS -o /home/jsybran/jobLogs/mkbgHydro.out
+#PBS -e /home/jsybran/jobLogs/mkbgHydro.err
 #PBS -M jsybran@clemson.edu
 #PBS -m ea
 

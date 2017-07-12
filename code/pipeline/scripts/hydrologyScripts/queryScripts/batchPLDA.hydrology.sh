@@ -1,9 +1,9 @@
 #!/bin/bash
-#PBS -N arrFPldaHiv
+#PBS -N pldaHydro
 #PBS -l select=1:ncpus=8:mem=30gb,walltime=72:00:00
 #PBS -J 1-100
-#PBS -o /home/jsybran/jobLogs/pldaHIV.out
-#PBS -e /home/jsybran/jobLogs/pldaHIV.err
+#PBS -o /home/jsybran/jobLogs/pldaHydro.out
+#PBS -e /home/jsybran/jobLogs/pldaHydro.err
 #PBS -M jsybran@clemson.edu
 #PBS -m ea
 

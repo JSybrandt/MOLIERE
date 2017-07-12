@@ -28,35 +28,14 @@ function main()
       help = "Dimensionality of the ngram vector space."
       arg_type = Int
       default = 500
-    "--cluster-topics", "-C"
-      help = "If set, cluster topics with respect to keywords."
-      action = :store_true
-    "--cluster-keywords", "-c"
-      help = "If set, cluster keywords with respect to topics."
-      action = :store_true
     "--verbose", "-v"
       action = :store_true
   end
 
   args = parse_args(ARGS, s)
 
-  if (!args["cluster-topics"] && !args["cluster-keywords"]) ||
-     (args["cluster-topics"] && args["cluster-keywords"])
-    error("Must set either --cluster-topics or --cluster-keywords")
-    exit(1)
-  end
-
-  if args["verbose"]
-    println("Parsed:")
-    for (k, v) in args
-      println("$k ==> $v")
-    end
-  end
-
   topicFilePath = args["topic-file"]
   keywordVecFilePath = args["keyword-vector-file"]
-  clusterTopics = args["cluster-topics"]
-  clusterKeywords = args["cluster-keywords"]
   verbose = args["verbose"]
   intendedVecLength = args["vector-size"]
 
@@ -89,24 +68,10 @@ function main()
     println("Found $(length(keywords)) keywords in total.")
   end
 
-  if clusterTopics
-    RunTopicClustering(keywordVecFilePath, topics)
-  elseif clusterKeywords
-    RunKeywordClustering(topics)
-  end
-
-end
-
-function RunKeywordClustering(topics::Array{Topic})
-
-end
-
-function RunTopicClustering(vecFile::String, topics::Array{Topic})
-
   verbose && println("Loading vectors")
   word2vec = Dict{String, Vector{Float32}}()
-  open(keywordVecFilePath) do vecFile
-    for line in eachline(vecFile)
+  open(keywordVecFilePath) do keywordVecFilePath
+    for line in eachline(keywordVecFilePath)
       tokens = split(strip(line))
       # skip the possible first line
       if length(tokens) > 2
@@ -145,15 +110,17 @@ function RunTopicClustering(vecFile::String, topics::Array{Topic})
     return convert(Float32, dot / (norm(A) * norm(B)))
   end
 
-  TopicMatrix = zeros(length(topics), length(topics))
-  centroids = map(x->getCentroid(x), topics)
-  for i in 1:length(topics)
-    for j in i:length(topics)
-      sim = cosSim(centroids[i],centroids[j])
-      TopicMatrix[i,j] = sim
-      TopicMatrix[j,i] = sim
-    end
-  end
+#  TopicMatrix = zeros(length(topics), length(topics))
+#  centroids = map(x->getCentroid(x), topics)
+#  for i in 1:length(topics)
+#    for j in i:length(topics)
+#      sim = cosSim(centroids[i],centroids[j])
+#      TopicMatrix[i,j] = sim
+#      TopicMatrix[j,i] = sim
+#    end
+#  end
+
+  TopicMatrix = hcat([getCentroid(x) for x in topics]...)
 
   RunNMFk(TopicMatrix)
 end
