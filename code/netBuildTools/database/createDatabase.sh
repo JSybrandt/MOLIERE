@@ -1,6 +1,7 @@
 #!/bin/bash
 #PBS -N makeDBYear
-#PBS -l select=1:ncpus=12:mem=100gb,walltime=72:00:00
+#PBS -l select=1:ncpus=24:mem=500gb,walltime=72:00:00
+#PBS -q bigmem
 #PBS -o /home/jsybran/jobLogs/makeDBYear.out
 #PBS -e /home/jsybran/jobLogs/makeDBYear.err
 #PBS -M jsybran@clemson.edu

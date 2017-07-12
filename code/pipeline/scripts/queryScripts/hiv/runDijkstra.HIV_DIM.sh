@@ -27,8 +27,8 @@ PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
 DATA=/scratch2/jsybran/moliere
 TARGET_FILE=$DATA/geneList.indices
 GRAPH_FILE=$DATA/final.edges
-SOURCE_NODE=24139454
+LABEL_FILE=$DATA/final.labels
+SOURCE_NODE=24139455
 OUT_FILE=$DATA/hiv_associate_dementia.dijkstra
-NUM_ABSTRACTS=22281873
 
-runDijkstra -g $GRAPH_FILE -s $SOURCE_NODE -t $TARGET_FILE -a $NUM_ABSTRACTS -o $OUT_FILE
+runDijkstra -g $GRAPH_FILE -s $SOURCE_NODE -t $TARGET_FILE -o $OUT_FILE -l $LABEL_FILE

@@ -29,9 +29,9 @@ PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
 
 DATA=/scratch2/jsybran/moliere
 LABEL_FILE=$DATA/final.labels
-SOURCE_NODE=24139454 #:hiv_associate_dementia
+SOURCE_NODE=24139455
 DIJK_FILE=$DATA/hiv_associate_dementia.dijkstra
-AB_FILE=$DATA/filtered_abstracts.txt
+AB_FILE=$DATA/abstracts.txt
 OUT_DIR=$DATA/HIV_DATA_FILES
 
 mkdir $OUT_DIR
