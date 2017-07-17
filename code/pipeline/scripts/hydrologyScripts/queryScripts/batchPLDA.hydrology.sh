@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -N pldaHydro
-#PBS -l select=1:ncpus=8:mem=30gb,walltime=72:00:00
-#PBS -J 1-100
+#PBS -l select=1:ncpus=8:mem=30gb,walltime=5:00:00
+#PBS -J 1-50
 #PBS -o /home/jsybran/jobLogs/pldaHydro.out
 #PBS -e /home/jsybran/jobLogs/pldaHydro.err
 #PBS -M jsybran@clemson.edu
@@ -19,7 +19,7 @@ VIEW_DIR=$DATA/VIEW_FILES
 mkdir $MODEL_DIR
 mkdir $VIEW_DIR
 
-NUM_MACHINES=100
+NUM_MACHINES=50
 NUM_TOPICS=100
 
 NUM_FILES=$(ls -f $DATA_DIR | wc -l)
@@ -34,7 +34,7 @@ fi
 JOB_RANGE=$(($NUM_NEW_FILES/$NUM_MACHINES + 1))
 
 START=$((($PBS_ARRAY_INDEX - 1) * $JOB_RANGE))
-END=$((($PBS_ARRAY_INDEX) * $JOB_RANGE))
+END=$((($PBS_ARRAY_INDEX) * $JOB_RANGE + 1))
 COUNT=0
 
 echo "This job is responsible for files $START - $END"

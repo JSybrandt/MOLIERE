@@ -35,6 +35,9 @@
 
 module load gcc
 
+export JULIA_NUM_THREADS=24
+
+
 PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
 
 DATA=/scratch2/jsybran/moliere
@@ -45,4 +48,4 @@ DIJK_FILE=$DATA/hiv_associate_dementia.dijkstra
 TMP_FILE=$DATA/hivAsscMatrix.dat
 CLUSTER_FILE=$DATA/clusterRes.dat
 
-hypoClustering -d $DIJK_FILE -l $LABEL_FILE -w $TMP_FILE -s 10 -e 20 -f $CLUSTER_FILE
+hypoClustering -d $DIJK_FILE -l $LABEL_FILE -w $TMP_FILE -s 20 -e 30 -f $CLUSTER_FILE

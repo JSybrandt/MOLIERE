@@ -1,8 +1,9 @@
-#!/home/jsybran/bin/julia-v0.6/bin/julia -p 24
+#!/home/jsybran/bin/julia-v0.6/bin/julia
 #=
 This will cluster hypotheses based on their set similarities
 =#
 
+println(nprocs())
 
 using ArgParse
 using NMFk
@@ -91,7 +92,7 @@ function main()
     @assert endK < length(keyArr)
     SimMatrix = Matrix{Float64}(length(keyArr), length(keyArr))
     for i in 1:length(keyArr)
-      for j in i:length(keyArr)
+      Threads.@threads for j in i:length(keyArr)
         if i == j
           sim = 1
         else
@@ -130,7 +131,7 @@ end
 
 function RunNMFk(A :: Matrix, kRange :: Range)
 
-  res = NMFk.execute(A, kRange)
+  res = NMFk.execute(A, kRange, 5)
 
   # res is a 5 dim array with:
   # Ws, Hs, Fit, Sil, AIC

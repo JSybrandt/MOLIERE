@@ -49,7 +49,7 @@ function main()
       verbose && println("mv ", src, " ", dest)
       mv(src, dest)
     else
-      error("FAILED TO MOVE", src)
+      error("FAILED TO MOVE", src, "->", dest)
       exit(1)
     end
   end
