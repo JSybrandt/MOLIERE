@@ -18,6 +18,7 @@ from multiprocessing.pool import ThreadPool
 from multiprocessing import Lock
 from networkit import *
 import networkx as nx
+import scipy.stats
 
 import numpy as np
 np.seterr(divide='ignore', invalid='ignore')
@@ -130,6 +131,7 @@ def profile(dijkData):
 
     hypoName = "{}---{}".format(startLbl, endLbl)
     subGraph = fullGraph.subgraphFromNodes(cloudIdx)
+    numEdges = subGraph.numberOfEdges()
     try:
         density = subGraph.density()
     except Exception as e:
@@ -139,16 +141,51 @@ def profile(dijkData):
                           centrality.DegreeCentrality(subGraph).run().scores()
                           if x > 0], reverse=True)
         fit = powerlaw.Fit(degDist)
-        alpha = fit.alpha
-        sigma = fit.sigma
+        degAlpha = fit.alpha
+        degSig = fit.sigma
     except Exception as e:
-        alpha = "ERR " + str(e)
-        sigma = "ERR " + str(e)
+        degAlpha = "ERR " + str(e)
+        degSig = "ERR " + str(e)
+
+    try:
+        centDist = sorted([centralities[n] for n in
+                           subGraph.nodes()], reverse=True)
+        fit = powerlaw.Fit(centDist)
+        btwnFitAlpha = fit.alpha
+        btwnFitSig = fit.sigma
+    except Exception as e:
+        btwnFitAlpha = "ERR " + str(e)
+        btwnFitSig = "ERR " + str(e)
+
+    try:
+        # expected from casos.cs.cmu.edu/publications/papers/CMU-ISR-08-103.pdf
+        btwnIC = 0
+        expectedDistMu = (1 - density) / cloudSize
+        expectedDistSig = 0
+        if density < 0.35:
+            btwnIC = "Undef."  # there is nothing we can learn
+        elif density < 0.45:
+            expectedDistSig = 0.0019
+        elif density < 0.6:
+            expectedDistSig = 0.0011
+        elif density < 0.8:
+            expectedDistSig = 0.0004
+        else:
+            expectedDistSig = 0.0001
+        if expectedDistSig > 0:
+            expectedDistSig *= 3 ** math.log2(100 / cloudSize)
+            normDist = scipy.stats.norm(expectedDistMu, expectedDistSig)
+            for node in subGraph.nodes():
+                cent = centralities[node]
+                p = normDist.pdf(cent)
+                btwnIC += -1 * p * math.log2(p)
+    except Exception as e:
+        btwnIC = "ERR " + str(e)
 
     try:
         degreeIC = 0
         for deg, count in Counter(degDist).items():
-            p = count / cloudSize
+            p = count / numEdges
             degreeIC += -1 * p * math.log2(p)
     except Exception as e:
         degreeIC = "ERR " + str(e)
@@ -209,9 +246,12 @@ def profile(dijkData):
     Assortativity          {assort}
     Num_Triangles          {triangles}
     Transitivity           {transitivity}
-    Power_Law_Fit_Alpha    {plFitAlpha}
-    Power_Law_Fit_Sigma    {plFitSigma}
-    Degree_IC              {degreeIC}
+    Deg_Fit_Alpha          {degFitAlpha}
+    Deg_Fit_Sigma          {degFitSigma}
+    Deg_IC                 {degreeIC}
+    Btwn_Fit_Alpha         {btwnFitAlpha}
+    Btwn_Fit_Sigma         {btwnFitSig}
+    Btwn_IC                {btwnIC}
 """.format(
            hypoName=hypoName,
            nHops=nHops,
@@ -229,9 +269,12 @@ def profile(dijkData):
            triangles=triangles,
            transitivity=transitivity,
            dispersion=dispersion,
-           plFitAlpha=alpha,
-           plFitSigma=sigma,
-           degreeIC=degreeIC
+           degFitAlpha=degAlpha,
+           degFitSigma=degSig,
+           degreeIC=degreeIC,
+           btwnFitAlpha=btwnFitAlpha,
+           btwnFitSig=btwnFitSig,
+           btwnIC=btwnIC
           )
     if verbose:
         print(profile)
@@ -315,8 +358,8 @@ def main():
     outFile = open(outPath, "w")
     outLock = Lock()
 
-    nThreads = multiprocessing.cpu_count() * 2
-    with ThreadPool(1 if verbose else nThreads) as pool:
+    #  nThreads = multiprocessing.cpu_count() * 2
+    with ThreadPool() as pool:
         pool.map(profile, [d for d in DijkData(dijkPath)])
 
     outFile.close()
