@@ -1,0 +1,8 @@
+#!/bin/bash
+module load gcc openmpi
+clear
+rm -rf bin
+mkdir bin
+g++ main.cpp pgmb_io.cpp -O3 -fopenmp -o ./bin/createHypoSimMat
+ln -fs ./bin/createHypoSimMat
+

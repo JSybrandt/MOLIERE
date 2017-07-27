@@ -347,6 +347,8 @@ def main():
         print("Loading Centralities...")
     with open(centralityPath, "r") as centFile:
         centralities = [float(l.split()[1]) for l in centFile]
+    if verbose:
+        print("Num Centralities: ", len(centralities))
 
     if verbose:
         print("Loading edge file...")
