@@ -1,15 +1,23 @@
 #!/software/python/3.4/bin/python
 
 
+import sqlite3
 import argparse
+
+
+def getPmidYear(pmid, cursor):
+    cursor.execute("""
+    select year from abstracts where pmid={};
+    """.format(pmid))
+    return cursor.fetchone()[0]
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-f", "--yearFile",
+    parser.add_argument("-d", "--database",
                         action="store",
-                        dest="yearPath",
-                        help="file path of the pmid-year file")
+                        dest="databasePath",
+                        help="file path of the sqlite database")
     parser.add_argument("-a", "--absFile",
                         action="store",
                         dest="absFile",
@@ -33,29 +41,28 @@ def main():
     absFilePath = args.absFile
     outFilePath = args.outFile
     filterYear = int(args.year)
-    yearPath = args.yearPath
-
-    validPMID = set()
-    with open(yearPath, "r") as yearFile:
-        for line in yearFile:
-            tokens = line.split()
-            if len(tokens) == 2:
-                pmid = tokens[0]
-                year = int(tokens[1])
-                if(year < filterYear):
-                    validPMID.add(pmid)
-            else:
-                print("ERR: line is invalid:", line)
+    connection = sqlite3.connect(args.databasePath)
+    cursor = connection.cursor()
 
     with open(absFilePath, "r") as absFile, open(outFilePath, "w") as outFile:
         for line in absFile:
-            tokens = line.split(" ", 1)
-            pmid = tokens[0].strip()
-            data = ""
-            if len(tokens) > 1:
-                data = tokens[1].strip()
-            if pmid in validPMID:
-                outFile.write("{} {}\n".format(pmid, data))
+            pmid, data = line.split(" ", 1)
+            pmid = pmid.strip()
+            pmid = pmid[4:]  # strip off the PMID part of the label
+            data = data.strip()
+            if verbose:
+                print("Found pmid {}".format(pmid))
+            year = getPmidYear(pmid, cursor)
+            if year is None:
+                print("COULDN'T FIND PMID:{}".format(pmid))
+                # magic number for 2013
+                if int(pmid) < 22989000:
+                    outFile.write("PMID{} {}\n".format(pmid, data))
+                continue
+            if verbose:
+                print("PMID {} published in year {}".format(pmid, year))
+            if int(year) < filterYear:
+                outFile.write("PMID{} {}\n".format(pmid, data))
 
 
 if __name__ == "__main__":

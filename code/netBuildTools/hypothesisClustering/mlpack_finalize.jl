@@ -3,6 +3,7 @@
 using ArgParse
 using NMFk
 using Netpbm, ColorTypes, FixedPointNumbers, IndirectArrays, ImageCore, FileIO
+using ImageMagick
 
 function saveMat(filePath::AbstractString, X::Array)
   C = convert(Array{Gray{N0f16}}, X)
@@ -11,8 +12,9 @@ function saveMat(filePath::AbstractString, X::Array)
 end
 
 function loadMat(filePath::AbstractString)
-  inFile = FileIO.File(format"PGMBinary", filePath)
-  C = Netpbm.load(inFile)
+  C = ImageMagick.load(filePath)
+  #inFile = FileIO.File(format"PGMBinary", filePath)
+  #C = Netpbm.load(inFile)
   return convert(Array{Float64}, C)
 end
 
@@ -207,6 +209,8 @@ function main()
       minObjValue = objVal
       bestW = W
       bestH = H
+    else
+      verbose && println("Dud Obj = ", objVal)
     end
   end
 
