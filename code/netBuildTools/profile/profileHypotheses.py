@@ -15,8 +15,9 @@ from pprint import pprint
 from collections import Counter
 import multiprocessing
 from multiprocessing.pool import ThreadPool
-from multiprocessing import Lock
+from multiprocessing import Lock, Pool
 from networkit import *
+from networkit.globals import ClusteringCoefficient
 import networkx as nx
 import scipy.stats
 
@@ -81,7 +82,7 @@ def topicInfoContent(topicModels):
 
 def topicCoherence(topicModels, dataFilePath):
     global coherenceCutoff
-    beta = 1e-6
+    beta = 1
     word2DocSet = {}
     docId = 0
     with open(dataFilePath, "r") as docFile:
@@ -117,29 +118,38 @@ def profile(dijkData):
     if verbose:
         print("Processing:")
         pprint(dijkData)
-
+    print("P1")
     startIdx = int(dijkData["start"])
     endIdx = int(dijkData["end"])
     weight = dijkData["weight"]
     pathIdx = [int(c) for c in dijkData["path"]]
     cloudIdx = [int(c) for c in dijkData["neigh"].split()]
 
+    print("P2")
     startLbl = labels[startIdx]
     endLbl = labels[endIdx]
     nHops = len(pathIdx)
     cloudSize = len(cloudIdx)
 
+    print("P3a")
     hypoName = "{}---{}".format(startLbl, endLbl)
     subGraph = fullGraph.subgraphFromNodes(cloudIdx)
     numEdges = subGraph.numberOfEdges()
+    print("P3")
     try:
         density = subGraph.density()
     except Exception as e:
         density = "ERR " + str(e)
+    print("P4")
     try:
-        degDist = sorted([x for x in
-                          centrality.DegreeCentrality(subGraph).run().scores()
-                          if x > 0], reverse=True)
+        print("P4a")
+        data = [subGraph.degree(x) for x in cloudIdx]
+#        data = [x for x in
+#                centrality.DegreeCentrality(subGraph).run().scores()
+#                if x > 0]
+        print("P4b")
+        degDist = sorted(data, reverse=True)
+        print("P4c")
         fit = powerlaw.Fit(degDist)
         degAlpha = fit.alpha
         degSig = fit.sigma
@@ -147,6 +157,7 @@ def profile(dijkData):
         degAlpha = "ERR " + str(e)
         degSig = "ERR " + str(e)
 
+    print("P5")
     try:
         centDist = sorted([centralities[n] for n in
                            subGraph.nodes()], reverse=True)
@@ -157,31 +168,32 @@ def profile(dijkData):
         btwnFitAlpha = "ERR " + str(e)
         btwnFitSig = "ERR " + str(e)
 
-    try:
-        # expected from casos.cs.cmu.edu/publications/papers/CMU-ISR-08-103.pdf
-        btwnIC = 0
-        expectedDistMu = (1 - density) / cloudSize
-        expectedDistSig = 0
-        if density < 0.35:
-            btwnIC = "Undef."  # there is nothing we can learn
-        elif density < 0.45:
-            expectedDistSig = 0.0019
-        elif density < 0.6:
-            expectedDistSig = 0.0011
-        elif density < 0.8:
-            expectedDistSig = 0.0004
-        else:
-            expectedDistSig = 0.0001
-        if expectedDistSig > 0:
-            expectedDistSig *= 3 ** math.log2(100 / cloudSize)
-            normDist = scipy.stats.norm(expectedDistMu, expectedDistSig)
-            for node in subGraph.nodes():
-                cent = centralities[node]
-                p = normDist.pdf(cent)
-                btwnIC += -1 * p * math.log2(p)
-    except Exception as e:
-        btwnIC = "ERR " + str(e)
+#    try:
+#        # expected from casos.cs.cmu.edu/publications/papers/CMU-ISR-08-103.pdf
+#        btwnIC = 0
+#        expectedDistMu = (1 - density) / cloudSize
+#        expectedDistSig = 0
+#        if density < 0.35:
+#            btwnIC = "Undef."  # there is nothing we can learn
+#        elif density < 0.45:
+#            expectedDistSig = 0.0019
+#        elif density < 0.6:
+#            expectedDistSig = 0.0011
+#        elif density < 0.8:
+#            expectedDistSig = 0.0004
+#        else:
+#            expectedDistSig = 0.0001
+#        if expectedDistSig > 0:
+#            expectedDistSig *= 3 ** math.log2(100 / cloudSize)
+#            normDist = scipy.stats.norm(expectedDistMu, expectedDistSig)
+#            for node in subGraph.nodes():
+#                cent = centralities[node]
+#                p = normDist.pdf(cent)
+#                btwnIC += -1 * p * math.log2(p)
+#    except Exception as e:
+#        btwnIC = "ERR " + str(e)
 
+    print("P6")
     try:
         degreeIC = 0
         for deg, count in Counter(degDist).items():
@@ -190,29 +202,41 @@ def profile(dijkData):
     except Exception as e:
         degreeIC = "ERR " + str(e)
 
+    print("P7")
     nxGraph = nxadapter.nk2nx(subGraph)
+    print("P8")
     try:
-        clusterCoef = nx.average_clustering(nxGraph)
+        #clusterCoef = ClusteringCoefficient.approxGlobal(subGraph, 100)
+        clusterCoef = globals.clustering(subGraph)
+        # clusterCoef = nx.clustering(nxGraph)
     except Exception as e:
         clusterCoef = "ERR " + str(e)
+    print("P9")
     try:
         assort = nx.degree_assortativity_coefficient(nxGraph)
     except Exception as e:
         assort = "ERR " + str(e)
+    print("P10")
     try:
-        triangles = len(nx.triangles(nxGraph))
+        triangles = 0
+        for node, count in nx.triangles(nxGraph).items():
+            triangles += count
+        triangles /= 3
     except Exception as e:
         triangles = "ERR " + str(e)
-    try:
-        transitivity = nx.transitivity(nxGraph)
-    except Exception as e:
-        transitivity = "ERR " + str(e)
-    try:
-        dispersion = nx.dispersion(nxGraph, u=startIdx, v=endIdx)
-    except Exception as e:
-        dispersion = "ERR " + str(e)
+#    try:
+#        transitivity = nx.transitivity(nxGraph)
+#    except Exception as e:
+#        transitivity = "ERR " + str(e)
 
+#    try:
+#        dispersion = nx.dispersion(nxGraph, u=startIdx, v=endIdx)
+#    except Exception as e:
+#        dispersion = "ERR " + str(e)
+
+    print("P11")
     topicModels = getTopicModels(os.path.join(viewDirPath, hypoName))
+    print("P12")
     try:
         infoContent = topicInfoContent(topicModels)
         minInfo = min(infoContent)
@@ -221,6 +245,7 @@ def profile(dijkData):
     except Exception as e:
         minInfo = maxInfo = meanInfo = "ERR " + str(e)
 
+    print("P13")
     try:
         coherence = topicCoherence(topicModels,
                                    os.path.join(dataDirPath, hypoName))
@@ -230,6 +255,7 @@ def profile(dijkData):
     except Exception as e:
         minCoherence = maxCoherence = meanCoherence = "ERR " + str(e)
 
+    print("P14")
     profile = """{hypoName}
     Num_Hops               {nHops}
     Path_Length            {weight}
@@ -242,16 +268,13 @@ def profile(dijkData):
     Cloud_Size             {cloudSize}
     Cloud_Density          {density}
     Clustering_Coef        {clusterCoef}
-    Dispersion             {dispersion}
     Assortativity          {assort}
     Num_Triangles          {triangles}
-    Transitivity           {transitivity}
     Deg_Fit_Alpha          {degFitAlpha}
     Deg_Fit_Sigma          {degFitSigma}
     Deg_IC                 {degreeIC}
     Btwn_Fit_Alpha         {btwnFitAlpha}
     Btwn_Fit_Sigma         {btwnFitSig}
-    Btwn_IC                {btwnIC}
 """.format(
            hypoName=hypoName,
            nHops=nHops,
@@ -267,14 +290,11 @@ def profile(dijkData):
            clusterCoef=clusterCoef,
            assort=assort,
            triangles=triangles,
-           transitivity=transitivity,
-           dispersion=dispersion,
            degFitAlpha=degAlpha,
            degFitSigma=degSig,
            degreeIC=degreeIC,
            btwnFitAlpha=btwnFitAlpha,
            btwnFitSig=btwnFitSig,
-           btwnIC=btwnIC
           )
     if verbose:
         print(profile)
@@ -361,7 +381,7 @@ def main():
     outLock = Lock()
 
     #  nThreads = multiprocessing.cpu_count() * 2
-    with ThreadPool() as pool:
+    with Pool() as pool:
         pool.map(profile, [d for d in DijkData(dijkPath)])
 
     outFile.close()

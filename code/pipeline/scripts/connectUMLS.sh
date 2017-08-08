@@ -1,7 +1,6 @@
 #!/bin/bash
 #PBS -N connectUMLS
-#PBS -l select=1:ncpus=24:mem=500gb,walltime=72:00:00
-#PBS -q bigmem
+#PBS -l select=1:ncpus=24:mem=100gb,walltime=72:00:00
 #PBS -o /home/jsybran/jobLogs/connectUMLS.out
 #PBS -e /home/jsybran/jobLogs/connectUMLS.err
 #PBS -M jsybran@clemson.edu
@@ -20,8 +19,8 @@ module load gcc
 
 PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
 
-DATA=/zfs/safrolab/users/jsybran/moliere/data
-UMLS_DIR=/zfs/safrolab/users/jsybran/moliere/data/umls/2016AB
+DATA=/zfs/safrolab/users/jsybran/moliere/data/yearlySubsets/2010
+UMLS_DIR=/zfs/safrolab/users/jsybran/moliere/data/umls/2009AB
 TERMS_FILE=$DATA/network/terms.labels
 OUT_FILE=$DATA/network/keyword2terms.edges
 

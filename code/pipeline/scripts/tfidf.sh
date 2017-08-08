@@ -1,7 +1,6 @@
 #!/bin/bash
 #PBS -N tfidf
-#PBS -l select=1:ncpus=24:mem=500gb,walltime=72:00:00
-#PBS -q bigmem
+#PBS -l select=1:ncpus=24:mem=100gb,walltime=72:00:00
 #PBS -o /home/jsybran/jobLogs/tfidf.out
 #PBS -e /home/jsybran/jobLogs/tfidf.err
 #PBS -M jsybran@clemson.edu
@@ -21,8 +20,8 @@ module load gcc
 
 PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
 
-DATA=/zfs/safrolab/users/jsybran/moliere/data/hydrologySubset
-ABSTRACT_FILE=$DATA/processedText/hydrologyDocuments.txt
+DATA=/zfs/safrolab/users/jsybran/moliere/data/yearlySubsets/1983
+ABSTRACT_FILE=$DATA/processedText/abstracts.txt
 KEYWORD_FILE=$DATA/processedText/termList.txt
 EDGE_FILE=$DATA/network/tfidf.edges
 

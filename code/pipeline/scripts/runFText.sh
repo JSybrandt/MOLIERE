@@ -1,7 +1,6 @@
 #!/bin/bash
 #PBS -N fasttext
-#PBS -l select=1:ncpus=24:mem=500gb,walltime=72:00:00
-#PBS -q bigmem
+#PBS -l select=1:ncpus=24:mem=100gb,walltime=72:00:00
 #PBS -o /home/jsybran/jobLogs/fasttext.out
 #PBS -e /home/jsybran/jobLogs/fasttext.err
 #PBS -M jsybran@clemson.edu
@@ -14,7 +13,7 @@ PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
 
 THREADS=24
 
-DATA=/zfs/safrolab/users/jsybran/moliere/data
+DATA=/zfs/safrolab/users/jsybran/moliere/data/yearlySubsets/1983
 TEXT=$DATA/processedText
 ABSTRACTS=$TEXT/abstracts.txt
 OUTPUT=$DATA/fastText/canon

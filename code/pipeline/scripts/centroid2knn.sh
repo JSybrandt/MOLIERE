@@ -1,9 +1,8 @@
 #!/bin/bash
-#PBS -N hydroc2knn
-#PBS -l select=1:ncpus=24:mem=500gb,walltime=72:00:00
-#PBS -q bigmem
-#PBS -o /home/jsybran/jobLogs/hydroc2knn.out
-#PBS -e /home/jsybran/jobLogs/hydroc2knn.err
+#PBS -N cent2knn
+#PBS -l select=1:ncpus=24:mem=100gb,walltime=72:00:00
+#PBS -o /home/jsybran/jobLogs/cent2knn.out
+#PBS -e /home/jsybran/jobLogs/cent2knn.err
 #PBS -M jsybran@clemson.edu
 #PBS -m ea
 
@@ -27,7 +26,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/lib
 
 PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
 
-DATA=/zfs/safrolab/users/jsybran/moliere/data/hydrologySubset
+DATA=/zfs/safrolab/users/jsybran/moliere/data/yearlySubsets/1983
 CENTROID2VEC_FILE=$DATA/fastText/centroids.data
 GRAPH_FILE=$DATA/network/centroids.edges
 LABEL_FILE=$DATA/network/centroids.labels

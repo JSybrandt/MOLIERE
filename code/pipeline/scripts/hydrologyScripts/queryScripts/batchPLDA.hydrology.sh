@@ -53,7 +53,7 @@ for f in $(ls -f $DATA_DIR/); do
                            --training_data_file $in \
                            --model_file $out \
                            --total_iterations 100 \
-                           --burn_in_iterations 50 \
+                           --burn_in_iterations 50 \ 
                            > /dev/null 2>&1
       #echo "Created Model for $f"
       view_model.py "$MODEL_DIR/$f"'_0' $VIEW_DIR/$f

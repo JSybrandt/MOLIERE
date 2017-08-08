@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#PBS -N tmp24c
+#PBS -N topmine
 #PBS -l select=1:ncpus=24:mem=500gb,walltime=72:00:00
 #PBS -q bigmem
-#PBS -o /home/jsybran/jobLobs/tmp24c.out
-#PBS -e /home/jsybran/jobLobs/tmp24c.err
+#PBS -o /home/jsybran/jobLobs/topmine.out
+#PBS -e /home/jsybran/jobLobs/topmine.err
 #PBS -M jsybran@clemson.edu
 #PBS -m ea
 
@@ -14,7 +14,7 @@ module load python/2.7.6
 
 pushd /zfs/safrolab/users/jsybran/moliere/tools/ToPMine
 
-inputFile=/zfs/safrolab/users/jsybran/moliere/data/processedText/canon.data
+inputFile=/zfs/safrolab/users/jsybran/moliere/data/hydrology/processedText/canon.data
 
 # minimum phrase frequency
 minsup=10
@@ -47,8 +47,8 @@ python unMapper.py input_dataset/input_vocFile input_dataset/input_stemMapping i
 #Copy to output
 cp input_dataset_output/newPartition.txt ../output/corpus.txt
 cp input_dataset_output/input_wordTopicAssign.txt ../output/topics.txt
-## rm input_dataset/*
-## rm input_dataset_output/*
+rm input_dataset/*
+rm input_dataset_output/*
 cd ..
 cd output
 python topPhrases.py
