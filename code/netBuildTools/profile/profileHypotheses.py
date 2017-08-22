@@ -118,38 +118,30 @@ def profile(dijkData):
     if verbose:
         print("Processing:")
         pprint(dijkData)
-    print("P1")
     startIdx = int(dijkData["start"])
     endIdx = int(dijkData["end"])
     weight = dijkData["weight"]
     pathIdx = [int(c) for c in dijkData["path"]]
     cloudIdx = [int(c) for c in dijkData["neigh"].split()]
 
-    print("P2")
     startLbl = labels[startIdx]
     endLbl = labels[endIdx]
     nHops = len(pathIdx)
     cloudSize = len(cloudIdx)
 
-    print("P3a")
     hypoName = "{}---{}".format(startLbl, endLbl)
     subGraph = fullGraph.subgraphFromNodes(cloudIdx)
     numEdges = subGraph.numberOfEdges()
-    print("P3")
     try:
         density = subGraph.density()
     except Exception as e:
         density = "ERR " + str(e)
-    print("P4")
     try:
-        print("P4a")
         data = [subGraph.degree(x) for x in cloudIdx]
 #        data = [x for x in
 #                centrality.DegreeCentrality(subGraph).run().scores()
 #                if x > 0]
-        print("P4b")
         degDist = sorted(data, reverse=True)
-        print("P4c")
         fit = powerlaw.Fit(degDist)
         degAlpha = fit.alpha
         degSig = fit.sigma
@@ -157,7 +149,6 @@ def profile(dijkData):
         degAlpha = "ERR " + str(e)
         degSig = "ERR " + str(e)
 
-    print("P5")
     try:
         centDist = sorted([centralities[n] for n in
                            subGraph.nodes()], reverse=True)
@@ -193,7 +184,6 @@ def profile(dijkData):
 #    except Exception as e:
 #        btwnIC = "ERR " + str(e)
 
-    print("P6")
     try:
         degreeIC = 0
         for deg, count in Counter(degDist).items():
@@ -202,21 +192,17 @@ def profile(dijkData):
     except Exception as e:
         degreeIC = "ERR " + str(e)
 
-    print("P7")
     nxGraph = nxadapter.nk2nx(subGraph)
-    print("P8")
     try:
         #clusterCoef = ClusteringCoefficient.approxGlobal(subGraph, 100)
         clusterCoef = globals.clustering(subGraph)
         # clusterCoef = nx.clustering(nxGraph)
     except Exception as e:
         clusterCoef = "ERR " + str(e)
-    print("P9")
     try:
         assort = nx.degree_assortativity_coefficient(nxGraph)
     except Exception as e:
         assort = "ERR " + str(e)
-    print("P10")
     try:
         triangles = 0
         for node, count in nx.triangles(nxGraph).items():
@@ -234,9 +220,7 @@ def profile(dijkData):
 #    except Exception as e:
 #        dispersion = "ERR " + str(e)
 
-    print("P11")
     topicModels = getTopicModels(os.path.join(viewDirPath, hypoName))
-    print("P12")
     try:
         infoContent = topicInfoContent(topicModels)
         minInfo = min(infoContent)
@@ -245,7 +229,6 @@ def profile(dijkData):
     except Exception as e:
         minInfo = maxInfo = meanInfo = "ERR " + str(e)
 
-    print("P13")
     try:
         coherence = topicCoherence(topicModels,
                                    os.path.join(dataDirPath, hypoName))
@@ -255,7 +238,6 @@ def profile(dijkData):
     except Exception as e:
         minCoherence = maxCoherence = meanCoherence = "ERR " + str(e)
 
-    print("P14")
     profile = """{hypoName}
     Num_Hops               {nHops}
     Path_Length            {weight}

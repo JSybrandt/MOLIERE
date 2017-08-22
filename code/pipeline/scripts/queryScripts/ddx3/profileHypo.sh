@@ -1,6 +1,6 @@
 #/bin/bash
 #PBS -N ddx3profile
-#PBS -l select=1:ncpus=24:mem=500gb,walltime=72:00:00
+#PBS -l select=1:ncpus=24:mem=500gb,walltime=32:00:00
 #PBS -q bigmem
 #PBS -o /home/jsybran/jobLogs/ddx3profile.out
 #PBS -e /home/jsybran/jobLogs/ddx3profile.err
