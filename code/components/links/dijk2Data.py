@@ -1,0 +1,1 @@
+../queryProcess/path2BoWCorpus/bin/dijk2Data.py
