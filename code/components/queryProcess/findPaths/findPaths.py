@@ -5,11 +5,12 @@ import argparse
 # for readgraph
 import networkit as nk
 
-from multiprocessing import Lock, Pool
+from multiprocessing import Lock
+from multiprocessing.pool import ThreadPool
 
 
 def runProbGroup(probGroup):
-    global graph, outLock, verbose
+    global graph, outLock, verbose, outFile
 
     (source, targets) = probGroup
     if len(targets) == 1:
@@ -22,20 +23,20 @@ def runProbGroup(probGroup):
     outLock.acquire()
     for target in targets:
         path = dijk.getPath(target)
-        print(" ".join([str(x) for x in path]))
+        outFile.write("{}\n".format(" ".join([str(x) for x in path])))
     outLock.release()
 
 
 def main():
-    global graph, outLock, verbose
+    global graph, outLock, verbose, outFile
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--problem-desc",
                         action="store",
                         dest="probPath",
                         help="Pairs of labels that we want")
-#    parser.add_argument("-o", "--out-file",
-#                        action="store",
-#                        dest="outPath")
+    parser.add_argument("-o", "--out-file",
+                        action="store",
+                        dest="outPath")
     parser.add_argument("-e", "--graph-file-edges",
                         action="store",
                         dest="edgePath")
@@ -49,7 +50,7 @@ def main():
 
     args = parser.parse_args()
     verbose = args.verbose
-#    outPath = args.outPath
+    outPath = args.outPath
     edgePath = args.edgePath
     labelPath = args.labelPath
     probDescPath = args.probPath
@@ -91,9 +92,12 @@ def main():
 
     graph = nk.readGraph(edgePath, nk.Format.EdgeListSpaceZero)
     outLock = Lock()
+    outFile = open(outPath, "w")
 
-    with Pool() as pool:
+    with ThreadPool() as pool:
         pool.map(runProbGroup, problem.items())
+
+    outFile.close()
 
 
 if __name__ == "__main__":
