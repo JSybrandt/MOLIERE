@@ -1,0 +1,8 @@
+#!/bin/bash
+module load gcc openmpi
+clear
+rm -rf bin
+mkdir bin
+g++ main.cpp -O3 -fopenmp -o ./bin/paths2Dijk
+ln -fs ./bin/paths2Dijk
+

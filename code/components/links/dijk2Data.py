@@ -1,1 +1,1 @@
-../queryProcess/path2BoWCorpus/bin/dijk2Data.py
+../queryProcess/dijk2BoWCorpus/bin/dijk2Data.py

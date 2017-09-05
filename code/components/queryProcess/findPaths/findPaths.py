@@ -74,15 +74,15 @@ def main():
     with open(probDescPath, "r") as probFile:
         for line in probFile:
             count += 1
-            idxA, idxB = (lbl2idx[i] for i in line.split())
-
-            # always go from smaller -> larger, helps merge
-            if(idxA > idxB):
-                (idxA, idxB) = (idxB, idxA)
-
-            if idxA not in problem:
-                problem[idxA] = []
-            problem[idxA].append(idxB)
+            lblA, lblB = line.split()
+            if lblA in lbl2idx and lblB in lbl2idx:
+                idxA, idxB = (lbl2idx[i] for i in line.split())
+                # always go from smaller -> larger, helps merge
+                if(idxA > idxB):
+                    (idxA, idxB) = (idxB, idxA)
+                if idxA not in problem:
+                    problem[idxA] = []
+                problem[idxA].append(idxB)
 
     if verbose:
         print("Loaded ", count, " prob pairs.")
