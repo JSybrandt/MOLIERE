@@ -276,7 +276,8 @@ int main (int argc, char** argv){
 
   p.add<string>("graphFile", 'g', "input graph file", true, "");
   p.add<nodeIdx>("sourceIdx", 's', "id representing the source", true);
-  p.add<string>("intendedTargets", 't', "intended targets.", false, "");
+  p.add<nodeIdx>("targetIdx", 't', "intended target", false, UNDEFINED);
+  p.add<string>("intendedTargets", 'T', "intended targets", false, "");
   p.add<string>("outputFile", 'o', "Output paths and neighborhoods", true, "");
   p.add("verbose", 'v', "outputs debug information");
   p.add<unsigned int>("neighSize", 'n', "number of nearby abstracts to include", false, 1000);
@@ -292,6 +293,7 @@ int main (int argc, char** argv){
   string graphPath =  p.get<string>("graphFile");
   nodeIdx sourceIdx =  p.get<nodeIdx>("sourceIdx");
   string targetPath =  p.get<string>("intendedTargets");
+  nodeIdx targetIdx =  p.get<nodeIdx>("targetIdx");
   string outputPath =  p.get<string>("outputFile");
   string labelPath =  p.get<string>("labelFile");
   verbose = p.exist("verbose");
@@ -302,6 +304,10 @@ int main (int argc, char** argv){
   unsigned int cloudSetC = p.get<unsigned int>("cloudSetC");
   unsigned int cloudSetK = p.get<unsigned int>("cloudSetK");
 
+  if(targetIdx != UNDEFINED && targetPath != ""){
+    cerr << "Cannot specify both a single and multiple targets. Pick one" << endl;
+    exit(1);
+  }
   if(labelPath == "" && numAbstracts == 0){
     cerr << "Must supply either the path to the graph's label file, or the number of abstracts." << endl;
     exit(1);
@@ -325,13 +331,17 @@ int main (int argc, char** argv){
 
   // GETTING TARGETS
   vector<nodeIdx> targets;
-  if(targetPath != ""){
-    if(verbose) cout << "Getting Targets from " << targetPath << endl;
-    targets = parseTargets(targetPath);
+  if(targetIdx != UNDEFINED){
+    targets.push_back(targetIdx);
   } else {
-    if(verbose) cout << "Looking for all targets. No file specified." << endl;
-    for(nodeIdx i = 0; i < graph.size(); ++i){
-      targets.push_back(i);
+    if(targetPath != ""){
+      if(verbose) cout << "Getting Targets from " << targetPath << endl;
+      targets = parseTargets(targetPath);
+    } else {
+      if(verbose) cout << "Looking for all targets. No file specified." << endl;
+      for(nodeIdx i = 0; i < graph.size(); ++i){
+        targets.push_back(i);
+      }
     }
   }
   if(verbose) cout << "Identified " << targets.size() << " targets." << endl;
