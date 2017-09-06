@@ -49,4 +49,4 @@ DIJK_PATH=$RES/validation.dijkstra
 findPaths.py -e $EDGES \
              -l $LABELS \
              -p $PROB_DESC \
-             > $DIJK_PATH
+             -o $DIJK_PATH
