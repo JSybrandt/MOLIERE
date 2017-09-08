@@ -121,6 +121,7 @@ float getSimilarity(const vector<float>& probA, const vector<float>& probB){
     msqerr /= probA.size();
 
     float similarity = 1 - msqerr;
+    return similarity;
   }
 
   throw "GRABAGE INTO getSimilarity";
@@ -134,6 +135,7 @@ int main(int argc, char ** argv){
   p.add<string>("MRCONSO", 'M', "Post-processed MRSONSO file.", true);
   p.add<string>("sourceCUID", 's', "Source CUID.", true);
   p.add<string>("targetCUID", 't', "Target CUID.", true);
+  p.add<string>("verb", 'b', "verb.", true);
   p.add("verbose", 'v', "Output debug info.");
 
   p.parse_check(argc, argv);
@@ -141,6 +143,7 @@ int main(int argc, char ** argv){
   string mrconsoPath = p.get<string>("MRCONSO");
   string sourceCUID = p.get<string>("sourceCUID");
   string targetCUID = p.get<string>("targetCUID");
+  string verb = p.get<string>("verb");
   ::verbose = p.exist("verbose");
 
   TopicModel word2Topics;
@@ -201,6 +204,10 @@ int main(int argc, char ** argv){
     }
   }
 
+  float sim = getSimilarity(sourceProb, targetProb);
+  if(::verbose){
+    cout << "P(t|x) sim P(t|y) " << sim << endl;
+  }
 
   return 0;
 }
