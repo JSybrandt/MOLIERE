@@ -3,6 +3,6 @@ module load gcc openmpi
 clear
 rm -rf bin
 mkdir bin
-g++ main.cpp -O3 -fopenmp -o ./bin/runDijkstra
-ln -fs ./bin/runDijkstra
+g++ main.cpp -g -fopenmp -Wall -o ./bin/runAStar
+ln -fs ./bin/runAStar
 

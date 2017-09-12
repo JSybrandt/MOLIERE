@@ -25,6 +25,7 @@
 #include<fstream>
 #include<stack>
 #include<sstream>
+#include<cmath>
 
 #include"pQueue.h"
 #include"cmdln.h"
@@ -35,6 +36,7 @@ bool verbose = false;
 
 // TYPES
 typedef unsigned int nodeIdx;
+typedef unordered_map<nodeIdx, vector<float>> VecDict;
 const nodeIdx UNDEFINED = numeric_limits<nodeIdx>::max();
 
 struct forwardEdge{
@@ -57,9 +59,9 @@ struct graphNode{
 struct path{
   path():start(UNDEFINED), end(UNDEFINED), weight(-1){}
   path(nodeIdx s, nodeIdx e):start(s), end(e), weight(0){}
-  vector<nodeIdx> nodes;
-  float weight;
   nodeIdx start,end;
+  float weight;
+  vector<nodeIdx> nodes;
 };
 
 fstream& operator<<(fstream& out, const path& p){
@@ -72,13 +74,22 @@ fstream& operator<<(fstream& out, const path& p){
 }
 
 struct graphMap{
-  graphMap(string graphFilePath, nodeIdx abStartIdx, nodeIdx numAbstracts,
-            unsigned int cloudSetN, unsigned int cloudSetC, unsigned int cloudSetK){
-    this->abStartIdx = abStartIdx;
-    this->numAbstracts = numAbstracts;
-    this->cloudSetN = cloudSetN;
-    this->cloudSetC = cloudSetC;
-    this->cloudSetK = cloudSetK;
+  graphMap(string graphFilePath,
+           VecDict& dict,
+           unsigned int dictVecLength,
+           nodeIdx abStartIdx,
+           nodeIdx numAbstracts,
+           unsigned int cloudSetN,
+           unsigned int cloudSetC,
+           unsigned int cloudSetK
+          ):dict(dict),
+            dictVecLength(dictVecLength),
+            abStartIdx(abStartIdx),
+            numAbstracts(numAbstracts),
+            cloudSetN(cloudSetN),
+            cloudSetC(cloudSetC),
+            cloudSetK(cloudSetK)
+  {
     fstream inFile(graphFilePath.c_str(),ios::in);
     nodeIdx start, end;
     float weight;
@@ -89,9 +100,14 @@ struct graphMap{
       nodes[end].edges[start] = weight;
     }
     inFile.close();
+
+    maxVecDist = sqrt(4 * dictVecLength);
   }
+  VecDict& dict;
+  unsigned int dictVecLength;
   nodeIdx abStartIdx, numAbstracts;
   unsigned int cloudSetN, cloudSetC, cloudSetK;
+  float maxVecDist;
 
   bool isAbstract(nodeIdx id) const{
     nodeIdx diff = id - abStartIdx;
@@ -135,11 +151,53 @@ struct graphMap{
     return res;
   }
 
-  void runDijkstra(nodeIdx start, const vector<nodeIdx>& ends){
+  const vector<float>* getVec(nodeIdx a){
+    auto it = dict.find(a);
+    if(it != dict.end())
+      return &it->second;
+    return nullptr;
+  }
+  vector<float> getApproxVec(nodeIdx a){
+    const vector<float>* vec = getVec(a);
+    if(vec!=nullptr){
+      return *vec;
+    }
+    vector<float> res(dictVecLength, 0.0f);
+    unsigned int count = 0;
+    for(auto edge : nodes[a].edges){
+      const vector<float>* vec = getVec(edge.first);
+      if(vec){
+        for(unsigned int i=0; i < dictVecLength; ++i){
+          res[i] += vec->at(i);
+        }
+        ++count;
+      }
+    }
+    if(count > 0){
+      for(unsigned int i=0; i < dictVecLength; ++i){
+        res[i] /= count;
+      }
+    }
+    return res;
+  }
+  float getNormalizedDist(const vector<float>& vA, const vector<float>& vB){
+    float res = 0;
+    for(unsigned int i = 0; i < dictVecLength; ++i){
+      res += pow(vA[i] - vB[i], 2);
+    }
+    return sqrt(res) / maxVecDist;
+  }
+
+  void runAStar(nodeIdx start, const vector<nodeIdx>& ends){
     unordered_set<nodeIdx> goals;
     vector<bool> visited(this->size(),false);
     for(nodeIdx s : ends){
       goals.insert(s);
+    }
+
+    vector<vector<float>> endVecs;
+    for(nodeIdx goal : goals){
+      endVecs.push_back(getApproxVec(goal));
     }
 
     pQueue<nodeIdx,forwardEdge> pQ;
@@ -163,7 +221,12 @@ struct graphMap{
 
       for(pair<nodeIdx,float> edge : cNode.edges){
         if(!visited[edge.first]){
-          forwardEdge fe(currIdx, edge.second + pathWeight);
+          float minDist2Goal = 999999;
+          for(vector<float>& vec : endVecs){
+            float dist = getNormalizedDist(getApproxVec(edge.first), vec);
+            if(dist < minDist2Goal) minDist2Goal = dist;
+          }
+          forwardEdge fe(currIdx, edge.second + pathWeight + minDist2Goal);
           pQ.push(edge.first, fe); //relies on push updating min
         }
       }
@@ -238,7 +301,7 @@ struct graphMap{
 
 private:
   void addNode(nodeIdx id){
-    if(verbose) cout << "Adding " << id << endl;
+    if(verbose && nodes.size() < id) cout << "Adding " << id << endl;
     while(nodes.size() <= id)
       nodes.push_back(graphNode());
   }
@@ -270,6 +333,44 @@ nodeIdx countPMID(string labelFilePath){
   return count;
 }
 
+unsigned int loadVectorDict(string path, VecDict& dict, string lblPath){
+  string token, line;
+  unsigned int numVectors, vecLength, count;
+  float val;
+  unordered_map<string, nodeIdx> labels;
+  fstream lblFile(lblPath, ios::in);
+  count = 0;
+  while(lblFile >> token){
+    if(token.size()>0){
+      if(token[0] != 'P' && token[0] != 'C'){
+        labels[token] = count;
+      }
+      ++count;
+    }
+  }
+  lblFile.close();
+
+  fstream dFile(path, ios::in);
+
+  dFile >> numVectors >> vecLength;
+  getline(dFile, line); // remember, we need to eat that whitespace
+  while(getline(dFile, line)){
+    stringstream ss(line);
+    ss >> token;
+    if(labels.find(token) == labels.end())
+      continue;
+    vector<float>& vec = dict[labels[token]];
+    vec = vector<float>(vecLength, 0.0f);
+    count = 0;
+    while(ss >> val){
+      vec[count] = val;
+      ++count;
+    }
+  }
+  dFile.close();
+  return vecLength;
+}
+
 int main (int argc, char** argv){
 
   cmdline::parser p;
@@ -279,6 +380,7 @@ int main (int argc, char** argv){
   p.add<nodeIdx>("targetIdx", 't', "intended target", false, UNDEFINED);
   p.add<string>("intendedTargets", 'T', "intended targets", false, "");
   p.add<string>("outputFile", 'o', "Output paths and neighborhoods", true, "");
+  p.add<string>("dictFile", 'd', "Dict File for vecors", true, "");
   p.add("verbose", 'v', "outputs debug information");
   p.add<unsigned int>("neighSize", 'n', "number of nearby abstracts to include", false, 1000);
   p.add<nodeIdx>("numAbstracts", 'a', "number of abstracts in the network", false, 0);
@@ -296,6 +398,7 @@ int main (int argc, char** argv){
   nodeIdx targetIdx =  p.get<nodeIdx>("targetIdx");
   string outputPath =  p.get<string>("outputFile");
   string labelPath =  p.get<string>("labelFile");
+  string dictPath = p.get<string>("dictFile");
   verbose = p.exist("verbose");
   unsigned int neighSize = p.get<unsigned int>("neighSize");
   nodeIdx numAbstracts = p.get<nodeIdx>("numAbstracts");
@@ -313,6 +416,16 @@ int main (int argc, char** argv){
     exit(1);
   }
 
+  if(dictPath != "" && labelPath == ""){
+    cerr << "Cannot specificy a term dictionary without specifying lablels." << endl;
+    exit(1);
+  }
+
+  if(verbose) cout << "Loading vector dict from " << dictPath << endl;
+  VecDict dict;
+  unsigned int vecLength = loadVectorDict(dictPath, dict, labelPath);
+  if(verbose) cout << "Loaded " << dict.size() << " vectors" << endl;
+
   if(labelPath != ""){
     nodeIdx count = countPMID(labelPath);
     if(numAbstracts != 0 && numAbstracts != count){
@@ -324,7 +437,7 @@ int main (int argc, char** argv){
 
   // CONSTRUCTING GRAPH
   if(verbose) cout << "Constructing Graph" << endl;
-  graphMap graph(graphPath, abstractOffset, numAbstracts, cloudSetN, cloudSetK, cloudSetC);
+  graphMap graph(graphPath, dict, vecLength, abstractOffset, numAbstracts, cloudSetN, cloudSetK, cloudSetC);
   if(verbose) cout << "Found " << graph.size() << " nodes" << endl;
   if(verbose) cout << "Node ids " << graph.abStartIdx << "-"
                    << graph.abStartIdx+graph.numAbstracts << " are abstracts" << endl;
@@ -348,7 +461,7 @@ int main (int argc, char** argv){
 
   // TRAVERSAL DIJKSTRA
   if(verbose) cout << "Starting Traversal" << endl;
-  graph.runDijkstra(sourceIdx, targets);
+  graph.runAStar(sourceIdx, targets);
 
   // OUTPUT PATHS
   fstream outFile(outputPath, ios::out);
