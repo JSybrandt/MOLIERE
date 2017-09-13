@@ -270,11 +270,12 @@ int main (int argc, char** argv){
 
   if(::verbose) cout << "Checking if path exists:" << endl;
 
+  vector<nodeIdx> path;
   if(g.pathExists(sourceIdx, targetIdx)){
 
     if(::verbose) cout << "Getting shortest path." << endl;
 
-    vector<nodeIdx> path = g.getShortestPath(sourceIdx, targetIdx);
+    path = g.getShortestPath(sourceIdx, targetIdx);
 
     if(::verbose){
       cout << "Path:";
@@ -285,6 +286,11 @@ int main (int argc, char** argv){
   } else {
     if(::verbose) cout << "Path does not exist. Consider extending elipse." << endl;
   }
+
+  fstream outFile(outputPath, ios::out);
+  for(nodeIdx n : path)
+    outFile << n << " ";
+  outFile.close();
 
   return 0;
 }

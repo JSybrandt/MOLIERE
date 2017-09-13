@@ -97,6 +97,7 @@ public:
     float maxDist = dist(vector<float>(targetVec.size(), -1.0f),
                          vector<float>(targetVec.size(), 1.0f));
     bool shouldGoOn = true;
+    backPointers[source] = source;
 #pragma omp parallel
     {
 #pragma omp single
@@ -105,8 +106,6 @@ public:
         pair<nodeIdx, float> currData;
 #pragma omp critical (queue)
         currData = queue.pop();
-#pragma omp critical (out)
-        cout << "Viewing: " << currData.first << " : " << currData.second << endl;
 
 #pragma omp critical (completed)
         completed.insert(currData.first);
@@ -164,7 +163,6 @@ private:
 
   const vector<float>& createApproxVec(nodeIdx idx) {
     if(approxVecs.find(idx) == approxVecs.end()){
-      cout << "WARNING: CREATING APPROX VEC : " << idx << endl;
       auto d = data.find(idx);
       if(d == data.end())
         throw invalidQuery();
