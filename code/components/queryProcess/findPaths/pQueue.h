@@ -104,8 +104,8 @@ struct pQueue{
     del(ret);
     return std::make_pair(ret, v);
   }
-  V top(){
-    return head->val;
+  K top(){
+    return head->key;
   }
   bool empty(){
     return head == nullptr;

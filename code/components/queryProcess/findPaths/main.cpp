@@ -12,8 +12,14 @@
 #include<cstring>
 #include<exception>
 
-#include"pQueue.h"
+// needed for posix io
+#include<cstdio>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include"cmdln.h"
+#include"graph.h"
+#include"util.h"
 
 #include<omp.h>
 
@@ -21,12 +27,10 @@ using namespace std;
 
 bool verbose = false;
 
-// TYPES
-typedef unsigned int nodeIdx;
-typedef unordered_map<nodeIdx, vector<float>> VecDict;
-const nodeIdx UNDEFINED = numeric_limits<nodeIdx>::max();
 
+class invalidBinaryFile: public exception {};
 class getLabelException: public exception {};
+class invalidHardware: public exception {};
 
 string getLabel(string path, nodeIdx idx){
   nodeIdx count = 0;
@@ -56,20 +60,15 @@ nodeIdx getIdx(string path, string label){
   throw getIdxException();
 }
 
-void string2vec(string line, string& label, vector<float>& vec){
-  stringstream ss(line);
-  ss >> label;
-  float temp;
-  while(ss >> temp){ vec.push_back(temp);}
-}
 
 class getVectorException: public exception {};
 
-vector<float> getVector(string path, string label){
-  fstream fin(path, ios::in);
+vector<float> getVector(string path1, string path2, string label){
+  fstream fin1(path1, ios::in);
+  fstream fin2(path2, ios::in);
   string line, token;
   vector<float> res;
-  while(getline(fin, line)){
+  while(getline(fin1, line) || getline(fin2, line)){
     // line starts with label, not sufficient, but good filter
     if(strncmp(line.c_str(), label.c_str(), label.length()) == 0){
       stringstream ss(line);
@@ -80,22 +79,8 @@ vector<float> getVector(string path, string label){
       }
     }
   }
+  cerr << "Failed to find " << label << " in " << path1 << " or " << path2 << endl;
   throw getVectorException();
-}
-
-class vectorLengthNotEqual: public exception {};
-
-float dist(const vector<float>& ptA, const vector<float>& ptB){
-  if(ptA.size() != ptB.size()){
-    cerr << ptA.size() << " != " << ptB.size() << endl;
-    throw vectorLengthNotEqual();
-  }
-
-  float res = 0;
-  for(unsigned int i = 0; i < ptA.size(); ++i){
-    res += pow(ptA[i]-ptB[i], 2);
-  }
-  return sqrt(res);
 }
 
 bool isInElipse(const vector<float>& fociiA,
@@ -108,6 +93,11 @@ bool isInElipse(const vector<float>& fociiA,
 }
 
 int main (int argc, char** argv){
+
+  if(NUM_BYTE_PER_EDGE != 2 * sizeof(nodeIdx) + sizeof(float)){
+    cout << "ERROR: the system does not have a 4 byte uint and a 4 byte float." << endl;
+    throw invalidHardware();
+  }
 
   cmdline::parser p;
 
@@ -138,6 +128,16 @@ int main (int argc, char** argv){
   VecDict subsetVectors;
   float elipseConst;
 
+  unordered_map<string, nodeIdx> label2idx;
+  if(::verbose) cout << "Loading Labels:" << endl;
+  nodeIdx count = 0;
+  fstream fin(labelPath, ios::in);
+  string token;
+  while(fin >> token){
+    label2idx[token] = count;
+    ++count;
+  }
+
 #pragma omp parallel
   {
 #pragma omp single
@@ -149,15 +149,15 @@ int main (int argc, char** argv){
 
 #pragma omp taskwait
     if(verbose){
-      cout << sourceIdx << " ->" << sourceLbl << endl;
-      cout << targetIdx << " ->" << targetLbl << endl;
+      cout << sourceIdx << " -> " << sourceLbl << endl;
+      cout << targetIdx << " -> " << targetLbl << endl;
     }
 
 #pragma omp task
-    sourceVec = getVector(vectorPath, sourceLbl);
+    sourceVec = getVector(vectorPath, centroidPath,  sourceLbl);
 
 #pragma omp task
-    targetVec = getVector(vectorPath, targetLbl);
+    targetVec = getVector(vectorPath, centroidPath, targetLbl);
 
 #pragma omp taskwait
     elipseConst = dist(sourceVec, targetVec) * elipseConstMultiple;
@@ -192,11 +192,11 @@ int main (int argc, char** argv){
         string label;
         string2vec(line, label, pt);
         if(isInElipse(sourceVec, targetVec, elipseConst, pt)){
-          nodeIdx idx = getIdx(labelPath, label);
+          nodeIdx idx = label2idx[label];
 #pragma omp critical
           {
             subsetVectors[idx] = pt;
-            if(verbose) cout << "In Elipse: " << label << endl;
+            if(verbose) cout << "In Elipse: " << label << " : " << idx << endl;
           }
         }
       }
@@ -205,6 +205,85 @@ int main (int argc, char** argv){
     cFile.close();
 
   }
+  }
+
+  if(::verbose) cout << "Found " << subsetVectors.size() << " subset items." << endl;
+  if(::verbose) cout << "Loading Graph." << endl;
+
+  struct stat st;
+  stat(graphPath.c_str(), &st);
+  size_t totalFileSize = st.st_size;
+  if(totalFileSize % NUM_BYTE_PER_EDGE){
+    cerr << "Graph has " << totalFileSize << " bytes, which is not a multiple of "
+         << NUM_BYTE_PER_EDGE << endl;
+    throw invalidBinaryFile();
+  }
+  size_t numEdges = totalFileSize / NUM_BYTE_PER_EDGE;
+  vector<edge> edges;
+
+  if(::verbose){
+    cout << "Number of Edges:" << numEdges << endl;
+  }
+
+#pragma omp parallel
+  {
+
+    unsigned int tid = omp_get_thread_num();
+    unsigned int totalThreadNum = omp_get_num_threads();
+    size_t edgesPerThread = numEdges / totalThreadNum;
+
+    size_t startEdgeNum = tid * edgesPerThread;
+    size_t endEdgeNum = startEdgeNum + edgesPerThread;
+    if(tid == totalThreadNum-1){
+      endEdgeNum = numEdges;
+    }
+
+    if(::verbose){
+#pragma omp critical
+      cout << tid << ":\t" << startEdgeNum << " - " << endEdgeNum << endl;
+#pragma omp barrier
+    }
+
+    FILE* file;
+    file = fopen(graphPath.c_str(), "rb");
+    fseek(file, startEdgeNum * NUM_BYTE_PER_EDGE, SEEK_SET);
+    charBuff buff[3];
+    while(startEdgeNum < endEdgeNum){
+      fread(buff, sizeof(charBuff), 3, file);
+      edge e(buff[0].i, buff[1].i, buff[2].f);
+
+      if(subsetVectors.find(e.a) != subsetVectors.end() ||
+         subsetVectors.find(e.b) != subsetVectors.end())
+      {
+#pragma omp critical
+        edges.push_back(e);
+      }
+      ++startEdgeNum;
+    }
+    fclose(file);
+  }
+
+  graph g(subsetVectors, edges);
+
+  if(::verbose) cout << "Loaded Graph with " << g.numNodes() << " nodes and "
+                     << g.numEdges() << " edges."<< endl;
+
+  if(::verbose) cout << "Checking if path exists:" << endl;
+
+  if(g.pathExists(sourceIdx, targetIdx)){
+
+    if(::verbose) cout << "Getting shortest path." << endl;
+
+    vector<nodeIdx> path = g.getShortestPath(sourceIdx, targetIdx);
+
+    if(::verbose){
+      cout << "Path:";
+      for(nodeIdx n : path)
+        cout << n << " ";
+      cout << endl;
+    }
+  } else {
+    if(::verbose) cout << "Path does not exist. Consider extending elipse." << endl;
   }
 
   return 0;
