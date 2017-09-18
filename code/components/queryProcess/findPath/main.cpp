@@ -63,12 +63,16 @@ nodeIdx getIdx(string path, string label){
 
 class getVectorException: public exception {};
 
-vector<float> getVector(string path1, string path2, string label){
-  fstream fin1(path1, ios::in);
-  fstream fin2(path2, ios::in);
+vector<float> getVector(string ngrams, string pmid, string umls, string label){
+  string targetFile = ngrams;
+  if(label[0] == 'C')
+    targetFile = umls;
+  if(label[0] == 'P')
+    targetFile = pmid;
+  fstream fin(targetFile, ios::in);
   string line, token;
   vector<float> res;
-  while(getline(fin1, line) || getline(fin2, line)){
+  while(getline(fin, line)){
     // line starts with label, not sufficient, but good filter
     if(strncmp(line.c_str(), label.c_str(), label.length()) == 0){
       stringstream ss(line);
@@ -79,7 +83,7 @@ vector<float> getVector(string path1, string path2, string label){
       }
     }
   }
-  cerr << "Failed to find " << label << " in " << path1 << " or " << path2 << endl;
+  cerr << "Failed to find " << label << " in " << targetFile << endl;
   throw getVectorException();
 }
 
@@ -105,8 +109,9 @@ int main (int argc, char** argv){
   p.add<nodeIdx>("sourceIdx", 's', "id representing the source", true);
   p.add<nodeIdx>("targetIdx", 't', "intended target", false, UNDEFINED);
   p.add<string>("outputFile", 'o', "Output paths and neighborhoods", true);
-  p.add<string>("vectorFile", 'V', "Dict File for vectors", true);
-  p.add<string>("centroidFile", 'C', "Dict File for centroids", true);
+  p.add<string>("ngramVectors", 'V',  "File contanining text vectors for ngrams", true);
+  p.add<string>("pmidCentroids", 'P', "File containing text vectors for PMIDs", true);
+  p.add<string>("umlsCentroids", 'U', "File containing text vectors for UMLS terms", true);
   p.add<string>("labelFile", 'l', "Label file accompanying the edges file.", true);
   p.add<float>("elipseConst", 'e', "Constant alpha where dist(A,B)*\\alpha = 2a", true);
   p.add("verbose", 'v', "outputs debug information");
@@ -117,8 +122,9 @@ int main (int argc, char** argv){
   nodeIdx sourceIdx =  p.get<nodeIdx>("sourceIdx");
   nodeIdx targetIdx =  p.get<nodeIdx>("targetIdx");
   string outputPath =  p.get<string>("outputFile");
-  string vectorPath = p.get<string>("vectorFile");
-  string centroidPath = p.get<string>("centroidFile");
+  string vectorPath = p.get<string>("ngramVectors");
+  string pmidCentroidPath = p.get<string>("pmidCentroids");
+  string umlsCentroidPath = p.get<string>("umlsCentroids");
   string labelPath =  p.get<string>("labelFile");
   float elipseConstMultiple = p.get<float>("elipseConst");
   verbose = p.exist("verbose");
@@ -154,10 +160,10 @@ int main (int argc, char** argv){
     }
 
 #pragma omp task
-    sourceVec = getVector(vectorPath, centroidPath,  sourceLbl);
+    sourceVec = getVector(vectorPath, pmidCentroidPath, umlsCentroidPath,  sourceLbl);
 
 #pragma omp task
-    targetVec = getVector(vectorPath, centroidPath, targetLbl);
+    targetVec = getVector(vectorPath, pmidCentroidPath, umlsCentroidPath, targetLbl);
 
 #pragma omp taskwait
     elipseConst = dist(sourceVec, targetVec) * elipseConstMultiple;
@@ -177,11 +183,12 @@ int main (int argc, char** argv){
     }
 
     fstream vFile(vectorPath, ios::in);
-    fstream cFile(centroidPath, ios::in);
+    fstream cFile(pmidCentroidPath, ios::in);
+    fstream uFile(umlsCentroidPath, ios::in);
     string line;
     bool ignoreFirstLine = true;
     //get lines from both vectors and centroids
-    while(getline(vFile, line) || getline(cFile, line)){
+    while(getline(vFile, line) || getline(cFile, line) || getline(uFile, line)){
       if(ignoreFirstLine){ // vector file has size at start
         ignoreFirstLine = false;
         continue;

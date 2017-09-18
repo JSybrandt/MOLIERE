@@ -17,11 +17,13 @@
 
 module load gcc
 
-PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
+PROJ_HOME=$(pwd | grep -o .*/moliere)
 
-DATA=/zfs/safrolab/users/jsybran/moliere/data/yearlySubsets/2010
-UMLS_DIR=/zfs/safrolab/users/jsybran/moliere/data/umls/2009AB
-TERMS_FILE=$DATA/network/terms.labels
-OUT_FILE=$DATA/network/keyword2terms.edges
+PATH=$PATH:$PROJ_HOME/code/components/links
 
-connectUMLS -d $UMLS_DIR -t $TERMS_FILE -o $OUT_FILE -v
+DATA=$PROJ_HOME/data/yearlySubsets/2010
+UMLS_DIR=$PROJ_HOME/data/umls/2009AB
+LABEL_FILE=$DATA/network/terms.labels
+OUT_FILE=$DATA/network/keyword2terms.edges.NEW
+
+connectUMLS -d $UMLS_DIR -l $LABEL_FILE -o $OUT_FILE

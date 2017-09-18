@@ -4,6 +4,6 @@ module load openmpi
 clear
 rm -rf bin
 mkdir bin
-g++ *.cpp -O2 -o ./bin/connectUMLS -I /home/jsybran/lib/include
+g++ *.cpp -O3 -fopenmp -o ./bin/connectUMLS -I /home/jsybran/lib/include
 ln -sf ./bin/connectUMLS
 

@@ -26,6 +26,24 @@
 
 using namespace std;
 
+
+string cleanText(string text){
+  text.erase(remove_if(text.begin(), text.end(), [](char c){return c != '-' && ispunct(c);}), text.end());
+  //text.erase(remove_if(text.begin(), text.end(), [](char c){return isdigit(c);}), text.end());
+  text.erase(unique(text.begin(), text.end(),
+             [](char l, char r){return (l==r) && (l == ' ');}),
+             text.end());
+  text.erase(text.begin(),
+             find_if(text.begin(),text.end(),
+                     not1(ptr_fun<int,int>(isspace)))
+            );
+  text.erase(find_if(text.rbegin(), text.rend(), not1(ptr_fun<int,int>(isspace))).base(),
+             text.end());
+  transform(text.begin(), text.end(), text.begin(), [](char c){return tolower(c);});
+  transform(text.begin(), text.end(), text.begin(), [](char c){return (c==' ' || c=='-' ? '_':c);});
+  return text;
+}
+
 // Load from MRCONSO file
 // column labels described here:
 // https://www.ncbi.nlm.nih.gov/books/NBK9685/table/ch03.T.concept_names_and_sources_file_mr/?report=objectonly
@@ -38,20 +56,7 @@ struct KeywordData{
   KeywordData(string data){
     vector<string> record = getRecord(data);
     cui = record[ID_COL_IDX];
-    text = record[STR_COL_IDX];
-    text.erase(remove_if(text.begin(), text.end(), [](char c){return ispunct(c);}), text.end());
-    //text.erase(remove_if(text.begin(), text.end(), [](char c){return isdigit(c);}), text.end());
-    text.erase(unique(text.begin(), text.end(),
-               [](char l, char r){return (l==r) && (l == ' ');}),
-               text.end());
-    text.erase(text.begin(),
-               find_if(text.begin(),text.end(),
-                       not1(ptr_fun<int,int>(isspace)))
-              );
-    text.erase(find_if(text.rbegin(), text.rend(), not1(ptr_fun<int,int>(isspace))).base(),
-               text.end());
-    transform(text.begin(), text.end(), text.begin(), [](char c){return tolower(c);});
-    transform(text.begin(), text.end(), text.begin(), [](char c){return (c==' ' ? '_':c);});
+    text = cleanText(record[STR_COL_IDX]);
   }
 
   vector<string> getRecord(string line, char delim = '|'){
@@ -97,16 +102,16 @@ int main(int argc, char** argv){
 
   cmdline::parser p;
 
-  p.add<string>("umlsDir",    'd', "input directory of umls", true, "");
-  p.add<string>("termList",    't', "input list of terms", true, "");
-  p.add<string>("outputFile", 'o', "output file edge list", true, "");
+  p.add<string>("umlsDir",    'd', "input directory of umls", true);
+  p.add<string>("labelFile", 'l', "network label file", true);
+  p.add<string>("outputFile", 'o', "output file edge list", true);
   p.add<float>("weight", 'w', "edge weight", false, 0);
   p.add("verbose", 'v', "outputs debug information");
 
   p.parse_check(argc, argv);
 
   string mrconsoPath =  p.get<string>("umlsDir") + "/META/MRCONSO.RRF";
-  string termListPath =  p.get<string>("termList");
+  string labelPath =  p.get<string>("labelFile");
   string outputPath =  p.get<string>("outputFile");
   float weight =  p.get<float>("weight");
   bool verbose = p.exist("verbose");
@@ -118,26 +123,50 @@ int main(int argc, char** argv){
   unordered_map<string,string> keyword2cui;
   string line;
   fstream mrconsoFile(mrconsoPath, ios::in);
-  while(getline(mrconsoFile, line)){
-    KeywordData data(line);
-    keyword2cui[data.text] = data.cui;
-    if(verbose) cout << "READING: " << data.cui << " " << data.text << endl;
+
+#pragma omp parallel
+  {
+#pragma omp single
+  {
+    while(getline(mrconsoFile, line)){
+#pragma omp task firstprivate(line)
+      {
+        KeywordData data(line);
+#pragma omp critical
+        keyword2cui[data.text] = data.cui;
+        if(verbose) cout << "READING: " << data.cui << " " << data.text << endl;
+      }
+    }
+  }
   }
 
   if(verbose) cout << "closing mrconso" << endl;
   mrconsoFile.close();
 
-  fstream termListFile(termListPath, ios::in);
+  fstream termListFile(labelPath, ios::in);
   fstream outputFile(outputPath, ios::out);
 
   string term;
 
   if(verbose) cout << "Reading edges" << endl;
   vector<edge> edges;
-  while(termListFile >> term){
-    if(keyword2cui.find(term) != keyword2cui.end()){
-      outputFile << term << " "<< keyword2cui[term] << " " << weight << endl;
+
+
+#pragma omp parallel
+  {
+#pragma omp single
+  {
+    while(termListFile >> term){
+#pragma omp task firstprivate(term)
+      {
+        string cleaned = cleanText(term);
+        if(keyword2cui.find(cleaned) != keyword2cui.end()){
+#pragma omp critical
+          outputFile << term << " "<< keyword2cui[cleaned] << " " << weight << endl;
+        }
+      }
     }
+  }
   }
 
   termListFile.close();
