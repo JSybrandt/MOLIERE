@@ -1,8 +1,8 @@
 #!/bin/bash
-#PBS -N valPaths
+#PBS -N histCancerPaths
 #PBS -l select=1:ncpus=16:mem=60gb,walltime=72:00:00
-#PBS -o /home/jsybran/jobLogs/valPaths.out
-#PBS -e /home/jsybran/jobLogs/valPaths.err
+#PBS -o /home/jsybran/jobLogs/histCancerPaths.out
+#PBS -e /home/jsybran/jobLogs/histCancerPaths.err
 #PBS -J 0-99
 # the above is a default PBS header
 
@@ -54,12 +54,12 @@ PMID_VEC=$VECS/centroids.data
 #touch $PMID_VEC
 UMLS_VEC=$VECS/umls.data
 
-ELIPSE=1.4
+ELIPSE=1.3
 
-OUT_DIR=$PROJ_HOME/results/validation/2010/paths
+OUT_DIR=$PROJ_HOME/results/validation/histCancer
 mkdir -p $OUT_DIR
 
-QUERY_FILE=$PROJ_HOME/data/yearlySubsets/2010/database/validationSet.umls.subset.txt
+QUERY_FILE=$PROJ_HOME/data/yearlySubsets/2010/histCancer/problemDescription.indices
 
 NUM_QUERIES=$(wc -l $QUERY_FILE | awk '{print $1}')
 
@@ -74,15 +74,10 @@ fi
 
 for((i = $Q_START_NUM; i < $Q_END_NUM; i++)){
   LINE=$( sed -n "$(($i+1))"'p' $QUERY_FILE)
-  SOURCE_LBL=$(awk 'BEGIN{FS="|"}{print $1}' <<< $LINE)
-  VERB_TOKEN=$(awk 'BEGIN{FS="|"}{print $2}' <<< $LINE)
-  TARGET_LBL=$(awk 'BEGIN{FS="|"}{print $3}' <<< $LINE)
-  YEAR=$(awk 'BEGIN{FS="|"}{print $4}' <<< $LINE)
+  SOURCE_IDX=$(awk '{print $1}' <<< $LINE)
+  TARGET_IDX=$(awk '{print $2}' <<< $LINE)
 
-  SOURCE_IDX=$( grep -nwm1 $SOURCE_LBL $LABELS | awk 'BEGIN{FS=":"}{print $1-1}')
-  TARGET_IDX=$( grep -nwm1 $TARGET_LBL $LABELS | awk 'BEGIN{FS=":"}{print $1-1}')
-
-  OUT="$OUT_DIR/$SOURCE_LBL-$VERB_TOKEN-$TARGET_LBL.path"
+  OUT="$OUT_DIR/$SOURCE_IDX-$TARGET_IDX.path"
 
 echo "
   findPath -g $EDGES \
@@ -93,7 +88,7 @@ echo "
            -P $PMID_VEC \
            -U $UMLS_VEC \
            -e $ELIPSE \
-           -o $OUT
+           -o $OUT 
 "
   findPath -g $EDGES \
            -l $LABELS \
@@ -103,7 +98,7 @@ echo "
            -P $PMID_VEC \
            -U $UMLS_VEC \
            -e $ELIPSE \
-           -o $OUT
+           -o $OUT 
 }
 
 

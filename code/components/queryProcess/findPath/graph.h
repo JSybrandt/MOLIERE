@@ -96,52 +96,35 @@ public:
     const vector<float>& targetVec = safeGetVec(target);
     float maxDist = dist(vector<float>(targetVec.size(), -1.0f),
                          vector<float>(targetVec.size(), 1.0f));
-    bool shouldGoOn = true;
     backPointers[source] = source;
 #pragma omp parallel
     {
 #pragma omp single
     {
-      while(shouldGoOn){
+      while(!targetFound && !queue.empty()){
         pair<nodeIdx, float> currData;
-#pragma omp critical (queue)
         currData = queue.pop();
-
-#pragma omp critical (completed)
         completed.insert(currData.first);
 
-#pragma omp task firstprivate (currData)
-        {
-          vector<float> vec;
-#pragma omp critical (approxVec)
-          vec = safeGetVec(currData.first);
-          float d = dist(vec, targetVec) / maxDist;
-          for(pair<nodeIdx, float> edge : data[currData.first]){
-            float isFresh;
-#pragma omp critical (completed)
-            isFresh = completed.find(edge.first) == completed.end();
-            if(isFresh){
-#pragma omp critical (backPointers)
+        for(pair<nodeIdx, float> edge : data[currData.first]){
+#pragma omp task firstprivate(edge)
+          {
+            if(completed.find(edge.first) == completed.end()){
+              vector<float> vec;
+#pragma omp critical (safeVec)
+              vec = safeGetVec(edge.first);
+              float d = dist(vec, targetVec) / maxDist;
+#pragma omp critical (bkPtr)
               backPointers[edge.first] = currData.first;
 #pragma omp critical (queue)
               queue.push(edge.first, edge.second + currData.second + d);
               if(currData.first == target){
-#pragma omp critical (targetFound)
                 targetFound = true;
               }
             }
           }
         }
-        bool mustWait = false;
-#pragma omp critical (queue)
-        mustWait = queue.empty();
-        if(mustWait){
 #pragma omp taskwait
-#pragma omp critical (queue)
-          if(queue.empty()) shouldGoOn = false;
-        }
-#pragma omp critical (targetFound)
-        if(targetFound) shouldGoOn = false;
       }
     }
     }
