@@ -1,9 +1,9 @@
 #!/bin/bash
-#PBS -N valPaths
-#PBS -l select=1:ncpus=16:mem=60gb,walltime=72:00:00
-#PBS -o /home/jsybran/jobLogs/valPaths.out
-#PBS -e /home/jsybran/jobLogs/valPaths.err
-#PBS -J 0-99
+#PBS -N valClouds
+#PBS -l select=1:ncpus=24:mem=500gb,walltime=72:00:00
+#PBS -q bigmem
+#PBS -o /home/jsybran/jobLogs/valClouds.out
+#PBS -e /home/jsybran/jobLogs/valClouds.err
 # the above is a default PBS header
 
 
@@ -30,12 +30,12 @@ if [ -z "$PROJ_HOME" ]; then
   fi
 fi
 
-if [ -z "$PBS_ARRAY_INDEX" ]; then
-  echo "Must be submitted as array job"
-  exit 1
-fi
-
-PBS_NUM_MACHINES=100
+# if [ -z "$PBS_ARRAY_INDEX" ]; then
+#   echo "Must be submitted as array job"
+#   exit 1
+# fi
+#
+# PBS_NUM_MACHINES=100
 
 # add project tools to path
 PATH=$PATH:$PROJ_HOME/code/components/links
@@ -54,69 +54,21 @@ PMID_VEC=$VECS/centroids.data
 #touch $PMID_VEC
 UMLS_VEC=$VECS/umls.data
 
-ELIPSE=1.4
 
-OUT_DIR=$PROJ_HOME/results/validation/2010/paths
-mkdir -p $OUT_DIR
+OUT=$PROJ_HOME/results/validation/2010/allClouds.txt
 
-QUERY_FILE=$PROJ_HOME/data/yearlySubsets/2010/database/validationSet.umls.subset.txt
+PATHS=$PROJ_HOME/results/validation/2010/allPaths.txt
 
-NUM_QUERIES=$(wc -l $QUERY_FILE | awk '{print $1}')
+paths2Dijk -g $EDGES -p $PATHS -o $OUT -l $LABELS
 
-Q_PER_MACHINE=$(($NUM_QUERIES / $PBS_NUM_MACHINES))
-
-Q_START_NUM=$(($PBS_ARRAY_INDEX * $Q_PER_MACHINE))
-Q_END_NUM=$(($Q_START_NUM + $Q_PER_MACHINE))
-
-if [ $PBS_ARRAY_INDEX -eq $(($PBS_NUM_MACHINES - 1)) ]; then
-  $Q_END_NUM=$NUM_QUERIES
-fi
-
-for((i = $Q_START_NUM; i < $Q_END_NUM; i++)){
-  LINE=$( sed -n "$(($i+1))"'p' $QUERY_FILE)
-  SOURCE_LBL=$(awk 'BEGIN{FS="|"}{print $1}' <<< $LINE)
-  VERB_TOKEN=$(awk 'BEGIN{FS="|"}{print $2}' <<< $LINE)
-  TARGET_LBL=$(awk 'BEGIN{FS="|"}{print $3}' <<< $LINE)
-  YEAR=$(awk 'BEGIN{FS="|"}{print $4}' <<< $LINE)
-
-  SOURCE_IDX=$( grep -nwm1 $SOURCE_LBL $LABELS | awk 'BEGIN{FS=":"}{print $1-1}')
-  TARGET_IDX=$( grep -nwm1 $TARGET_LBL $LABELS | awk 'BEGIN{FS=":"}{print $1-1}')
-
-  OUT="$OUT_DIR/$SOURCE_LBL-$VERB_TOKEN-$TARGET_LBL.path"
-
-echo "
-  findPath -g $EDGES \
-           -l $LABELS \
-           -s $SOURCE_IDX \
-           -t $TARGET_IDX \
-           -V $NGRAM_VEC \
-           -P $PMID_VEC \
-           -U $UMLS_VEC \
-           -e $ELIPSE \
-           -o $OUT
-"
-  findPath -g $EDGES \
-           -l $LABELS \
-           -s $SOURCE_IDX \
-           -t $TARGET_IDX \
-           -V $NGRAM_VEC \
-           -P $PMID_VEC \
-           -U $UMLS_VEC \
-           -e $ELIPSE \
-           -o $OUT
-}
-
-
-#usage: ./findPath --graphFile=string --sourceIdx=unsigned int --outputFile=string --ngramVectors=string --pmidCentroids=string --umlsCentroids=string --labelFile=string --elipseConst=float [options] ...
+#usage: ./paths2Dijk --graphFile=string --pathFile=string --outputFile=string --labelFile=string [options] ... 
 #options:
-  #-g, --graphFile        input graph file (string)
-  #-s, --sourceIdx        id representing the source (unsigned int)
-  #-t, --targetIdx        intended target (unsigned int [=4294967295])
-  #-o, --outputFile       Output paths and neighborhoods (string)
-  #-V, --ngramVectors     File contanining text vectors for ngrams (string)
-  #-P, --pmidCentroids    File containing text vectors for PMIDs (string)
-  #-U, --umlsCentroids    File containing text vectors for UMLS terms (string)
-  #-l, --labelFile        Label file accompanying the edges file. (string)
-  #-e, --elipseConst      Constant alpha where dist(A,B)*\alpha = 2a (float)
-  #-v, --verbose          outputs debug information
-  #-?, --help             print this message
+  #-g, --graphFile     input graph (BINARY) file (string)
+  #-p, --pathFile      input path file (idx) (string)
+  #-o, --outputFile    Output paths and neighborhoods (string)
+  #-l, --labelFile     Label file accompanying the edges file. (string)
+  #-N, --cloudSetN     abstract cloud param: number of new abstracts adjacent to those on path. (unsigned int [=2000])
+  #-C, --cloudSetC     abstract cloud param: number of new abstracts from keyword overlap (unsigned int [=500])
+  #-K, --cloudSetK     abstract cloud param: number of new abstracts from keywords (unsigned int [=500])
+  #-v, --verbose       outputs debug information
+  #-?, --help          print this message

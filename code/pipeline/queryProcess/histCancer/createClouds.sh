@@ -1,6 +1,7 @@
 #!/bin/bash
 #PBS -N histClouds
-#PBS -l select=1:ncpus=24:mem=100gb,walltime=72:00:00
+#PBS -l select=1:ncpus=24:mem=500gb,walltime=72:00:00
+#PBS -q bigmem
 #PBS -o /home/jsybran/jobLogs/histClouds.out
 #PBS -e /home/jsybran/jobLogs/histClouds.err
 # the above is a default PBS header
@@ -58,7 +59,7 @@ OUT=$PROJ_HOME/results/cancer2010/allClouds.txt
 
 PATHS=$PROJ_HOME/results/cancer2010/allPaths.txt
 
-paths2Dijk -g $EDGES -p $PATHS -o $OUT -l $LABELS
+paths2Dijk -g $EDGES -p $PATHS -o $OUT -l $LABELS -v
 
 #usage: ./paths2Dijk --graphFile=string --pathFile=string --outputFile=string --labelFile=string [options] ... 
 #options:

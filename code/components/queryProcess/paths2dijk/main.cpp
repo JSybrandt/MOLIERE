@@ -62,7 +62,7 @@ void loadBinGraph(string graphPath, graph& g){
       endEdgeNum = numEdges;
     }
 
-    vector<edge> localEdges;
+    vector<edge> localEdges(endEdgeNum-startEdgeNum+10);
 
     if(::verbose){
 #pragma omp critical
@@ -70,14 +70,27 @@ void loadBinGraph(string graphPath, graph& g){
 #pragma omp barrier
     }
 
-    FILE* file;
-    file = fopen(graphPath.c_str(), "rb");
-    fseek(file, startEdgeNum * NUM_BYTE_PER_EDGE, SEEK_SET);
-    charBuff buff[3];
-    while(startEdgeNum < endEdgeNum){
-      fread(buff, sizeof(charBuff), 3, file);
-      edge e(buff[0].i, buff[1].i, buff[2].f);
-      localEdges.push_back(e);
+    try{
+      FILE* file;
+      file = fopen(graphPath.c_str(), "rb");
+      fseek(file, startEdgeNum * NUM_BYTE_PER_EDGE, SEEK_SET);
+      charBuff buff[3];
+      while(startEdgeNum < endEdgeNum){
+        fread(buff, sizeof(charBuff), 3, file);
+        try{
+          localEdges.push_back(edge(buff[0].i, buff[1].i, buff[2].f));
+        } catch(...){
+          cerr << "some shit happened when EMPLACING" << endl;
+          cerr << localEdges.size() << endl;
+          cerr << localEdges.capacity() << endl;
+          cerr << tid << endl;
+          exit(1);
+        }
+        ++startEdgeNum;
+      }
+    } catch(...){
+      cerr << "some shit happened while loading."<< endl;
+      exit(1);
     }
 #pragma omp critical
     {
@@ -112,7 +125,10 @@ int main (int argc, char** argv){
   verbose = p.exist("verbose");
 
   // CONSTRUCTING GRAPH
+  if(::verbose) cout << "Loading " << labelPath << endl;
   graph g(labelPath);
+
+  if(::verbose) cout << "Loading " << graphPath << endl;
   loadBinGraph(graphPath, g);
 
   if(verbose) cout << "Found " << g.numNodes() << " nodes" << endl;

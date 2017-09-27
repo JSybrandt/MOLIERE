@@ -114,14 +114,15 @@ vector<float> getProbByTopic(const TopicModel& word2Topic,
 
 float getSimilarity(const vector<float>& probA, const vector<float>& probB){
   if(probA.size() == probB.size()){
-    float msqerr = 0;
-    for(unsigned int i = 0; i < probA.size(); i++){
-      msqerr += pow(probA[i] - probB[i], 2);
-    }
-    msqerr /= probA.size();
 
-    float similarity = 1 - msqerr;
-    return similarity;
+    float dot, sumSqA, sumSqB;
+    dot = sumSqA = sumSqB = 0;
+    for(unsigned int i = 0; i < probA.size(); i++){
+      dot += probA[i] * probB[i];
+      sumSqA += probA[i] * probA[i];
+      sumSqB += probB[i] * probB[i];
+    }
+    return dot / (sqrt(sumSqA) * sqrt(sumSqB));
   }
 
   throw "GRABAGE INTO getSimilarity";
@@ -135,7 +136,7 @@ int main(int argc, char ** argv){
   p.add<string>("MRCONSO", 'M', "Post-processed MRSONSO file.", true);
   p.add<string>("sourceCUID", 's', "Source CUID.", true);
   p.add<string>("targetCUID", 't', "Target CUID.", true);
-  p.add<string>("verb", 'b', "verb.", true);
+//  p.add<string>("verb", 'b', "verb.", true);
   p.add("verbose", 'v', "Output debug info.");
 
   p.parse_check(argc, argv);
@@ -143,7 +144,7 @@ int main(int argc, char ** argv){
   string mrconsoPath = p.get<string>("MRCONSO");
   string sourceCUID = p.get<string>("sourceCUID");
   string targetCUID = p.get<string>("targetCUID");
-  string verb = p.get<string>("verb");
+//  string verb = p.get<string>("verb");
   ::verbose = p.exist("verbose");
 
   TopicModel word2Topics;
@@ -205,9 +206,7 @@ int main(int argc, char ** argv){
   }
 
   float sim = getSimilarity(sourceProb, targetProb);
-  if(::verbose){
-    cout << "P(t|x) sim P(t|y) " << sim << endl;
-  }
+  cout << sourceCUID << " " << targetCUID << " " << sim << endl;
 
   return 0;
 }

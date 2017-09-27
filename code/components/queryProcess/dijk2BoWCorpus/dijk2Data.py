@@ -87,9 +87,9 @@ def getShortestPathJob(dijkPath):
                 break
             pathTokens = line1.split()
             d = {}
-            d["start"] = pathTokens[1]
-            d["end"] = pathTokens[3]
-            d["weight"] = pathTokens[-1]
+            d["start"] = pathTokens[0]
+            d["end"] = pathTokens[-1]
+            # d["weight"] = pathTokens[-1]
             d["neigh"] = line2
             yield d
 

@@ -52,12 +52,16 @@ public:
   unsigned int numNodes() const { return data.size();}
   unsigned int numEdges() const { return edgeCount;}
   void addEdge(nodeIdx a, nodeIdx b, float weight){
-    if(weight < 0)
-      throw invalidEdge();
-    if(a != UNDEFINED && b != UNDEFINED){
-      data[a][b] = weight;
-      data[b][a] = weight;
-      ++edgeCount;
+    try{
+      if(weight < 0)
+        throw invalidEdge();
+      if(a != UNDEFINED && b != UNDEFINED){
+        data[a][b] = weight;
+        data[b][a] = weight;
+        ++edgeCount;
+      }
+    }catch(...){
+      cerr << "FAILED TO ADD EDGE " << a << " " << b << endl;
     }
   }
   void addEdge(const edge& e){
