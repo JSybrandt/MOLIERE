@@ -1,8 +1,8 @@
 #!/bin/bash
-#PBS -N valc2BOW
+#PBS -N clouds2BOWF
 #PBS -l select=1:ncpus=24:mem=100gb,walltime=72:00:00
-#PBS -o /home/jsybran/jobLogs/valc2BOW.out
-#PBS -e /home/jsybran/jobLogs/valc2BOW.err
+#PBS -o /home/jsybran/jobLogs/clouds2BOWF.out
+#PBS -e /home/jsybran/jobLogs/clouds2BOWF.err
 #PBS -M jsybran@clemson.edu
 #PBS -m ea
 # the above is a default PBS header
@@ -34,11 +34,11 @@ DATA=$PROJ_HOME/data/yearlySubsets/2010
 # intermediary results
 RES=$PROJ_HOME/results/validation/2010
 
-CLOUD_FILE=$RES/allClouds.predAug.txt
-OUT_DIR=$RES/DATA_PRED
+CLOUD_FILE=$RES/allClouds.fake.predAug.txt
+OUT_DIR=$RES/DATA_FAKE_PRED
 mkdir -p $OUT_DIR
 
-# AB_FILE=$DATA/processedText/abstracts.txt
+ # AB_FILE=$DATA/processedText/filtered_abstracts.predicateAugmented.txt
 AB_FILE=$PROJ_HOME/data/processedText/filtered_abstracts.predicateAugmented.txt
 LABELS=$DATA/network/final.labels
 
