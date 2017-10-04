@@ -3,7 +3,7 @@
 module load python
 module load sqlite
 
-hypo_name="hiv"
+hypo_name=$1
 input_path="/scratch2/esadrfa/moliere/"$hypo_name
 rm -rf $input_path"/out"
 mkdir $input_path"/out"
