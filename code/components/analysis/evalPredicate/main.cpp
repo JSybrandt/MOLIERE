@@ -22,6 +22,12 @@ typedef unordered_map<string, unordered_set<string>> AtomDict;
 
 bool verbose;
 
+float sigmoid(float f){
+  static const float E = 2.71828182;
+  float ex = pow(E, f);
+  return ex / (ex + 1);
+}
+
 // this will make sure all ngrams are in the std format
 string processString(string in){
     in.erase(remove_if(in.begin(), in.end(), [](char c){return ispunct(c);}), in.end());
@@ -112,6 +118,14 @@ vector<float> getProbByTopic(const TopicModel& word2Topic,
   return probs;
 }
 
+vector<float> getProbByTopic(const TopicModel& word2Topic,
+                             const string& word,
+                             unsigned int numTopics){
+  unordered_set<string> s;
+  s.insert(word);
+  return getProbByTopic(word2Topic, s, numTopics);
+}
+
 float getSimilarity(const vector<float>& probA, const vector<float>& probB){
   if(probA.size() == probB.size()){
 
@@ -122,11 +136,14 @@ float getSimilarity(const vector<float>& probA, const vector<float>& probB){
       sumSqA += probA[i] * probA[i];
       sumSqB += probB[i] * probB[i];
     }
+    if(sumSqA == 0 || sumSqB == 0){
+      return 0;
+    }
     return dot / (sqrt(sumSqA) * sqrt(sumSqB));
   }
 
   throw "GRABAGE INTO getSimilarity";
-  return -1;
+  return -999;
 }
 
 int main(int argc, char ** argv){
@@ -136,7 +153,7 @@ int main(int argc, char ** argv){
   p.add<string>("MRCONSO", 'M', "Post-processed MRSONSO file.", true);
   p.add<string>("sourceCUID", 's', "Source CUID.", true);
   p.add<string>("targetCUID", 't', "Target CUID.", true);
-//  p.add<string>("verb", 'b', "verb.", true);
+  p.add<string>("verb", 'b', "verb.", false, "");
   p.add("verbose", 'v', "Output debug info.");
 
   p.parse_check(argc, argv);
@@ -144,7 +161,7 @@ int main(int argc, char ** argv){
   string mrconsoPath = p.get<string>("MRCONSO");
   string sourceCUID = p.get<string>("sourceCUID");
   string targetCUID = p.get<string>("targetCUID");
-//  string verb = p.get<string>("verb");
+  string verb = p.get<string>("verb");
   ::verbose = p.exist("verbose");
 
   TopicModel word2Topics;
@@ -191,6 +208,7 @@ int main(int argc, char ** argv){
 
   vector<float> sourceProb = getProbByTopic(word2Topics, sourceAtoms, numTopics);
   vector<float> targetProb = getProbByTopic(word2Topics, targetAtoms, numTopics);
+  vector<float> verbProb = getProbByTopic(word2Topics, verb, numTopics);
 
   if(::verbose){
     cout << "Prob for " << sourceCUID << endl;
@@ -205,8 +223,19 @@ int main(int argc, char ** argv){
     }
   }
 
-  float sim = getSimilarity(sourceProb, targetProb);
-  cout << sourceCUID << " " << targetCUID << " " << sim << endl;
+  float simAB = getSimilarity(sourceProb, targetProb);
+  float simAx = getSimilarity(sourceProb, verbProb);
+  float simBx = getSimilarity(targetProb, verbProb);
+
+  float scoreMin = simAB + min(simAx, simBx);
+  float scoreMax = simAB + max(simAx, simBx);
+  float scoreAvg = simAB + (simAx + simBx)/2;
+  cout << sourceCUID << " " << verb << " " << targetCUID
+       << " " << simAB
+       << " " << scoreMin
+       << " " << scoreMax
+       << " " << scoreAvg
+       << endl;
 
   return 0;
 }

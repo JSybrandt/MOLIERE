@@ -1,9 +1,9 @@
 #!/bin/bash
-#PBS -N arrFPldaHiv
+#PBS -N hivPLDA
 #PBS -l select=1:ncpus=8:mem=30gb,walltime=72:00:00
-#PBS -J 1-100
-#PBS -o /home/jsybran/jobLogs/pldaHIV.out
-#PBS -e /home/jsybran/jobLogs/pldaHIV.err
+#PBS -J 0-99
+#PBS -o /home/jsybran/jobLogs/hivPLDA.out
+#PBS -e /home/jsybran/jobLogs/hivPLDA.err
 #PBS -M jsybran@clemson.edu
 #PBS -m ea
 
@@ -11,53 +11,75 @@ PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
 
 module load gcc mpich2/1.4-eth
 
-DATA=/scratch2/jsybran/moliere
-DATA_DIR=$DATA/HIV_DATA_FILES
-MODEL_DIR=$DATA/HIV_MODEL_FILES
-VIEW_DIR=$DATA/HIV_VIEW_FILES
+# Place us in the working directory
+if [ -z "$PBS_O_WORKDIR" ]; then
+  echo "Must be submitted through PBS from home directory"
+  exit 1
+fi
+cd $PBS_O_WORKDIR
 
-mkdir $MODEL_DIR
-mkdir $VIEW_DIR
+# Identify the project home dir
+if [ -z "$PROJ_HOME" ]; then
+  echo "searching for moliere home directory"
+  PROJ_HOME=$(pwd | grep -o .*moliere)
+  if [ "$PROJ_HOME" = "" ]; then
+    echo "Failed to find project home"
+    exit 1
+  else
+    echo "Found $PROJ_HOME"
+  fi
+fi
+
+if [ -z "$PBS_ARRAY_INDEX" ]; then
+  echo "must be submitted as array job"
+  exit 1
+fi
+
+# add project tools to path
+PATH=$PATH:$PROJ_HOME/code/components/links
+
+# data expected to be here
+DATA=$PROJ_HOME/data/
+# intermediary results
+RES=$PROJ_HOME/results/hiv-assc-dim
+
+DATA_FILE=$RES/allData.txt
+DATA_DIR=$RES/DATA
+MODEL_DIR=$RES/MODEL
+VIEW_DIR=$RES/VIEW
+
+mkdir -p $MODEL_DIR
+mkdir -p $VIEW_DIR
 
 NUM_MACHINES=100
 NUM_TOPICS=100
 
-NUM_FILES=$(ls -f $DATA_DIR | wc -l)
-echo "There are $NUM_FILES files in the data dir."
-NUM_NEW_FILES=$(for f in $(ls -f $DATA_DIR/); do if [ ! -f $VIEW_DIR/$f ]; then echo $f; fi; done | wc -l)
-echo "$NUM_NEW_FILES have not yet been processed"
+NUM_FILES=$(wc -l $DATA_FILE | awk '{print $1}')
+echo "NUM: $NUM_FILES"
 
-if [ -z ${PBS_ARRAY_INDEX+x} ]; then
-  PBS_ARRAY_INDEX=1
-  NUM_MACHINES=1
+JOB_RANGE=$(($NUM_FILES / $NUM_MACHINES))
+
+START=$(($PBS_ARRAY_INDEX * $JOB_RANGE))
+END=$(($START + $JOB_RANGE))
+if [ $PBS_ARRAY_INDEX == $(($NUM_MACHINES - 1)) ]; then
+  END=$NUM_FILES
 fi
-JOB_RANGE=$(($NUM_NEW_FILES/$NUM_MACHINES + 1))
-
-START=$((($PBS_ARRAY_INDEX - 1) * $JOB_RANGE))
-END=$((($PBS_ARRAY_INDEX) * $JOB_RANGE))
-COUNT=0
 
 echo "This job is responsible for files $START - $END"
 
-for f in $(ls -f $DATA_DIR/); do
-  if [ $f != '.' ] && [ $f != '..' ] && [ ! -f $VIEW_DIR/$f ]; then
-    COUNT=$(($COUNT+1))
-    if [ $COUNT -lt $END ] && [ $COUNT -ge $START ]; then
-      #echo "$COUNT $f"
-      echo "Model for $f does not exist"
-      in=$DATA_DIR/$f
-      out=$MODEL_DIR/$f
-      mpiexec -n 8 mpi_lda --num_topics $NUM_TOPICS \
-                           --alpha 1 \
-                           --beta 0.01 \
-                           --training_data_file $in \
-                           --model_file $out \
-                           --total_iterations 100 \
-                           --burn_in_iterations 50 \
-                           > /dev/null 2>&1
-      #echo "Created Model for $f"
-      view_model.py "$MODEL_DIR/$f"'_0' $VIEW_DIR/$f
-      #echo "Created view"
-    fi
+for((i = $START; i < $END; i++)){
+  LINE=$( sed -n "$(($i+1))"'p' $DATA_FILE)
+  if [ ! -f $VIEW_DIR/$LINE ]; then
+    in=$DATA_DIR/$LINE
+    out=$MODEL_DIR/$LINE
+    mpiexec -n 8 mpi_lda --num_topics $NUM_TOPICS \
+                         --alpha 1 \
+                         --beta 0.01 \
+                         --training_data_file $in \
+                         --model_file $out \
+                         --total_iterations 500 \
+                         --burn_in_iterations 50 \
+                         > /dev/null 2>&1
+    view_model.py "$MODEL_DIR/$LINE"'_0' $VIEW_DIR/$LINE
   fi
-done
+}

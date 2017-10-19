@@ -34,7 +34,7 @@ DATA=$PROJ_HOME/data/yearlySubsets/2010
 # intermediary results
 RES=$PROJ_HOME/results/validation/2010
 
-CLOUD_FILE=$RES/allClouds.predAug.txt
+CLOUD_FILE=$RES/allClouds.txt
 OUT_DIR=$RES/DATA_PRED
 mkdir -p $OUT_DIR
 

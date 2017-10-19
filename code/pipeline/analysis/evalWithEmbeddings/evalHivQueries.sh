@@ -1,8 +1,8 @@
 #!/bin/bash
-#PBS -N evCosREAL
+#PBS -N evalCuid
 #PBS -l select=1:ncpus=24:mem=100gb,walltime=72:00:00
-#PBS -o /home/jsybran/jobLogs/evCosREAL.out
-#PBS -e /home/jsybran/jobLogs/evCosREAL.err
+#PBS -o /home/jsybran/jobLogs/evalCuid.out
+#PBS -e /home/jsybran/jobLogs/evalCuid.err
 #PBS -M jsybran@clemson.edu
 #PBS -m ea
 # the above is a default PBS header
@@ -35,14 +35,13 @@ PATH=$PATH:$PROJ_HOME/code/components/links
 DATA=$PROJ_HOME/data
 RES=$PROJ_HOME/results
 
-TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW
-#TOPIC_DIR=$PROJ_HOME/results/cancer2010/VIEW
+TOPIC_DIR=$PROJ_HOME/results/hiv-assc-dim/VIEW
 
-CUID_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/umls.data
-NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.vec
+CUID_VEC=$PROJ_HOME/data/fastText/umls.data
+NGRAM_VEC=$PROJ_HOME/data/fastText/canon.vec
 
-OUT=$RES/validation/2010/allEvaluation.cosine.txt
-# OUT=$RES/cancer2010/evaluation.cos.txt
+#OUT=$RES/validation/2010/allEvaluation.cosine.txt
+OUT=$RES/hiv-assc-dim/evaluation.cos.txt
 
 rm $OUT
 
@@ -70,7 +69,7 @@ export OUT=$OUT
 export CUID_VEC=$CUID_VEC
 export NGRAM_VEC=$NGRAM_VEC
 ls -f $TOPIC_DIR
-parallel -j 16 evTopic {} ::: $(ls -f $TOPIC_DIR)
+parallel -j12 evTopic {} ::: $(ls -f $TOPIC_DIR)
 
 
 #usage: ../../../components/analysis/evalWithEmbeddings/evalWithEmbeddings --topicModel=string --sourceLabel=string --targetLabel=string [options] ...

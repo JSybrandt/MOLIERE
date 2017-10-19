@@ -1,13 +1,9 @@
 #!/bin/bash
-#PBS -N valPLDA
-#PBS -l select=1:ncpus=8:mem=30gb,walltime=72:00:00
-#PBS -J 0-99
-#PBS -o /home/jsybran/jobLogs/valPLDA.out
-#PBS -e /home/jsybran/jobLogs/valPLDA.err
-#PBS -M jsybran@clemson.edu
-#PBS -m ea
+#PBS -N PLDA
+#PBS -l select=1:ncpus=8:mem=30gb,walltime=24:00:00
+#PBS -J 0-49
 
-PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
+TASK_NAME=fulltext
 
 module load gcc mpich2/1.4-eth
 
@@ -38,20 +34,21 @@ fi
 # add project tools to path
 PATH=$PATH:$PROJ_HOME/code/components/links
 
-# data expected to be here
-DATA=$PROJ_HOME/data/yearlySubsets/2010
-# intermediary results
-RES=$PROJ_HOME/results/validation/2010
+RES_DIR=$PROJ_HOME/results/$TASK_NAME
+DATA_DIR=$RES_DIR/DATA
+MODEL_DIR=$RES_DIR/MODEL
+VIEW_DIR=$RES_DIR/VIEW
+DATA_FILE=$RES/allData.txt
 
-DATA_FILE=$RES/allData.fake.txt
-DATA_DIR=$RES/DATA_FAKE
-MODEL_DIR=$RES/MODEL_FAKE
-VIEW_DIR=$RES/VIEW_FAKE
+if [! -f $DATA_FILE ]; then
+  echo "Need to run pldaPrep.sh to get the allData.txt file."
+  exit 1
+fi
 
 mkdir -p $MODEL_DIR
 mkdir -p $VIEW_DIR
 
-NUM_MACHINES=100
+NUM_MACHINES=50
 NUM_TOPICS=100
 
 NUM_FILES=$(wc -l $DATA_FILE | awk '{print $1}')

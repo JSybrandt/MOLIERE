@@ -141,7 +141,8 @@ int main(int argc, char ** argv){
 
   unsigned int matchCount = 0;
   //float minDist = numeric_limits<float>::infinity();
-  float maxSim = -1;
+  float maxSim = -2;
+  float minSim = 2;
 
   vout << "Getting distances to each topic" << endl;
 
@@ -166,6 +167,12 @@ int main(int argc, char ** argv){
       //minDist = score;
       maxSim = score;
     }
+#pragma omp critical (minSim)
+    if(score < minSim){
+    //if(score < minDist){
+      //minDist = score;
+      minSim = score;
+    }
   }
 
   cout << sourceLabel << " "
@@ -173,7 +180,8 @@ int main(int argc, char ** argv){
        << simST << " "
        << matchCount / float(topics.size()) << " "
        //<< minDist << endl;
-       << maxSim << endl;
+       << maxSim << " "
+       << minSim << endl;
 
   return 0;
 }

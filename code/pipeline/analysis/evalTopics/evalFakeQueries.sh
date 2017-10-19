@@ -1,8 +1,8 @@
 #!/bin/bash
-#PBS -N evalCuid
+#PBS -N evalFake
 #PBS -l select=1:ncpus=24:mem=100gb,walltime=72:00:00
-#PBS -o /home/jsybran/jobLogs/evalCuid.out
-#PBS -e /home/jsybran/jobLogs/evalCuid.err
+#PBS -o /home/jsybran/jobLogs/evalFake.out
+#PBS -e /home/jsybran/jobLogs/evalFake.err
 #PBS -M jsybran@clemson.edu
 #PBS -m ea
 # the above is a default PBS header
@@ -37,9 +37,9 @@ RES=$PROJ_HOME/results
 
 MRCONSO=$DATA/umls/2009.MRCONSO
 
-TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW_FAKE_PRED
+TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW_FAKE
 
-OUT=$RES/validation/2010/allEvaluation.pred.fake.txt
+OUT=$RES/validation/2010/allEvaluation.topic.fake.txt
 VAL_DATA=$PROJ_HOME/data/validationData/validationSet.umls.txt
 
 rm $OUT

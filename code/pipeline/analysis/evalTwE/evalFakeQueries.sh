@@ -1,8 +1,8 @@
 #!/bin/bash
-#PBS -N evCosREAL
+#PBS -N evTwE
 #PBS -l select=1:ncpus=24:mem=100gb,walltime=72:00:00
-#PBS -o /home/jsybran/jobLogs/evCosREAL.out
-#PBS -e /home/jsybran/jobLogs/evCosREAL.err
+#PBS -o /home/jsybran/jobLogs/evTwE.out
+#PBS -e /home/jsybran/jobLogs/evTwE.err
 #PBS -M jsybran@clemson.edu
 #PBS -m ea
 # the above is a default PBS header
@@ -35,32 +35,27 @@ PATH=$PATH:$PROJ_HOME/code/components/links
 DATA=$PROJ_HOME/data
 RES=$PROJ_HOME/results
 
-TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW
-#TOPIC_DIR=$PROJ_HOME/results/cancer2010/VIEW
+TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW_FAKE
 
 CUID_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/umls.data
 NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.vec
 
-OUT=$RES/validation/2010/allEvaluation.cosine.txt
-# OUT=$RES/cancer2010/evaluation.cos.txt
+OUT=$RES/validation/2010/fakeEvaluation.twe.nonorm.txt
 
 rm $OUT
 
 evTopic(){
   f=$1
-  echo $f
   if [ -f "$TOPIC_DIR/$f" ]; then
-    echo 1
     SOURCE=$(awk 'BEGIN{FS="---"}{print $1}' <<< $f)
-    echo 2
     TARGET=$(awk 'BEGIN{FS="---"}{print $2}' <<< $f)
     echo "$SOURCE $TARGET"
-    evalWithEmbeddings -m $TOPIC_DIR/$f \
-                       -n $NGRAM_VEC \
-                       -c $CUID_VEC \
-                       -s $SOURCE \
-                       -t $TARGET \
-                       >> $OUT
+    evalTwE -m $TOPIC_DIR/$f \
+            -n $NGRAM_VEC \
+            -c $CUID_VEC \
+            -s $SOURCE \
+            -t $TARGET \
+            >> $OUT
   fi
 }
 
@@ -69,8 +64,7 @@ export TOPIC_DIR=$TOPIC_DIR
 export OUT=$OUT
 export CUID_VEC=$CUID_VEC
 export NGRAM_VEC=$NGRAM_VEC
-ls -f $TOPIC_DIR
-parallel -j 16 evTopic {} ::: $(ls -f $TOPIC_DIR)
+parallel -j 16 evTopic ::: $(ls $TOPIC_DIR)
 
 
 #usage: ../../../components/analysis/evalWithEmbeddings/evalWithEmbeddings --topicModel=string --sourceLabel=string --targetLabel=string [options] ...

@@ -7,34 +7,47 @@
 #PBS -M jsybran@clemson.edu
 #PBS -m ea
 
-# usage: dijk2Data [-h] [-l LABELPATH] [-p DIJKPATH] [-o OUTDIRPATH]
-#                  [-d DATABASEPATH] [-v]
-#
-# optional arguments:
-#   -h, --help            show this help message and exit
-#   -l LABELPATH, --labelPath LABELPATH
-#                         file path of the graph label file
-#   -p DIJKPATH, --dijkstraResPath DIJKPATH
-#                         file path of the dijkstra results
-#   -o OUTDIRPATH, --outDir OUTDIRPATH
-#                         dir path of result files
-#   -d DATABASEPATH, --database DATABASEPATH
-#                         file path of the sqlite database
-#   -v, --verbose         print debug info
+module load gcc openmpi
 
-module load gcc
-module load sqlite
+# Place us in the working directory
+if [ -z "$PBS_O_WORKDIR" ]; then
+  echo "Must be submitted through PBS from home directory"
+  exit 1
+fi
+cd $PBS_O_WORKDIR
 
-PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
+# Identify the project home dir
+if [ -z "$PROJ_HOME" ]; then
+  echo "searching for moliere home directory"
+  PROJ_HOME=$(pwd | grep -o .*moliere)
+  if [ "$PROJ_HOME" = "" ]; then
+    echo "Failed to find project home"
+    exit 1
+  else
+    echo "Found $PROJ_HOME"
+  fi
+fi
 
-DATA=/scratch2/jsybran/moliere
-LABEL_FILE=$DATA/final.labels
-SOURCE_NODE=24139455
-DIJK_FILE=$DATA/hiv_associate_dementia.dijkstra
-AB_FILE=$DATA/abstracts.txt
-OUT_DIR=$DATA/HIV_DATA_FILES
+# add project tools to path
+PATH=$PATH:$PROJ_HOME/code/components/links
 
-mkdir $OUT_DIR
+# data expected to be here
+DATA=$PROJ_HOME/data
+# network info expected to be here
+NETWORK=$DATA/network
+# results go here
+RES=$PROJ_HOME/results/hiv-assc-dim
 
-dijk2Data -l $LABEL_FILE -p $DIJK_FILE -a $AB_FILE -o $OUT_DIR
+OUT_DIR=$RES/DATA
+mkdir -p $OUT_DIR
+LABELS=$NETWORK/final.labels
+DIJK_FILE=$RES/hiv_associate_dementia.dijkstra
+FIXED_DIJK_FILE=$RES/hiv_associate_dementia.fixed.dijkstra
 
+# convert dijk file
+# awk 'NR % 2 {out=""; for(i=6; i<=NF-2; i++){out=out" "$i}; print out} NR % 2 == 0{print}' $DIJK_FILE > $FIXED_DIJK_FILE
+
+
+AB_FILE=$DATA/processedText/filtered_abstracts.txt
+
+dijk2Data.py -l $LABELS -p $FIXED_DIJK_FILE -a $AB_FILE -o $OUT_DIR

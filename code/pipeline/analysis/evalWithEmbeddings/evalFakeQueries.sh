@@ -1,8 +1,8 @@
 #!/bin/bash
-#PBS -N evalFakeCUID
+#PBS -N evcos
 #PBS -l select=1:ncpus=24:mem=100gb,walltime=72:00:00
-#PBS -o /home/jsybran/jobLogs/evalFakeCUID.out
-#PBS -e /home/jsybran/jobLogs/evalFakeCUID.err
+#PBS -o /home/jsybran/jobLogs/evcos.out
+#PBS -e /home/jsybran/jobLogs/evcos.err
 #PBS -M jsybran@clemson.edu
 #PBS -m ea
 # the above is a default PBS header
@@ -64,7 +64,7 @@ export TOPIC_DIR=$TOPIC_DIR
 export OUT=$OUT
 export CUID_VEC=$CUID_VEC
 export NGRAM_VEC=$NGRAM_VEC
-parallel evTopic ::: $(ls $TOPIC_DIR)
+parallel -j 16 evTopic ::: $(ls $TOPIC_DIR)
 
 
 #usage: ../../../components/analysis/evalWithEmbeddings/evalWithEmbeddings --topicModel=string --sourceLabel=string --targetLabel=string [options] ...

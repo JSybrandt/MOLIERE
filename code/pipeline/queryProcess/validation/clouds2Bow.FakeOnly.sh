@@ -1,6 +1,7 @@
 #!/bin/bash
 #PBS -N clouds2BOWF
-#PBS -l select=1:ncpus=24:mem=100gb,walltime=72:00:00
+#PBS -l select=1:ncpus=24:mem=500gb,walltime=72:00:00
+#PBS -q bigmem
 #PBS -o /home/jsybran/jobLogs/clouds2BOWF.out
 #PBS -e /home/jsybran/jobLogs/clouds2BOWF.err
 #PBS -M jsybran@clemson.edu
@@ -34,12 +35,12 @@ DATA=$PROJ_HOME/data/yearlySubsets/2010
 # intermediary results
 RES=$PROJ_HOME/results/validation/2010
 
-CLOUD_FILE=$RES/allClouds.fake.predAug.txt
-OUT_DIR=$RES/DATA_FAKE_PRED
+CLOUD_FILE=$RES/allClouds.fake.txt
+OUT_DIR=$RES/DATA_FAKE
 mkdir -p $OUT_DIR
 
  # AB_FILE=$DATA/processedText/filtered_abstracts.predicateAugmented.txt
-AB_FILE=$PROJ_HOME/data/processedText/filtered_abstracts.predicateAugmented.txt
+AB_FILE=$PROJ_HOME/data/processedText/filtered_abstracts.txt
 LABELS=$DATA/network/final.labels
 
 dijk2Data.py -l $LABELS -p $CLOUD_FILE -o $OUT_DIR -a $AB_FILE

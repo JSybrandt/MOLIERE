@@ -59,6 +59,20 @@ OUT=$PROJ_HOME/results/validation/2010/allClouds.fake.txt
 
 PATHS=$PROJ_HOME/results/validation/2010/allPaths.fake.txt
 
+rm $PATHS
+
+pushd $PROJ_HOME/results/validation/2010/fakepaths
+
+for f in $(ls -f); do
+  if [ -f $f ]; then
+    cat $f >> $PATHS
+    echo "" >> $PATHS
+  fi
+done
+
+popd
+
+
 paths2Dijk -g $EDGES -p $PATHS -o $OUT -l $LABELS
 
 #usage: ./paths2Dijk --graphFile=string --pathFile=string --outputFile=string --labelFile=string [options] ... 
