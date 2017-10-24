@@ -54,4 +54,4 @@ OUT=$OUT_DIR/hiv_associate_dementia.astar
 
 VEC_DICT=$DATA/fastText/canon.vec
 
-runAStar -g $GRAPH -s $SOURCE_IDX -T $TARGET_PATH -o $OUT -l $LABELS -d $VEC_DICT
+findPath -g $GRAPH -s $SOURCE_IDX -T $TARGET_PATH -o $OUT -l $LABELS -d $VEC_DICT
