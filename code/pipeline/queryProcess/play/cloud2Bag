@@ -1,11 +1,8 @@
 #!/bin/bash
-#PBS -N valc2BOW
+#PBS -N playBags
 #PBS -l select=1:ncpus=24:mem=100gb,walltime=72:00:00
-#PBS -o /home/jsybran/jobLogs/valc2BOW.out
-#PBS -e /home/jsybran/jobLogs/valc2BOW.err
-#PBS -M jsybran@clemson.edu
-#PBS -m ea
-# the above is a default PBS header
+
+EXP_NAME=play
 
 # Place us in the working directory
 if [ -z "$PBS_O_WORKDIR" ]; then
@@ -29,20 +26,21 @@ fi
 # add project tools to path
 PATH=$PATH:$PROJ_HOME/code/components/links
 
-# data expected to be here
-DATA=$PROJ_HOME/data/yearlySubsets/2010
-# intermediary results
-RES=$PROJ_HOME/results/validation/2010
+DATA=$PROJ_HOME/data
+NET=$DATA/network
+VECS=$DATA/fastText
+TEXT=$DATA/processedText
+RES=$PROJ_HOME/results/$EXP_NAME
 
-CLOUD_FILE=$RES/allClouds.txt
+CLOUD_FILE=$RES/cloud.txt
 OUT_DIR=$RES/DATA
 mkdir -p $OUT_DIR
 
 # AB_FILE=$DATA/processedText/abstracts.txt
-AB_FILE=$PROJ_HOME/data/processedText/abstracts.txt
-LABELS=$DATA/network/final.labels
+AB_FILE=$TEXT/abstracts.txt
+LABELS=$NET/final.labels
 
-dijk2Data.py -l $LABELS -p $CLOUD_FILE -o $OUT_DIR -a $AB_FILE
+dijk2Data.py -l $LABELS -p $CLOUD_FILE -o $OUT_DIR -a $AB_FILE -v
 
 #usage: dijk2Data.py [-h] [-l LABELPATH] [-p DIJKPATH] [-o OUTDIRPATH]
 #                    [-a ABSTRACTPATH] [-v]

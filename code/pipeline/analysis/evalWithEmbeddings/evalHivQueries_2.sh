@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N evalHIV
+#PBS -N evalHIVL2
 #PBS -l select=1:ncpus=16:mem=50gb,walltime=72:00:00
 #PBS -o /home/jsybran/jobLogs/evalCuid.out
 #PBS -e /home/jsybran/jobLogs/evalCuid.err
@@ -51,7 +51,7 @@ CUID_VEC=$PROJ_HOME/data/fastText/umls.data
 NGRAM_VEC=$PROJ_HOME/data/fastText/canon.vec
 
 #OUT=$RES/validation/2010/allEvaluation.cosine.txt
-OUT_DIR=$RES/hiv-assc-dim/COS
+OUT_DIR=$RES/hiv-assc-dim/L2
 mkdir -p $OUT_DIR
 OUT=$OUT_DIR/$PBS_ARRAY_INDEX.part.ev
 rm $OUT
@@ -76,5 +76,6 @@ for((i = $START; i < $END; i++)){
                      -c $CUID_VEC \
                      -s $SOURCE \
                      -t $TARGET \
+                     -e \
                      >> $OUT
 }

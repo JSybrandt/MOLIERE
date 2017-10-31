@@ -15,13 +15,14 @@
 #include<cmath>
 #include<omp.h>
 #include<limits>
+#include<algorithm>
 #include"cmdln.h"
 #include"util.h"
 
 using namespace std;
 
 // an array of lists of pairs
-typedef unordered_map<string, unsigned int> Topic;
+typedef vector<pair<string, unsigned int>> Topic;
 
 bool verbose;
 #define vout if(::verbose) cout
@@ -53,8 +54,7 @@ vector<Topic> getTM(string path){
       tmFile >> occuranceRate;
       // NOTE: we have to load as float because that the file.
       // All the values are positive integers
-      // token = processString(token);
-      result[currTopic][token] = occuranceRate;
+      result[currTopic].push_back(pair<string, unsigned int>(token, occuranceRate));
     }
   }
   tmFile.close();
@@ -90,6 +90,9 @@ int main(int argc, char ** argv){
   p.add<string>("sourceLabel", 's', "Source Label", true);
   p.add<string>("targetLabel", 't', "Target Label", true);
   p.add("verbose", 'v', "Output debug info.");
+  p.add("euclidian", 'e', "Use euclidian distance instead of cosine similarity.");
+  p.add<unsigned int>("numReportedTopics", 'r', "Number of topics to report", false, 5);
+  p.add<unsigned int>("topicCutoff", 'f', "number of words to be reported per topic", false, 5);
 
   p.parse_check(argc, argv);
   string topicModelPath = p.get<string>("topicModel");
@@ -99,6 +102,9 @@ int main(int argc, char ** argv){
   string sourceLabel = p.get<string>("sourceLabel");
   string targetLabel = p.get<string>("targetLabel");
   ::verbose = p.exist("verbose");
+  bool euclidian = p.exist("euclidian");
+  unsigned int numReportedTopics = p.get<unsigned int>("numReportedTopics");
+  unsigned int topicCutoff = p.get<unsigned int>("topicCutoff");
 
   vout << "Loading topic model from " << topicModelPath << endl;
   vector<Topic> topics = getTM(topicModelPath);
@@ -126,6 +132,7 @@ int main(int argc, char ** argv){
 
   vout << "Calculating topic centers." << endl;
   vector<vector<float>> topicCentroids(topics.size());
+  vector<float> topicScores(topics.size(), 0);
 
 #pragma omp parallel for
   for(unsigned int i = 0; i < topics.size(); ++i){
@@ -135,53 +142,71 @@ int main(int argc, char ** argv){
   vout << "Preparing for distance calculations" << endl;
   const vector<float>& sourceVec = word2vec[sourceLabel];
   const vector<float>& targetVec = word2vec[targetLabel];
+  vector<float> middle; // used only in the euclidian case
 
-  //float distST = distL2(sourceVec, targetVec);
-  float simST = cosSim(sourceVec, targetVec);
+  float scoreST;
+  if(euclidian){
+    scoreST = distL2(sourceVec, targetVec);
+    middle = (sourceVec + targetVec) * 0.5;
+  } else {
+    scoreST = cosSim(sourceVec, targetVec);
+  }
 
-  unsigned int matchCount = 0;
-  //float minDist = numeric_limits<float>::infinity();
-  float maxSim = -2;
-  float minSim = 2;
+  float maxScore = -numeric_limits<float>::infinity();
+  float minScore = numeric_limits<float>::infinity();
 
   vout << "Getting distances to each topic" << endl;
 
 #pragma omp parallel for
   for(unsigned int i = 0 ; i < topicCentroids.size(); ++i){
     const vector<float>& topicVec = topicCentroids[i];
-//    float distSx = distL2(sourceVec, topicVec);
-//    float distTx = distL2(targetVec, topicVec);
-//    float score = distST / (distSx + distTx);
-    float simSx = cosSim(sourceVec, topicVec);
-    float simTx = cosSim(targetVec, topicVec);
-    float score = (simSx + simTx) / 2;
-//    if(max(distSx, distTx) < distST){
-    if(simST < max(simSx, simTx)){
-#pragma omp critical (matchCount)
-      matchCount += 1;
+    float &score = topicScores[i];
+    if(euclidian){
+      float dist2Mid = distL2(topicVec, middle);
+      score = max(1 - (dist2Mid / (scoreST/2)), 0.0f);
+    } else {
+      float simSx = cosSim(sourceVec, topicVec);
+      float simTx = cosSim(targetVec, topicVec);
+      score = (simSx + simTx) / 2;
     }
-
-#pragma omp critical (maxSim)
-    if(score > maxSim){
-    //if(score < minDist){
-      //minDist = score;
-      maxSim = score;
+#pragma omp critical (maxScore)
+    if(score > maxScore){
+      maxScore = score;
     }
-#pragma omp critical (minSim)
-    if(score < minSim){
-    //if(score < minDist){
-      //minDist = score;
-      minSim = score;
+#pragma omp critical (minScore)
+    if(score < minScore){
+      minScore = score;
     }
   }
 
+  // print scores
   cout << sourceLabel << " "
        << targetLabel << " "
-       << simST << " "
-       << matchCount / float(topics.size()) << " "
-       //<< minDist << endl;
-       << maxSim << " "
-       << minSim << endl;
+       << scoreST << " "
+       << maxScore << " "
+       << minScore;
+
+  vector<pair<float, unsigned int>> score2topic(topics.size());
+  for(unsigned int i = 0 ; i < topics.size(); ++i){
+      score2topic.push_back(pair<float, unsigned int>(topicScores[i], i));
+  }
+  sort(score2topic.begin(), score2topic.end(), cmpRev<float, unsigned int>);
+
+  for(unsigned int i = 0;
+      i < min((unsigned int) topics.size(), numReportedTopics);
+      ++i)
+  {
+    auto& pair = score2topic[i];
+    Topic& topic = topics[pair.second];
+    cout << " TOPIC" << pair.second << " " << pair.first;
+    for(unsigned int i = 0;
+        i < min(topicCutoff, (unsigned int) topic.size());
+        ++i){
+      cout << " " << topic[i].first;
+    }
+  }
+
+  cout << endl;
 
   return 0;
 }

@@ -22,6 +22,7 @@ using std::ios;
 using std::strcmp;
 using std::unordered_map;
 using std::unordered_set;
+using std::pair;
 
 class vectorLengthNotEqual: public exception {};
 
@@ -60,7 +61,7 @@ union charBuff{
   char buff[4];
 };
 
-void operator += (vector<float>& a, const vector<float>& b){
+void operator+= (vector<float>& a, const vector<float>& b){
   if(a.size() != b.size())
     throw vectorLengthNotEqual();
   for(unsigned int i = 0; i < a.size(); ++i){
@@ -68,19 +69,29 @@ void operator += (vector<float>& a, const vector<float>& b){
   }
 }
 
-void operator /= (vector<float>& a, float b){
+vector<float> operator+ (const vector<float>& a, const vector<float>& b){
+  if(a.size() != b.size())
+    throw vectorLengthNotEqual();
+  vector<float> res(a.size(), 0);
+  for(unsigned int i = 0; i < a.size(); ++i){
+    res[i] = a[i] + b[i];
+  }
+  return res;
+}
+
+void operator/= (vector<float>& a, float b){
   for(unsigned int i = 0; i < a.size(); ++i){
     a[i] /= b;
   }
 }
 
-void operator *= (vector<float>& a, float b){
+void operator*= (vector<float>& a, float b){
   for(unsigned int i = 0; i < a.size(); ++i){
     a[i] *= b;
   }
 }
 
-vector<float> operator * (const vector<float>& a, float b){
+vector<float> operator* (const vector<float>& a, float b){
   vector<float> res(a.size());
   for(unsigned int i = 0; i < a.size(); ++i){
     res[i] = a[i] * b;
@@ -198,3 +209,15 @@ public:
 private:
   string ngramPath, pmidPath, umlsPath;
 };
+
+template<class T, class K>
+bool cmpRev(const pair<T,K>& a, const pair<T,K>& b){
+  return a.first > b.first;
+}
+
+//template<class T>
+//T min(const T& a, const T& b){
+  //if(a > b)
+    //return b;
+  //return a;
+//}
