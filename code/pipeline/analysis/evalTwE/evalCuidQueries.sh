@@ -35,12 +35,12 @@ PATH=$PATH:$PROJ_HOME/code/components/links
 DATA=$PROJ_HOME/data
 RES=$PROJ_HOME/results
 
-TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW
+TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW_REAL
 
 CUID_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/umls.data
-NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.vec
+NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.retrained.vec
 
-OUT=$RES/validation/2010/allEvaluation.twe.nonorm.txt
+OUT=$RES/validation/2010/real.twe.fix.txt
 
 rm $OUT
 

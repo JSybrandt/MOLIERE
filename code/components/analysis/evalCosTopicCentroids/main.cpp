@@ -71,7 +71,7 @@ vector<float> getTopicCentroid(const Topic & topic, const unordered_map<string, 
     const auto it = word2vec.find(word);
     if(it != word2vec.end()){
       res += it->second * occuranceCount;
-      totalCount += pair.second;
+      totalCount += occuranceCount;
     } else {
       vout << "Unable to process " << word << endl;
     }

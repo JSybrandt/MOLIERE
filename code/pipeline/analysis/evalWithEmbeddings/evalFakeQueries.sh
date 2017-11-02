@@ -38,9 +38,9 @@ RES=$PROJ_HOME/results
 TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW_FAKE
 
 CUID_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/umls.data
-NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.vec
+NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.retrained.vec
 
-OUT=$RES/validation/2010/fakeEvaluation.cosine.txt
+OUT=$RES/validation/2010/euclidian.fix.fake.ev
 
 rm $OUT
 
@@ -55,6 +55,7 @@ evTopic(){
                        -c $CUID_VEC \
                        -s $SOURCE \
                        -t $TARGET \
+                       -e \
                        >> $OUT
   fi
 }

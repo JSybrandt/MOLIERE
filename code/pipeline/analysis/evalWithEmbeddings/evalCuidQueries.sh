@@ -39,9 +39,9 @@ TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW
 #TOPIC_DIR=$PROJ_HOME/results/cancer2010/VIEW
 
 CUID_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/umls.data
-NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.vec
+NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.retrained.vec
 
-OUT=$RES/validation/2010/allEvaluation.cosine.txt
+OUT=$RES/validation/2010/euclidian.fix.real.ev
 # OUT=$RES/cancer2010/evaluation.cos.txt
 
 rm $OUT
@@ -60,6 +60,7 @@ evTopic(){
                        -c $CUID_VEC \
                        -s $SOURCE \
                        -t $TARGET \
+                       -e \
                        >> $OUT
   fi
 }
