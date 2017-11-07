@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N evL2R
+#PBS -N evCosREAL
 #PBS -l select=1:ncpus=24:mem=100gb,walltime=72:00:00
 #PBS -o /home/jsybran/jobLogs/evCosREAL.out
 #PBS -e /home/jsybran/jobLogs/evCosREAL.err
@@ -36,13 +36,11 @@ DATA=$PROJ_HOME/data
 RES=$PROJ_HOME/results
 
 TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW_REAL
-#TOPIC_DIR=$PROJ_HOME/results/cancer2010/VIEW
 
 CUID_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/umls.data
-NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.vec
+NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.retrained.vec
 
-OUT=$RES/validation/2010/evaluationFiles/real.l2.fix.ev
-# OUT=$RES/cancer2010/evaluation.cos.txt
+OUT=$RES/validation/2010/real.l2.tpw.ev
 
 rm $OUT
 
@@ -52,8 +50,8 @@ evTopic(){
   if [ -f "$TOPIC_DIR/$f" ]; then
     SOURCE=$(awk 'BEGIN{FS="---"}{print $1}' <<< $f)
     TARGET=$(awk 'BEGIN{FS="---"}{print $2}' <<< $f)
-    # echo "evalWithEmbeddings -m $TOPIC_DIR/$f -n $NGRAM_VEC -c $CUID_VEC -s $SOURCE -t $TARGET -e"
-    evalWithEmbeddings -m $TOPIC_DIR/$f \
+    echo "evalTpW -m $TOPIC_DIR/$f -n $NGRAM_VEC -c $CUID_VEC -s $SOURCE -t $TARGET -e"
+    evalTpW -m $TOPIC_DIR/$f \
                        -n $NGRAM_VEC \
                        -c $CUID_VEC \
                        -s $SOURCE \
@@ -68,18 +66,4 @@ export TOPIC_DIR=$TOPIC_DIR
 export OUT=$OUT
 export CUID_VEC=$CUID_VEC
 export NGRAM_VEC=$NGRAM_VEC
-ls -f $TOPIC_DIR
 parallel -j 16 evTopic {} ::: $(ls -f $TOPIC_DIR)
-
-
-#usage: ../../../components/analysis/evalWithEmbeddings/evalWithEmbeddings --topicModel=string --sourceLabel=string --targetLabel=string [options] ...
-#options:
-  #-m, --topicModel     Topic model from VIEW_FILES (string)
-  #-n, --ngramVecs      ngram vector file (string [=])
-  #-p, --pmidVecs       pmid vector file (string [=])
-  #-c, --cuidVecs       cuid vector file (string [=])
-  #-s, --sourceLabel    Source Label (string)
-  #-t, --targetLabel    Target Label (string)
-  #-v, --verbose        Output debug info.
-  #-?, --help           print this message
-

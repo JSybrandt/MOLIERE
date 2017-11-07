@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N evL2R
+#PBS -N evCosR
 #PBS -l select=1:ncpus=24:mem=100gb,walltime=72:00:00
 #PBS -o /home/jsybran/jobLogs/evCosREAL.out
 #PBS -e /home/jsybran/jobLogs/evCosREAL.err
@@ -41,7 +41,7 @@ TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW_REAL
 CUID_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/umls.data
 NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.vec
 
-OUT=$RES/validation/2010/evaluationFiles/real.l2.fix.ev
+OUT=$RES/validation/2010/evaluationFiles/real.cos.fix.ev
 # OUT=$RES/cancer2010/evaluation.cos.txt
 
 rm $OUT
@@ -50,15 +50,16 @@ evTopic(){
   f=$1
   echo $f
   if [ -f "$TOPIC_DIR/$f" ]; then
+    echo 1
     SOURCE=$(awk 'BEGIN{FS="---"}{print $1}' <<< $f)
+    echo 2
     TARGET=$(awk 'BEGIN{FS="---"}{print $2}' <<< $f)
-    # echo "evalWithEmbeddings -m $TOPIC_DIR/$f -n $NGRAM_VEC -c $CUID_VEC -s $SOURCE -t $TARGET -e"
+    echo "$SOURCE $TARGET"
     evalWithEmbeddings -m $TOPIC_DIR/$f \
                        -n $NGRAM_VEC \
                        -c $CUID_VEC \
                        -s $SOURCE \
                        -t $TARGET \
-                       -e \
                        >> $OUT
   fi
 }

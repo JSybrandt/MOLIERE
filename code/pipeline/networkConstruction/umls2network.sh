@@ -23,3 +23,4 @@ UMLS_DIR=/zfs/safrolab/users/jsybran/moliere/data/umls/2009AB
 NET_FILE=$DATA/network/umls
 
 umlsNetwork -d $UMLS_DIR -o $NET_FILE
+

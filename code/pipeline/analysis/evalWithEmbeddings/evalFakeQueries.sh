@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N evcos
+#PBS -N evL2F
 #PBS -l select=1:ncpus=24:mem=100gb,walltime=72:00:00
 #PBS -o /home/jsybran/jobLogs/evcos.out
 #PBS -e /home/jsybran/jobLogs/evcos.err
@@ -38,9 +38,9 @@ RES=$PROJ_HOME/results
 TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW_FAKE
 
 CUID_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/umls.data
-NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.retrained.vec
+NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.vec
 
-OUT=$RES/validation/2010/euclidian.fix.fake.ev
+OUT=$RES/validation/2010/evaluationFiles/fake.l2.fix.ev
 
 rm $OUT
 
