@@ -94,7 +94,7 @@ public:
     bool targetFound = false;
     vector<nodeIdx> path;
     const vector<float>& targetVec = safeGetVec(target);
-    float maxDist = dist(vector<float>(targetVec.size(), -1.0f),
+    float maxDist = distL2(vector<float>(targetVec.size(), -1.0f),
                          vector<float>(targetVec.size(), 1.0f));
     backPointers[source] = source;
 #pragma omp parallel
@@ -113,7 +113,7 @@ public:
               vector<float> vec;
 #pragma omp critical (safeVec)
               vec = safeGetVec(edge.first);
-              float d = dist(vec, targetVec) / maxDist;
+              float d = distL2(vec, targetVec) / maxDist;
 #pragma omp critical (bkPtr)
               backPointers[edge.first] = currData.first;
 #pragma omp critical (queue)

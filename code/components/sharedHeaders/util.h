@@ -99,6 +99,14 @@ vector<float> operator* (const vector<float>& a, float b){
   return res;
 }
 
+float magnitude(const vector<float>& a){
+  float sumsqrd = 0;
+  for(float f : a){
+    sumsqrd += f * f;
+  }
+  return sqrt(sumsqrd);
+}
+
 class getVectorException: public exception {};
 class neverGaveMeAnyDamnFilesException: public exception {};
 
@@ -106,7 +114,7 @@ class GetVector{
 public:
   GetVector(string ngramPath, string pmidPath = "", string umlsPath = ""):ngramPath(ngramPath), pmidPath(pmidPath), umlsPath(umlsPath){};
 
-  unordered_map<string, vector<float>> operator() (unordered_set<string> labels) const {
+  unordered_map<string, vector<float>> operator() (const unordered_set<string>& labels) const {
     unordered_map<string, vector<float>> res;
     unordered_set<string> paths;
     for(const string& label : labels){
@@ -120,30 +128,31 @@ public:
     unsigned int vSize = getVecSize();
     for(const string& path : paths){
       fstream fin(path, ios::in);
-      string line, token;
+      string line;
 #pragma omp parallel
+      {
 #pragma omp single
-      while(getline(fin, line)){
-        if(labels.size() == 0)
-          break;
+      {
+        while(getline(fin, line)){
 #pragma omp task firstprivate(line)
-        {
-          stringstream ss(line);
-          ss >> token;
-          if(labels.find(token) != labels.end()){
-            vector<float> vec(vSize);
-            string crap;
-            float temp;
-            unsigned int count = 0;
+          {
+            string token;
             stringstream ss(line);
-            ss >> crap;
-            while(ss >> temp){ vec[count] = temp; ++count; }
-#pragma omp critical (labels)
-            labels.erase(token);
-#pragma omp critical (res)
-            res[token] = vec;
+            ss >> token;
+            if(labels.find(token) != labels.end()){
+              vector<float> vec(vSize);
+              string crap;
+              float temp;
+              unsigned int count = 0;
+              stringstream ss(line);
+              ss >> crap;
+              while(ss >> temp){ vec[count] = temp; ++count; }
+#pragma omp critical(res)
+              res[token] = vec;
+            }
           }
         }
+      }
       }
     }
 

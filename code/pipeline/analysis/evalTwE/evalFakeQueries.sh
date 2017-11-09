@@ -38,9 +38,9 @@ RES=$PROJ_HOME/results
 TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW_FAKE
 
 CUID_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/umls.data
-NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.retrained.vec
+NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.vec
 
-OUT=$RES/validation/2010/fake.twe.fix.txt
+OUT=$RES/validation/2010/evaluationFiles/fake.twe.fix.txt
 
 rm $OUT
 

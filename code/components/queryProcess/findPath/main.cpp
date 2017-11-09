@@ -60,8 +60,12 @@ nodeIdx getIdx(string path, string label){
   throw getIdxException();
 }
 
-
-class getVectorException: public exception {};
+void string2vec(const string& line, string& label, vector<float>& vec){
+  stringstream ss(line);
+  ss >> label;
+  float temp;
+  while(ss >> temp){ vec.push_back(temp);}
+}
 
 vector<float> getVector(string ngrams, string pmid, string umls, string label){
   string targetFile = ngrams;
@@ -91,8 +95,8 @@ bool isInElipse(const vector<float>& fociiA,
                 const vector<float>& fociiB,
                 float elipseConst,
                 const vector<float>& point){
-  float d1 = dist(point, fociiA);
-  float d2 = dist(point, fociiB);
+  float d1 = distL2(point, fociiA);
+  float d2 = distL2(point, fociiB);
   return d1 + d2 < elipseConst;
 }
 
@@ -113,7 +117,7 @@ int main (int argc, char** argv){
   p.add<string>("pmidCentroids", 'P', "File containing text vectors for PMIDs", true);
   p.add<string>("umlsCentroids", 'U', "File containing text vectors for UMLS terms", true);
   p.add<string>("labelFile", 'l', "Label file accompanying the edges file.", true);
-  p.add<float>("elipseConst", 'e', "Constant alpha where dist(A,B)*\\alpha = 2a", true);
+  p.add<float>("elipseConst", 'e', "Constant alpha where distL2(A,B)*\\alpha = 2a", true);
   p.add("verbose", 'v', "outputs debug information");
 
   p.parse_check(argc, argv);
@@ -166,7 +170,7 @@ int main (int argc, char** argv){
     targetVec = getVector(vectorPath, pmidCentroidPath, umlsCentroidPath, targetLbl);
 
 #pragma omp taskwait
-    elipseConst = dist(sourceVec, targetVec) * elipseConstMultiple;
+    elipseConst = distL2(sourceVec, targetVec) * elipseConstMultiple;
 
     if(verbose){
       cout << sourceLbl << "-> ";

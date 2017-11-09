@@ -1,13 +1,13 @@
 #!/bin/bash
-#PBS -N evcos
+#PBS -N eTpWCosF
 #PBS -l select=1:ncpus=24:mem=100gb,walltime=72:00:00
-#PBS -o /home/jsybran/jobLogs/evcos.out
-#PBS -e /home/jsybran/jobLogs/evcos.err
+#PBS -o /home/jsybran/jobLogs/eTpWL2F.out
+#PBS -e /home/jsybran/jobLogs/eTpWL2F.err
 #PBS -M jsybran@clemson.edu
 #PBS -m ea
 # the above is a default PBS header
 
-module load gcc gnu-parallel
+module load gcc gnu-parallel openmpi
 
 # Place us in the working directory
 if [ -z "$PBS_O_WORKDIR" ]; then
@@ -38,9 +38,9 @@ RES=$PROJ_HOME/results
 TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW_FAKE
 
 CUID_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/umls.data
-NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.retrained.vec
+NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.vec
 
-OUT=$RES/validation/2010/fake.l2.tpw.ev
+OUT=$RES/validation/2010/evaluationFiles/fake.cos.tpw.ev
 
 rm $OUT
 
@@ -55,7 +55,6 @@ evTopic(){
                        -c $CUID_VEC \
                        -s $SOURCE \
                        -t $TARGET \
-                       -e \
                        >> $OUT
   fi
 }

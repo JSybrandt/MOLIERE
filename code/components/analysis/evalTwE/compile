@@ -1,9 +1,11 @@
 #!/bin/bash
+PROJ_HOME=$(pwd | grep -o .*moliere)
+
 module load gcc
 module load openmpi
 clear
 rm -rf bin
 mkdir bin
-g++ *.cpp -O3 -Wall -o ./bin/evalTwE
+g++ *.cpp -fopenmp -g -Wall -o ./bin/evalTwE -I$PROJ_HOME/code/components/sharedHeaders
 ln -sf ./bin/evalTwE
 

@@ -38,25 +38,20 @@ VECS=$DATA/fastText
 TEXT=$DATA/processedText
 RES=$PROJ_HOME/results/$EXP_NAME
 
-BAG="$RES/DATA/$SOURCE_LBL---$TARGET_LBL"
+BAG="$RES/DATA/$TARGET_LBL---$SOURCE_LBL"
 MODEL=$RES/MODEL
 VIEW=$RES/VIEW
 
 mkdir -p $MODEL
 mkdir -p $VIEW
 
-for BAG_FILE in $(ls -f $BAG);do
-  if [ ! -f $VIEW_DIR/$BAG_FILE ] && [ -f $BAG_FILE]; then
-    in=$BAG/$BAG_FILE
-    out=$MODEL/$BAG_FILE
-    mpiexec -n 8 mpi_lda --num_topics $NUM_TOPICS \
-                         --alpha 1 \
-                         --beta 0.01 \
-                         --training_data_file $in \
-                         --model_file $out \
-                         --total_iterations 500 \
-                         --burn_in_iterations 50 \
-                         > /dev/null 2>&1
-    view_model.py "$MODEL/$BAG_FILE"'_0' $VIEW/$BAG_FILE
-  fi
-done
+in=$BAG/$BAG_FILE
+out=$MODEL/$BAG_FILE
+mpiexec -n 8 mpi_lda --num_topics $NUM_TOPICS \
+                     --alpha 1 \
+                     --beta 0.01 \
+                     --training_data_file $in \
+                     --model_file $out \
+                     --total_iterations 500 \
+                     --burn_in_iterations 50
+view_model.py "$MODEL/$BAG_FILE"'_0' $VIEW/$BAG_FILE

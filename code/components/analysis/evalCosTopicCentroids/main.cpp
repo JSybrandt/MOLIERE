@@ -18,6 +18,7 @@
 #include<algorithm>
 #include"cmdln.h"
 #include"util.h"
+#include"topic_model.h"
 
 using namespace std;
 
@@ -26,59 +27,6 @@ typedef vector<pair<string, unsigned int>> Topic;
 
 bool verbose;
 #define vout if(::verbose) cout
-
-vector<Topic> getTM(string path){
-  static const string TOPIC_TOKEN = "TOPIC:";
-
-  string token;
-  unsigned int numTopics = 0;
-  // Get number of topics
-  fstream tmFile(path, ios::in);
-  while(tmFile >> token){
-    if(token == TOPIC_TOKEN){
-      numTopics++;
-    }
-  }
-  tmFile.close();
-
-  vector<Topic> result(numTopics);
-
-  tmFile = fstream(path, ios::in);
-  unsigned int currTopic;
-  float occuranceRate;
-  while(tmFile >> token){
-    if(token == TOPIC_TOKEN){
-      tmFile >> currTopic;
-      tmFile >> occuranceRate;
-    } else {
-      tmFile >> occuranceRate;
-      // NOTE: we have to load as float because that the file.
-      // All the values are positive integers
-      result[currTopic].push_back(pair<string, unsigned int>(token, occuranceRate));
-    }
-  }
-  tmFile.close();
-
-  return result;
-}
-
-vector<float> getTopicCentroid(const Topic & topic, const unordered_map<string, vector<float>> & word2vec){
-  vector<float> res(word2vec.begin()->second.size(), 0);
-  float totalCount = 0;
-  for(const auto & pair : topic){
-    const string& word = pair.first;
-    float occuranceCount = pair.second;
-    const auto it = word2vec.find(word);
-    if(it != word2vec.end()){
-      res += it->second * occuranceCount;
-      totalCount += occuranceCount;
-    } else {
-      vout << "Unable to process " << word << endl;
-    }
-  }
-  res /= float(totalCount);
-  return res;
-}
 
 int main(int argc, char ** argv){
   cmdline::parser p;
@@ -136,7 +84,7 @@ int main(int argc, char ** argv){
 
 #pragma omp parallel for
   for(unsigned int i = 0; i < topics.size(); ++i){
-    topicCentroids[i] = getTopicCentroid(topics[i], word2vec);
+    topicCentroids[i] = getCentroid(topics[i], word2vec);
   }
 
   vout << "Preparing for distance calculations" << endl;
