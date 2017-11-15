@@ -8,9 +8,9 @@
 
 module load gcc
 
-PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/pipeline/tools
+PATH=$PATH:/zfs/safrolab/users/jsybran/moliere/code/components/links
 
-DATA=/zfs/safrolab/users/jsybran/moliere/data/yearlySubsets/1983
+DATA=/zfs/safrolab/users/jsybran/moliere/data/yearlySubsets/2010
 DICT_FILE=$DATA/fastText/canon.vec
 ABS_FILE=$DATA/processedText/abstracts.txt
 CEN_FILE=$DATA/fastText/centroids.data
