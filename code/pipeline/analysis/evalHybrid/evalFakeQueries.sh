@@ -57,8 +57,6 @@ evTopic(){
                        -c $CUID_VEC \
                        -s $SOURCE \
                        -t $TARGET \
-                       -e \
-                       -B \
                        >> $OUT
   fi
 }

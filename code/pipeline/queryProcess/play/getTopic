@@ -5,8 +5,9 @@
 #PBS -m ea
 
 EXP_NAME=play
-SOURCE_LBL="htr1a"
-TARGET_LBL="venlafaxine"
+SOURCE_LBL="torcetrapib"
+TARGET_LBL="high_blood_pressure"
+NUM_TOPICS=20
 
 module load gcc mpich2/1.4-eth
 
@@ -32,26 +33,24 @@ fi
 # add project tools to path
 PATH=$PATH:$PROJ_HOME/tools/plda
 
-DATA=$PROJ_HOME/data
-NET=$DATA/network
-VECS=$DATA/fastText
-TEXT=$DATA/processedText
 RES=$PROJ_HOME/results/$EXP_NAME
+BAG_DIR=$RES/DATA
+MODEL_DIR=$RES/MODEL
+VIEW_DIR=$RES/VIEW
 
-BAG="$RES/DATA/$TARGET_LBL---$SOURCE_LBL"
-MODEL=$RES/MODEL
-VIEW=$RES/VIEW
+mkdir -p $MODEL_DIR
+mkdir -p $VIEW_DIR
 
-mkdir -p $MODEL
-mkdir -p $VIEW
+HYPO_NAME="$TARGET_LBL---$SOURCE_LBL"
+BAG_FILE="$BAG_DIR/$HYPO_NAME"
+MODEL_FILE="$MODEL_DIR/$HYPO_NAME"
+VIEW_FILE="$VIEW_DIR/$HYPO_NAME"
 
-in=$BAG/$BAG_FILE
-out=$MODEL/$BAG_FILE
 mpiexec -n 8 mpi_lda --num_topics $NUM_TOPICS \
                      --alpha 1 \
                      --beta 0.01 \
-                     --training_data_file $in \
-                     --model_file $out \
-                     --total_iterations 500 \
-                     --burn_in_iterations 50
-view_model.py "$MODEL/$BAG_FILE"'_0' $VIEW/$BAG_FILE
+                     --training_data_file $BAG_FILE \
+                     --model_file $MODEL_FILE \
+                     --total_iterations 1000 \
+                     --burn_in_iterations 100
+view_model.py "$MODEL_FILE"'_0' $VIEW_FILE

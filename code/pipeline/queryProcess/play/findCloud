@@ -4,8 +4,8 @@
 #PBS -q bigmem
 
 EXP_NAME=play
-SOURCE_LBL="htr1a"
-TARGET_LBL="venlafaxine"
+SOURCE_LBL="torcetrapib"
+TARGET_LBL="high_blood_pressure"
 
 module load gcc python openmpi
 

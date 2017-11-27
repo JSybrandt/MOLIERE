@@ -4,8 +4,8 @@
 
 EXP_NAME=play
 ELIPSE=1.4
-SOURCE_LBL="htr1a"
-TARGET_LBL="venlafaxine"
+SOURCE_LBL="torcetrapib"
+TARGET_LBL="high_blood_pressure"
 
 module load gcc python openmpi
 

@@ -28,7 +28,8 @@ bool verbose;
 #define vout if(::verbose) cout
 
 bool euclidian;
-bool betterScore;
+
+const unsigned int NUM_METRICS = 4;
 
 float getScorePerWord(const Topic& topic,
                       const unordered_map<string, vector<float>>& word2vec,
@@ -60,10 +61,7 @@ float getScorePerWord(const Topic& topic,
     scoreS /= coveredCount;
     scoreT /= coveredCount;
   }
-  if(::betterScore)
-    return max(scoreS, scoreT);
-  else
-    return min(scoreS, scoreT);
+  return max(scoreS, scoreT);
 }
 
 float getScorePerCluster(const Topic& topic,
@@ -128,6 +126,18 @@ float getScoreForCentroid(const Topic& topic,
   return score;
 }
 
+vector<pair<float, float>> parseWeightingParamStr(const string& params){
+  stringstream ss(params);
+  vector<pair<float, float>> res;
+  float coef, exp;
+  while(ss >> coef >> exp){
+    res.push_back(pair<float, float>(coef, exp));
+    vout << "C: " << coef << "\tE: " << exp << endl;
+  }
+  return res;
+}
+
+
 int main(int argc, char ** argv){
   cmdline::parser p;
 
@@ -139,9 +149,10 @@ int main(int argc, char ** argv){
   p.add<string>("targetLabel", 't', "Target Label", true);
   p.add("verbose", 'v', "Output debug info.");
   p.add("euclidian", 'e', "Use euclidian distance instead of cosine similarity.");
-  p.add("betterScore", 'B', "Take the best score between scoreS and scoreT");
   p.add<unsigned int>("numReportedTopics", 'r', "Number of topics to report", false, 5);
   p.add<unsigned int>("topicCutoff", 'f', "number of words to be reported per topic", false, 5);
+  p.add<string>("weightParamStr", 'P', "4 pairs of coef and power", false,
+                "1 1  1 1  1 1  1 1");
 
   p.parse_check(argc, argv);
   string topicModelPath = p.get<string>("topicModel");
@@ -152,9 +163,16 @@ int main(int argc, char ** argv){
   string targetLabel = p.get<string>("targetLabel");
   ::verbose = p.exist("verbose");
   ::euclidian = p.exist("euclidian");
-  ::betterScore = p.exist("betterScore");
   unsigned int numReportedTopics = p.get<unsigned int>("numReportedTopics");
   unsigned int topicCutoff = p.get<unsigned int>("topicCutoff");
+  string weightParamStr = p.get<string>("weightParamStr");
+
+  vout << "Parsing Weighting Param" << endl;
+  vector<pair<float, float>> weightParams = parseWeightingParamStr(weightParamStr);
+  if(weightParams.size() != NUM_METRICS){
+    cerr << "ILLEGAL PARSE STRING." << endl;
+    exit(1);
+  }
 
   vout << "Loading topic model from " << topicModelPath << endl;
   vector<Topic> topics = getTM(topicModelPath);
@@ -194,28 +212,28 @@ int main(int argc, char ** argv){
     const vector<float>& middleVec = (sourceVec + targetVec) * 0.5;
     float distST = distL2(sourceVec, targetVec);
     float simST  = cosSim(sourceVec, targetVec);
+    float scoreST;
+    if(euclidian)
+      scoreST = 1 - distST / float(2 * sqrt(sourceVec.size()));
+    else
+      scoreST = simST;
 
   #pragma omp parallel for
     for(unsigned int i = 0 ; i < topics.size(); ++i){
       const Topic& topic = topics[i];
-      float score1 = getScorePerWord(topic, word2vec, sourceVec, targetVec, distST);
-      float score2 = getScorePerCluster(topic, word2vec, sourceVec, targetVec, distST);
-      float score3 = getScoreForCentroid(topic, word2vec, sourceVec, targetVec, middleVec, distST);
-      if(::verbose){
-#pragma omp critical
-        vout << "Topic " << i << " (" << topic[0].first << ")"<< endl
-             << "\tPer Word: " << score1 << endl
-             << "\tPer Cluster: " << score2 << endl
-             << "\tFor Centroid: " << score3 << endl;
+      float scores[4] = {
+        scoreST,
+        getScoreForCentroid(topic, word2vec, sourceVec, targetVec, middleVec, distST),
+        getScorePerCluster(topic, word2vec, sourceVec, targetVec, distST),
+        getScorePerWord(topic, word2vec, sourceVec, targetVec, distST)
+      };
+      float &score = topicScores[i];
+      for(unsigned int j = 0; j < NUM_METRICS; ++j){
+        score += weightParams[j].first * pow(scores[j], weightParams[j].second);
       }
-      topicScores[i] = max(score1, max(score2, score3));
     }
 
     float bestScore = *max_element(topicScores.begin(), topicScores.end());
-    if(euclidian)
-      bestScore = max(bestScore, 1 - distST / float(2 * sqrt(sourceVec.size())));
-    else
-      bestScore = max(bestScore, simST);
 
     // print scores
     cout << sourceLabel << " "
