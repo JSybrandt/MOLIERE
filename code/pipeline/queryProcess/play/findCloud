@@ -33,7 +33,7 @@ fi
 PATH=$PATH:$PROJ_HOME/code/components/links
 
 
-DATA=$PROJ_HOME/data
+DATA=$PROJ_HOME/data/yearlySubsets/2010
 NET=$DATA/network
 VECS=$DATA/fastText
 RES=$PROJ_HOME/results/$EXP_NAME

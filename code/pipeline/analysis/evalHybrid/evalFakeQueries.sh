@@ -42,7 +42,7 @@ TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW_FAKE
 CUID_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/umls.data
 NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.vec
 
-OUT=$RES/validation/2010/evaluationFiles/fake.l2.hybrid.ev
+OUT=$RES/validation/2010/evaluationFiles/fake.l2.hybrid.opt.ev
 
 rm $OUT
 
@@ -57,6 +57,7 @@ evTopic(){
                        -c $CUID_VEC \
                        -s $SOURCE \
                        -t $TARGET \
+                       -P "0 1.5203 .29332 1.9804 .87312 2.2369 .38104 1.0092" \
                        >> $OUT
   fi
 }
