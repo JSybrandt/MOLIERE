@@ -1,17 +1,13 @@
 #!/bin/bash
-#PBS -N evHIVHybrid
-#PBS -l select=1:ncpus=16:mem=50gb,walltime=72:00:00
-#PBS -o /home/jsybran/jobLogs/evHIVHybrid.out
-#PBS -e /home/jsybran/jobLogs/evHIVHybrid.err
+#PBS -N hivHybrid
+#PBS -l select=1:ncpus=20:mem=100gb,walltime=72:00:00
+#PBS -o /home/jsybran/jobLogs/hivHybrid.out
+#PBS -e /home/jsybran/jobLogs/hivHybrid.err
 #PBS -M jsybran@clemson.edu
 #PBS -m ea
-#PBS -J 0-99
 # the above is a default PBS header
 
-module load gcc gnu-parallel
-
-
-NUM_MACHINES=100
+module load gcc gnu-parallel openmpi
 
 # Place us in the working directory
 if [ -z "$PBS_O_WORKDIR" ]; then
@@ -32,11 +28,6 @@ if [ -z "$PROJ_HOME" ]; then
   fi
 fi
 
-if [ -z "$PBS_ARRAY_INDEX" ]; then
-  echo "must be submitted as array job"
-  exit 1
-fi
-
 # add project tools to path
 PATH=$PATH:$PROJ_HOME/code/components/links
 
@@ -45,37 +36,33 @@ DATA=$PROJ_HOME/data
 RES=$PROJ_HOME/results
 
 TOPIC_DIR=$PROJ_HOME/results/hiv-assc-dim/VIEW
-TOPIC_FILE_LIST=$PROJ_HOME/results/hiv-assc-dim/VIEW_FILES.txt
 
 CUID_VEC=$PROJ_HOME/data/fastText/umls.data
 NGRAM_VEC=$PROJ_HOME/data/fastText/canon.vec
 
-#OUT=$RES/validation/2010/allEvaluation.cosine.txt
-OUT_DIR=$RES/hiv-assc-dim/HYBRID_COS
-mkdir -p $OUT_DIR
-OUT=$OUT_DIR/$PBS_ARRAY_INDEX.part.ev
+OUT=$RES/hiv-assc-dim/hybrid.opt.ev
+
 rm $OUT
 
-NUM_FILES=$(wc -l $TOPIC_FILE_LIST | awk '{print $1}')
-
-JOB_RANGE=$(($NUM_FILES / $NUM_MACHINES))
-
-START=$(($PBS_ARRAY_INDEX * $JOB_RANGE))
-END=$(($START + $JOB_RANGE))
-if [ $PBS_ARRAY_INDEX == $(($NUM_MACHINES - 1)) ]; then
-  END=$NUM_FILES
-fi
-
-for((i = $START; i < $END; i++)){
-  LINE=$( sed -n "$(($i+1))"'p' $TOPIC_FILE_LIST)
-  in=$TOPIC_DIR/$LINE
-  SOURCE=$(awk 'BEGIN{FS="---"}{print $1}' <<< $LINE)
-  TARGET=$(awk 'BEGIN{FS="---"}{print $2}' <<< $LINE)
-  evalHybrid -m $TOPIC_DIR/$LINE \
-             -n $NGRAM_VEC \
-             -c $CUID_VEC \
-             -s $SOURCE \
-             -t $TARGET \
-             -B \
-             >> $OUT
+evTopic(){
+  f=$1
+  if [ -f "$TOPIC_DIR/$f" ]; then
+    SOURCE=$(awk 'BEGIN{FS="---"}{print $1}' <<< $f)
+    TARGET=$(awk 'BEGIN{FS="---"}{print $2}' <<< $f)
+    echo "evalHybrid -m $TOPIC_DIR/$f -n $NGRAM_VEC -c $CUID_VEC -s $SOURCE -t $TARGET -B"
+    evalHybrid -m $TOPIC_DIR/$f \
+                       -n $NGRAM_VEC \
+                       -c $CUID_VEC \
+                       -s $SOURCE \
+                       -t $TARGET \
+                       -P "0 1.5203 .29332 1.9804 .87312 2.2369 .38104 1.0092" \
+                       >> $OUT
+  fi
 }
+
+export -f evTopic
+export TOPIC_DIR=$TOPIC_DIR
+export OUT=$OUT
+export CUID_VEC=$CUID_VEC
+export NGRAM_VEC=$NGRAM_VEC
+parallel -j 7 evTopic {} ::: $(ls -f $TOPIC_DIR)

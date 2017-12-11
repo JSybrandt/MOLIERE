@@ -40,7 +40,7 @@ TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW_REAL
 CUID_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/umls.data
 NGRAM_VEC=$PROJ_HOME/data/yearlySubsets/2010/fastText/canon.vec
 
-OUT=$RES/validation/2010/evaluationFiles/real.l2.hybrid.opt.ev
+OUT=$RES/ellipse.real.l2.hybrid.opt.ev
 
 rm $OUT
 
