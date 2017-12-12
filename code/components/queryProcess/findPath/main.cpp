@@ -111,8 +111,8 @@ int main (int argc, char** argv){
   cmdline::parser p;
 
   p.add<string>("graphFile", 'g', "input graph file", true);
-  p.add<nodeIdx>("sourceIdx", 's', "id representing the source", true);
-  p.add<nodeIdx>("targetIdx", 't', "intended target", false, UNDEFINED);
+  p.add<string>("sourceLbl", 's', "id representing the source", true);
+  p.add<string>("targetLbl", 't', "intended target", true);
   p.add<string>("outputFile", 'o', "Output paths and neighborhoods", true);
   p.add<string>("ngramVectors", 'V',  "File contanining text vectors for ngrams", true);
   p.add<string>("pmidCentroids", 'P', "File containing text vectors for PMIDs", false, "");
@@ -124,8 +124,8 @@ int main (int argc, char** argv){
   p.parse_check(argc, argv);
 
   string graphPath =  p.get<string>("graphFile");
-  nodeIdx sourceIdx =  p.get<nodeIdx>("sourceIdx");
-  nodeIdx targetIdx =  p.get<nodeIdx>("targetIdx");
+  string sourceLbl =  p.get<string>("sourceLbl");
+  string targetLbl =  p.get<string>("targetLbl");
   string outputPath =  p.get<string>("outputFile");
   string vectorPath = p.get<string>("ngramVectors");
   string pmidCentroidPath = p.get<string>("pmidCentroids");
@@ -134,7 +134,6 @@ int main (int argc, char** argv){
   float elipseConstMultiple = p.get<float>("elipseConst");
   verbose = p.exist("verbose");
 
-  string sourceLbl, targetLbl;
   vector<float> sourceVec, targetVec;
   VecDict subsetVectors;
   float elipseConst;
@@ -153,16 +152,6 @@ int main (int argc, char** argv){
   {
 #pragma omp single
   {
-#pragma omp task
-    sourceLbl = getLabel(labelPath, sourceIdx);
-#pragma omp task
-    targetLbl = getLabel(labelPath, targetIdx);
-
-#pragma omp taskwait
-    if(verbose){
-      cout << sourceIdx << " -> " << sourceLbl << endl;
-      cout << targetIdx << " -> " << targetLbl << endl;
-    }
 
 #pragma omp task
     sourceVec = getVector(vectorPath, pmidCentroidPath, umlsCentroidPath,  sourceLbl);
@@ -241,7 +230,7 @@ int main (int argc, char** argv){
 
   if(::verbose) cout << "Getting shortest path." << endl;
 
-  path = g.getShortestPath(sourceIdx, targetIdx);
+  path = g.getShortestPath(label2idx[sourceLbl], label2idx[targetLbl]);
 
   if(::verbose){
     cout << "Path:";
