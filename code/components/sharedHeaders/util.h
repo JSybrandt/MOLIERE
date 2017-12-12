@@ -9,6 +9,7 @@
 #include<cstring>
 #include<unordered_set>
 #include<unordered_map>
+#include<limits>
 
 
 using std::vector;
@@ -23,6 +24,7 @@ using std::strcmp;
 using std::unordered_map;
 using std::unordered_set;
 using std::pair;
+using std::numeric_limits;
 
 class vectorLengthNotEqual: public exception {};
 
@@ -224,9 +226,14 @@ bool cmpRev(const pair<T,K>& a, const pair<T,K>& b){
   return a.first > b.first;
 }
 
-//template<class T>
-//T min(const T& a, const T& b){
-  //if(a > b)
-    //return b;
-  //return a;
-//}
+
+const unsigned int NUM_BYTE_PER_EDGE = 12;
+typedef unsigned int nodeIdx;
+const nodeIdx UNDEFINED = numeric_limits<nodeIdx>::max();
+struct edge{
+  edge(): a(UNDEFINED), b(UNDEFINED), weight(0) {}
+  edge(nodeIdx a, nodeIdx b, float w): a(a), b(b), weight(w) {}
+  nodeIdx a, b;
+  float weight;
+};
+

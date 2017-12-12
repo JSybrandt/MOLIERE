@@ -18,7 +18,8 @@
 #include <sys/stat.h>
 
 #include"cmdln.h"
-#include"graph.h"
+#include"graphWithVectorInfo.h"
+#include"parallelEdgeListLoad.h"
 #include"util.h"
 
 #include<omp.h>
@@ -114,7 +115,7 @@ int main (int argc, char** argv){
   p.add<nodeIdx>("targetIdx", 't', "intended target", false, UNDEFINED);
   p.add<string>("outputFile", 'o', "Output paths and neighborhoods", true);
   p.add<string>("ngramVectors", 'V',  "File contanining text vectors for ngrams", true);
-  p.add<string>("pmidCentroids", 'P', "File containing text vectors for PMIDs", true);
+  p.add<string>("pmidCentroids", 'P', "File containing text vectors for PMIDs", false, "");
   p.add<string>("umlsCentroids", 'U', "File containing text vectors for UMLS terms", true);
   p.add<string>("labelFile", 'l', "Label file accompanying the edges file.", true);
   p.add<float>("elipseConst", 'e', "Constant alpha where distL2(A,B)*\\alpha = 2a", true);
@@ -207,7 +208,7 @@ int main (int argc, char** argv){
 #pragma omp critical
           {
             subsetVectors[idx] = pt;
-            if(verbose) cout << "In Elipse: " << label << " : " << idx << endl;
+            if(verbose) cout << "In Ellipse: " << label << " : " << idx << endl;
           }
         }
       }
@@ -221,58 +222,13 @@ int main (int argc, char** argv){
   if(::verbose) cout << "Found " << subsetVectors.size() << " subset items." << endl;
   if(::verbose) cout << "Loading Graph." << endl;
 
-  struct stat st;
-  stat(graphPath.c_str(), &st);
-  size_t totalFileSize = st.st_size;
-  if(totalFileSize % NUM_BYTE_PER_EDGE){
-    cerr << "Graph has " << totalFileSize << " bytes, which is not a multiple of "
-         << NUM_BYTE_PER_EDGE << endl;
-    throw invalidBinaryFile();
+  list<edge> edges;
+
+  unordered_set<nodeIdx> keys(subsetVectors.size());
+  for(const auto & pair : subsetVectors){
+    keys.insert(pair.first);
   }
-  size_t numEdges = totalFileSize / NUM_BYTE_PER_EDGE;
-  vector<edge> edges;
-
-  if(::verbose){
-    cout << "Number of Edges:" << numEdges << endl;
-  }
-
-#pragma omp parallel
-  {
-
-    unsigned int tid = omp_get_thread_num();
-    unsigned int totalThreadNum = omp_get_num_threads();
-    size_t edgesPerThread = numEdges / totalThreadNum;
-
-    size_t startEdgeNum = tid * edgesPerThread;
-    size_t endEdgeNum = startEdgeNum + edgesPerThread;
-    if(tid == totalThreadNum-1){
-      endEdgeNum = numEdges;
-    }
-
-    if(::verbose){
-#pragma omp critical
-      cout << tid << ":\t" << startEdgeNum << " - " << endEdgeNum << endl;
-#pragma omp barrier
-    }
-
-    FILE* file;
-    file = fopen(graphPath.c_str(), "rb");
-    fseek(file, startEdgeNum * NUM_BYTE_PER_EDGE, SEEK_SET);
-    charBuff buff[3];
-    while(startEdgeNum < endEdgeNum){
-      fread(buff, sizeof(charBuff), 3, file);
-      edge e(buff[0].i, buff[1].i, buff[2].f);
-
-      if(subsetVectors.find(e.a) != subsetVectors.end() ||
-         subsetVectors.find(e.b) != subsetVectors.end())
-      {
-#pragma omp critical
-        edges.push_back(e);
-      }
-      ++startEdgeNum;
-    }
-    fclose(file);
-  }
+  fastLoadEdgeList(graphPath, edges, keys);
 
   graph g(subsetVectors, edges);
 
@@ -282,20 +238,16 @@ int main (int argc, char** argv){
   if(::verbose) cout << "Checking if path exists:" << endl;
 
   vector<nodeIdx> path;
-  if(g.pathExists(sourceIdx, targetIdx)){
 
-    if(::verbose) cout << "Getting shortest path." << endl;
+  if(::verbose) cout << "Getting shortest path." << endl;
 
-    path = g.getShortestPath(sourceIdx, targetIdx);
+  path = g.getShortestPath(sourceIdx, targetIdx);
 
-    if(::verbose){
-      cout << "Path:";
-      for(nodeIdx n : path)
-        cout << n << " ";
-      cout << endl;
-    }
-  } else {
-    if(::verbose) cout << "Path does not exist. Consider extending elipse." << endl;
+  if(::verbose){
+    cout << "Path:";
+    for(nodeIdx n : path)
+      cout << n << " ";
+    cout << endl;
   }
 
   fstream outFile(outputPath, ios::out);

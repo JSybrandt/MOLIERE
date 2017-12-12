@@ -29,12 +29,10 @@ for i in range(len(map)):
   for key in map[i].keys():
     map[i][key] = map[i][key]
 
-f = open(sys.argv[2], "w");
 for i in range(len(map)):
   x = sorted(map[i].items(), key=lambda(k, v):(v, k), reverse = True)
-  print >> f
-  print >> f, "TOPIC: ", i, sum[i]
-  print >> f
+  print
+  print "TOPIC: ", i, sum[i]
+  print
   for key in x:
-    print >> f, key[0], key[1]
-f.close()
+    print key[0], key[1]
