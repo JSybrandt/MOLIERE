@@ -52,6 +52,11 @@ def main():
                         dest="num_topics",
                         default="100",
                         help="specifies the number of topics to generate.")
+    parser.add_argument("-e", "--ellipse_constant",
+                        action="store",
+                        dest="ellipse_constant",
+                        default="1.4",
+                        help="size of ellipse optimization")
     parser.add_argument("-m", "--move_here",
                         action="store_true",
                         dest="move_here",
@@ -60,6 +65,10 @@ def main():
                         action="store_true",
                         dest="reconstruct",
                         help="if set, do not reuse existing cached files.")
+    parser.add_argument("-s", "--skip_sanitize",
+                        action="store_true",
+                        dest="skip_sanitize",
+                        help="if set, do not check for input in labels.")
     parser.add_argument("-v", "--verbose",
                         action="store_true",
                         dest="verbose",
@@ -76,10 +85,6 @@ def main():
     pmidVecs = "{}/fastText/centroids.data".format(args.data_home)
     umlsVecs = "{}/fastText/umls.data".format(args.data_home)
     verboseFlag = '-v' if args.verbose else ' '
-    ellipseConst = "1.4"
-
-    if args.verbose:
-        print("Validating input")
 
     args.wordA = args.wordA.lower()
     args.wordB = args.wordB.lower()
@@ -88,24 +93,28 @@ def main():
     if args.wordA > args.wordB:
         args.wordB, args.wordA = (args.wordA, args.wordB)
 
-    foundA = foundB = False
-    with open(labelFile) as lFile:
-        for line in lFile:
-            line = line.strip()
-            if line == args.wordA:
-                foundA = True
-            if line == args.wordB:
-                foundB = True
-            if foundA and foundB:
-                break
+    if not args.skip_sanitize:
+        if args.verbose:
+            print("Validating input")
 
-    if not foundA:
-        print("Error, failed to find", args.wordA, "in", labelFile)
-        return 1
+        foundA = foundB = False
+        with open(labelFile) as lFile:
+            for line in lFile:
+                line = line.strip()
+                if line == args.wordA:
+                    foundA = True
+                if line == args.wordB:
+                    foundB = True
+                if foundA and foundB:
+                    break
 
-    if not foundB:
-        print("Error, failed to find", args.wordB, "in", labelFile)
-        return 1
+        if not foundA:
+            print("Error, failed to find", args.wordA, "in", labelFile)
+            return 1
+
+        if not foundB:
+            print("Error, failed to find", args.wordB, "in", labelFile)
+            return 1
 
     path_path, reuse = createOrRecoverFile(args, "path")
     if not reuse:
@@ -119,7 +128,7 @@ def main():
             '-t', args.wordB,
             '-V', ngramVecs,
             '-U', umlsVecs,
-            '-e', ellipseConst,
+            '-e', args.ellipse_constant,
             '-o', path_path,
             verboseFlag
         ])
@@ -161,6 +170,7 @@ def main():
     if not reuse:
         if args.verbose:
             print("Running plda, creating", model_path)
+        nullFile = open("/dev/null", 'w')
         subprocess.call([
             'mpiexec', PLDA.format(linkPath),
             '--num_topics', args.num_topics,
@@ -170,9 +180,8 @@ def main():
             '--model_file', model_path,
             '--total_iterations', '500',
             '--burn_in_iterations', '50'
-        ], stdout=(subprocess.STDOUT
-                   if args.verbose else
-                   open(os.devnull, 'w')))
+        ], stdout=nullFile)
+        nullFile.close()
     elif args.verbose:
         print("reusing: ", model_path)
 
