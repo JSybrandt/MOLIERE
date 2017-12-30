@@ -148,6 +148,7 @@ int main(int argc, char ** argv){
   p.add<string>("sourceLabel", 's', "Source Label", true);
   p.add<string>("targetLabel", 't', "Target Label", true);
   p.add("verbose", 'v', "Output debug info.");
+  p.add("max", 'M', "Take max of metrics, rather than a combination.");
   p.add("euclidian", 'e', "Use euclidian distance instead of cosine similarity.");
   p.add<unsigned int>("numReportedTopics", 'r', "Number of topics to report", false, 5);
   p.add<unsigned int>("topicCutoff", 'f', "number of words to be reported per topic", false, 5);
@@ -162,6 +163,7 @@ int main(int argc, char ** argv){
   string sourceLabel = p.get<string>("sourceLabel");
   string targetLabel = p.get<string>("targetLabel");
   ::verbose = p.exist("verbose");
+  bool takeMax = p.exist("max");
   ::euclidian = p.exist("euclidian");
   unsigned int numReportedTopics = p.get<unsigned int>("numReportedTopics");
   unsigned int topicCutoff = p.get<unsigned int>("topicCutoff");
@@ -228,8 +230,15 @@ int main(int argc, char ** argv){
         getScorePerWord(topic, word2vec, sourceVec, targetVec, distST)
       };
       float &score = topicScores[i];
-      for(unsigned int j = 0; j < NUM_METRICS; ++j){
-        score += weightParams[j].first * pow(scores[j], weightParams[j].second);
+      if(takeMax){
+        score = -numeric_limits<float>::infinity();
+        for(unsigned int j = 0; j < NUM_METRICS; ++j){
+          score = max(score, weightParams[j].first * pow(scores[j], weightParams[j].second));
+        }
+      } else {
+        for(unsigned int j = 0; j < NUM_METRICS; ++j){
+          score += weightParams[j].first * pow(scores[j], weightParams[j].second);
+        }
       }
     }
 
