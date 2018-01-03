@@ -7,9 +7,6 @@ FLAGS+=-Wall -Wextra -Werror -pedantic -Wundef -Wshadow
 FLAGS+=-Wcast-align -Wcast-qual -Wold-style-cast
 FLAGS+=-I$(PROJ_HOME)/code/components/sharedHeaders
 
-LIBICONV_FLAGS=-I$(PROJ_HOME)/code/components/sharedHeaders/libiconv/include
-LIBICONV_FLAGS+=-L$(PROJ_HOME)/code/components/sharedHeaders/libiconv/lib
-
 
 NAME="parseXML"
 
