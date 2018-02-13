@@ -86,9 +86,6 @@ def main():
     umlsVecs = "{}/fastText/umls.data".format(args.data_home)
     verboseFlag = '-v' if args.verbose else ' '
 
-    args.wordA = args.wordA.lower()
-    args.wordB = args.wordB.lower()
-
     # always put then in order
     if args.wordA > args.wordB:
         args.wordB, args.wordA = (args.wordA, args.wordB)

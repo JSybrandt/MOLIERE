@@ -26,6 +26,8 @@ using std::unordered_set;
 using std::pair;
 using std::numeric_limits;
 
+#define EPS 0.000000000001
+
 class vectorLengthNotEqual: public exception {};
 
 float distL2(const vector<float>& ptA, const vector<float>& ptB){
@@ -77,6 +79,16 @@ vector<float> operator+ (const vector<float>& a, const vector<float>& b){
   vector<float> res(a.size(), 0);
   for(unsigned int i = 0; i < a.size(); ++i){
     res[i] = a[i] + b[i];
+  }
+  return res;
+}
+
+vector<float> operator- (const vector<float>& a, const vector<float>& b){
+  if(a.size() != b.size())
+    throw vectorLengthNotEqual();
+  vector<float> res(a.size(), 0);
+  for(unsigned int i = 0; i < a.size(); ++i){
+    res[i] = a[i] - b[i];
   }
   return res;
 }

@@ -90,6 +90,8 @@ public:
       }
     }
     }
+    if(!targetFound)
+      return path;
     nodeIdx currIdx = target;
     nodeIdx nextIdx = backPointers[currIdx];
     while(currIdx != nextIdx){

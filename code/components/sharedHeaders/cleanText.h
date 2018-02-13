@@ -239,6 +239,7 @@ string cleanText(const string& dirty){
 
   workingText.emplace();
 
+  bool skipNextParen = false;
   // iterate through mixed width characters
   for(size_t i = 0; i < dirty.length(); ){
     if(workingText.size() == 0){
@@ -278,19 +279,28 @@ string cleanText(const string& dirty){
       switch(c){
         // start parenthetical
         case '[': case '{': case '(':
-          workingText.emplace();
+          if(!skipNextParen)
+            workingText.emplace();
+          skipNextParen = false;
           break;
         // end parenthetical
         case ']': case '}': case ')':
           if(workingText.size() > 1){ // someone might list a) b) c)
-            finishedText.emplace_front(ss.str());
-            workingText.pop();
+            // if this parens might mean something
+            if(!isspace(nextChar) && !iscntrl(nextChar) && !isblank(nextChar) && nextChar != '.'){
+              string tmp = ss.str();
+              workingText.pop();
+              workingText.top() << tmp; // reinsert text
+            } else {
+              finishedText.emplace_front(ss.str());
+              workingText.pop();
+            }
           }
           break;
         case '-': ss << '_'; break;
         case '?': case '!': case ';': case ':':
           ss << '.'; break;
-        case '\"': case '\'': break; //skip
+        case '\"': case '\'': case',': break; //skip
         default:
           if((isspace(c) || iscntrl(c) || isblank(c))){
             // if this is a space and the next char does not start a parenthetical phrase
@@ -300,6 +310,9 @@ string cleanText(const string& dirty){
               ss << ' ';
           } else {
             ss << char(tolower(c));
+            if(nextChar == '[' || nextChar == '{' || nextChar == '('){
+              skipNextParen = true; // parens in a function may be important
+            }
           }
           break;
       }

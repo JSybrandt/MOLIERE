@@ -1,3 +1,6 @@
 [submodule "code/components/networkConstruction/parseXML/pugixml"]
 	path = code/components/networkConstruction/parseXML/pugixml
 	url = https://github.com/zeux/pugixml.git
+[submodule "tools/fasttext[H"]
+	path = tools/fasttext[H
+	url = git@github.com:facebookresearch/fastText.git

@@ -39,6 +39,7 @@ int main (int argc, char** argv){
   p.add<unsigned int>("cloudSetN", 'N', "abstract cloud param: number of new abstracts adjacent to those on path.", false, 2000);
   p.add<unsigned int>("cloudSetC", 'C', "abstract cloud param: number of new abstracts from keyword overlap", false, 500);
   p.add<unsigned int>("cloudSetK", 'K', "abstract cloud param: number of new abstracts from keywords", false, 500);
+  p.add<unsigned int>("maxDistFromPath", 'n', "max separation from path (hops)", false, 2);
   p.add("verbose", 'v', "outputs debug information");
 
   p.parse_check(argc, argv);
@@ -50,6 +51,7 @@ int main (int argc, char** argv){
   unsigned int cloudSetN = p.get<unsigned int>("cloudSetN");
   unsigned int cloudSetC = p.get<unsigned int>("cloudSetC");
   unsigned int cloudSetK = p.get<unsigned int>("cloudSetK");
+  unsigned int maxDistFromPath = p.get<unsigned int>("maxDistFromPath");
   verbose = p.exist("verbose");
 
   vout << "Loading Path" << endl;
@@ -63,40 +65,46 @@ int main (int argc, char** argv){
   }
   pathFile.close();
 
+  unsigned int minResult = min(cloudSetN, min(cloudSetC, cloudSetK)) * path.size() / 2;
+  vout << "Expecting a min resulting cloud of size " << minResult << endl;
+
   // CONSTRUCTING GRAPH
-  vout << "Loading set of abstract nodeidx from " << labelPath << endl;
+  vout << "Loading labels from " << labelPath << endl;
   graph g(labelPath);
+  unordered_set<nodeIdx> neighborhood;
 
-  list<edge> edges;
+  unsigned int cycleCount = 0;
 
-  vout << "Loading first-order neighbors from " << graphPath << endl;
-  fastLoadEdgeList(graphPath, edges, allNodes);
+  do{
 
-  for(const edge& e : edges){
-    allNodes.insert(e.a);
-    allNodes.insert(e.b);
-  }
+    cycleCount += 1;
 
-  edges.clear();
+    list<edge> edges;
 
-  vout << "Loading first and second order neighbors from " << graphPath << endl;
-  fastLoadEdgeList(graphPath, edges, allNodes);
+    vout << "Loading " << cycleCount << "-order neighbors from " << graphPath << endl;
+    fastLoadEdgeList(graphPath, edges, allNodes);
 
-  vout << "constructing graph" << endl;
-  for(const edge& e : edges){
-    g.addEdge(e);
-  }
+    for(const edge& e : edges){
+      allNodes.insert(e.a);
+      allNodes.insert(e.b);
+    }
 
-  edges.clear();
+    vout << "constructing graph" << endl;
+    for(const edge& e : edges){
+      g.addEdge(e);
+    }
 
-  vout << "Found " << g.numNodes() << " nodes" << endl;
-  vout << "Found " << g.numEdges() << " edges" << endl;
+    vout << "Found " << g.numNodes() << " nodes" << endl;
+    vout << "Found " << g.numEdges() << " edges" << endl;
 
+    vout << "Getting cloud" << endl;
+    neighborhood = g.getCloud(path, cloudSetN, cloudSetC, cloudSetK);
+
+    vout << "Found cloud of size " << neighborhood.size() << endl;
+
+  }while(neighborhood.size() < minResult && cycleCount < maxDistFromPath);
 
   fstream outFile(outputPath, ios::out);
-
-  vout << "Getting cloud" << endl;
-  unordered_set<nodeIdx> neighborhood = g.getCloud(path, cloudSetN, cloudSetC, cloudSetK);
 
   vout << "Writing to file" << endl;
   for(nodeIdx n : neighborhood)

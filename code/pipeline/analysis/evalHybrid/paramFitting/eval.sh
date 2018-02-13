@@ -77,17 +77,18 @@ export -f evTopic
 ########################
 # EVALUATE REAL TOPICS #
 ########################
-export TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW_REAL_SUBSET
+export TOPIC_DIR=$PROJ_HOME/results/validation/take2/highQualityTopics
 export OUT=$OUT_REAL
 parallel -j 24 evTopic {} ::: $(ls -f $TOPIC_DIR)
 
 ########################
 # EVALUATE FAKE TOPICS #
 ########################
-export TOPIC_DIR=$PROJ_HOME/results/validation/2010/VIEW_FAKE_SUBSET
+export TOPIC_DIR=$PROJ_HOME/results/validation/take2/fakeTopics
 export OUT=$OUT_FAKE
 parallel -j 24 evTopic {} ::: $(ls -f $TOPIC_DIR)
 
 ./calcRoc.py $OUT_REAL $OUT_FAKE > $DONE
 
 scp $DONE $SEND
+  scp "$WORD_A---$WORD_B.$NUM_TOPICS.eval" $REPORT_HOST:$REPORT_DIR/$HANDLE

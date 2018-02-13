@@ -23,16 +23,45 @@ using std::list;
 using std::pair;
 using std::vector;
 
+unordered_set<string> stopwords {
+"a", "about", "again", "all", "am", "an", "and",
+"any", "are", "as", "at", "be", "because", "been",
+"being", "both", "but", "by", "cannot", "could",
+"did", "do", "does", "doing", "during", "each",
+"few", "for", "from", "further", "had", "has",
+"have", "having", "he", "her", "here", "hers",
+"herself", "him", "himself", "his", "how", "i",
+"if", "in", "into", "is", "it", "its", "itself",
+"me", "most", "my", "myself", "no", "nor", "not",
+"of", "off", "on", "once", "only", "or", "other",
+"ought", "our", "ours", "ourselves", "out", "over",
+"own", "same", "she", "should", "so", "some", "such",
+"than", "that", "the", "their", "theirs", "them",
+"themselves", "then", "there", "these", "they",
+"this", "those", "through", "to", "too", "until", "up",
+"very", "was", "we", "were", "what", "when", "where",
+"which", "while", "who", "whom", "why", "with",
+"would", "you", "your", "yours", "yourself", "yourselves",
+};
+
 string abstractLine2Bow(string line){
   stringstream ss(line);
   string word;
   ss >> word; // throw away pmid
   unordered_map<string, unsigned int> bow;
   while(ss >> word){
-    if(bow.find(word) == bow.end()){
-      bow[word] = 1;
-    } else {
-      bow[word] += 1;
+    //strip trailing punct on word
+    while(ispunct(word[word.size()-1]))
+      word = word.substr(0, word.size()-1);
+    //strip leading punct on word
+    while(ispunct(word[0]))
+      word = word.substr(1);
+    if(stopwords.find(word) == stopwords.end()){
+      if(bow.find(word) == bow.end()){
+        bow[word] = 1;
+      } else {
+        bow[word] += 1;
+      }
     }
   }
   stringstream out;
@@ -53,7 +82,7 @@ string getLineFromBinary(fstream& binFile, size_t& byteCount){
   return ss.str();
 }
 
-void fastLoadAbtract2Bow(const string& abstractPath,
+void fastLoadAbstract2Bow(const string& abstractPath,
                          list<pair<string, string>>& result,
                          unordered_set<string> subset = unordered_set<string>()){
 

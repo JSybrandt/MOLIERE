@@ -128,10 +128,12 @@ int main(int argc, char ** argv){
 
   vector<float> sourceByTopic(topics.size(), 0);
   vector<float> targetByTopic(topics.size(), 0);
+  vector<float> sumByTopics(topics.size(), 0);
 
   vout << "Found " << word2vec.size() << " word vectors." << endl;
 
   vout << "Computing similarity measues for each topic" << endl;
+
 
   //float count = 0;
   for(const auto& pair : word2vec){
@@ -144,12 +146,25 @@ int main(int argc, char ** argv){
       const vector<float>& wordTopics = word2topics[word];
       sourceByTopic += wordTopics * simA;
       targetByTopic += wordTopics * simB;
+      sumByTopics += wordTopics;
   //    count += 1;
     }
   }
 
-  sourceByTopic /= magnitude(sourceByTopic);
-  targetByTopic /= magnitude(targetByTopic);
+  for(unsigned int i = 0 ; i < topics.size(); ++i){
+    if(sumByTopics[i] > 0){
+      sourceByTopic[i] /= sumByTopics[i];
+      targetByTopic[i] /= sumByTopics[i];
+    }
+  }
+
+//  sourceByTopic /= magnitude(sourceByTopic);
+//  targetByTopic /= magnitude(targetByTopic);
+
+  vout << "Topic" << "\t" << "Source" << "\t" << "Target" << endl;
+  for(unsigned int i = 0; i < topics.size(); ++i){
+    vout << i << "\t" << sourceByTopic[i] << "\t" << targetByTopic[i] << endl;
+  }
 
   float score = cosSim(sourceByTopic, targetByTopic);
 
