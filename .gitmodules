@@ -4,3 +4,6 @@
 [submodule "build_network/tools/AutoPhrase"]
 	path = build_network/tools/AutoPhrase
 	url = git@github.com:shangjingbo1226/AutoPhrase.git
+[submodule "build_network/tools/fastText"]
+	path = build_network/tools/fastText
+	url = git@github.com:facebookresearch/fastText.git
