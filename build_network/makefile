@@ -3,7 +3,7 @@ CC=g++
 NETWORKIT=./external/networkit
 
 LINK_PATHS=
-INCLUDE_PATHS=-I./src/sharedHeaders
+INCLUDE_PATHS=-I./../shared_headers
 INCLUDE_PATHS+=-I./external/pugixml/src
 LIB=-fopenmp
 CPPV=-std=c++11
@@ -12,7 +12,7 @@ OPT=-O3
 
 
 B=./bin
-S=./src/subprojects
+S=./src
 E=./external
 
 

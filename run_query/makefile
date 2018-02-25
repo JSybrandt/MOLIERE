@@ -3,7 +3,7 @@ CC=g++
 NETWORKIT=./external/networkit
 
 INCLUDE_PATHS=-I$(NETWORKIT)/include
-INCLUDE_PATHS+=-I./src/sharedHeaders
+INCLUDE_PATHS+=-I./../shared_headers
 LINK_PATHS=-B$(NETWORKIT)
 LIB=-lNetworKit -fopenmp
 CPPV=-std=c++11
@@ -12,7 +12,7 @@ OPT=-O3
 
 
 B=./bin
-S=./src/subprojects
+S=./src
 E=./external
 
 
