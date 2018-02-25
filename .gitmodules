@@ -1,3 +1,6 @@
 [submodule "build_network/parseXML/pugixml"]
 	path = build_network/parseXML/pugixml
 	url = git@github.com:zeux/pugixml.git
+[submodule "build_network/tools/AutoPhrase"]
+	path = build_network/tools/AutoPhrase
+	url = git@github.com:shangjingbo1226/AutoPhrase.git
