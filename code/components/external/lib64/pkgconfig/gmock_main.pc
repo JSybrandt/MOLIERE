@@ -1,9 +1,0 @@
-libdir=/zfs/safrolab/users/jsybran/moliere/code/components/external/lib64
-includedir=/zfs/safrolab/users/jsybran/moliere/code/components/external/include
-
-Name: gmock_main
-Description: GoogleMock (with main() function)
-Version: 
-URL: https://github.com/google/googletest
-Libs: -L${libdir} -lgmock_main -lpthread
-Cflags: -I${includedir} -DGTEST_HAS_PTHREAD=1 -lpthread

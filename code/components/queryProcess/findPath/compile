@@ -1,9 +1,0 @@
-#!/bin/bash
-module load gcc openmpi
-clear
-PROJ_HOME=$(pwd | grep -o .*moliere)
-rm -rf bin
-mkdir bin
-g++ main.cpp -O3 -fopenmp -Wall -o ./bin/findPath -I$PROJ_HOME/code/components/sharedHeaders
-ln -fs ./bin/findPath
-

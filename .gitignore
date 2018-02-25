@@ -1,9 +1,0 @@
-**/examples/
-**/bin/
-tools/ToPMine/output/
-tools/ToPMine/TopicalPhrases/input/
-tools/ToPMine/TopicalPhrases/input_dataset/
-tools/ToPMine/TopicalPhrases/input_dataset_output/
-tools/ToPMine/TopicalPhrases/src/DataPreparation/libs
-outdated/
-data/

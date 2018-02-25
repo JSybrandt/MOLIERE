@@ -1,1 +1,0 @@
-../queryProcess/runQuery/bin/runQuery.py
