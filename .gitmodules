@@ -1,0 +1,3 @@
+[submodule "build_network/parseXML/pugixml"]
+	path = build_network/parseXML/pugixml
+	url = git@github.com:zeux/pugixml.git

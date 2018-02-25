@@ -1,0 +1,9 @@
+#!/bin/bash
+module load gcc
+module load openmpi
+clear
+rm -rf bin
+mkdir bin
+g++ *.cpp -O3 -fopenmp -o ./bin/umls2centroid -I /home/jsybran/lib/include
+ln -sf ./bin/umls2centroid
+
