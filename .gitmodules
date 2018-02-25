@@ -7,9 +7,6 @@
 [submodule "build_network/tools/fastText"]
 	path = build_network/tools/fastText
 	url = git@github.com:facebookresearch/fastText.git
-[submodule "run_query/external/plda"]
-	path = run_query/external/plda
-	url = git@github.com:openbigdatagroup/plda.git
 [submodule "run_query/external/networkit"]
 	path = run_query/external/networkit
 	url = git@github.com:kit-parco/networkit.git
