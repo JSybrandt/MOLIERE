@@ -75,8 +75,7 @@ def main():
     parser.add_argument("-d", "--data_home",
                         action="store",
                         dest="data_home",
-                        default="{}/data".format(homePath),
-                        help="specifies an alternate data directory")
+                        help="specifies a data directory")
     parser.add_argument("-n", "--num_topics",
                         action="store",
                         dest="num_topics",
@@ -91,11 +90,6 @@ def main():
                         dest="ellipse_constant",
                         default="1.4",
                         help="size of ellipse optimization")
-    # parser.add_argument("-V", "--vector_length",
-                        # action="store",
-                        # dest="vector_length",
-                        # default="500",
-                        # help="size of ellipse optimization")
     parser.add_argument("-m", "--move_here",
                         action="store_true",
                         dest="move_here",
