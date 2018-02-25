@@ -1,29 +1,8 @@
 #!/usr/bin/env python3
 import argparse
 
-default_param = [
-    -0.9746115311616966,   # score_a_c coef
-    1.5492325735580643,    # score_a_c exp
-    0.513138625868795,     # score_topic_center coef
-    2.665854971611072,     # score_topic_center exp
-    0.7017497381282372,    # score_topic_points coef
-    2.761011067353779,     # score_topic_points exp
-    -0.22752657252005895,  # score_topic_corr coef
-    1.9070034217853005,    # score_topic_corr exp
-    -0.3946766150567381,   # score_topic_net_btwn coef
-    1.1746781019546093,    # score_topic_net_btwn exp
-    -0.4087055911895488,   # score_topic_net_ccoef coef
-    2.022834231799606      # score_topic_net_ccoef exp
-]
-
-default_scale = [
-    13.1183,   # score_a_c
-    0.62918,   # score_topic_center
-    0.869151,  # score_topic_points
-    0.999596,  # score_topic_corr
-    3019.73,   # score_topic_net_btwn
-    0.607236   # score_topic_net_ccoef
-]
+global default_scale
+global default_param
 
 offset = 1
 
@@ -77,10 +56,10 @@ class Data(object):
             self.vec = [0 if v < 0 else v for v in self.vec]
         return self.vec
 
-    def scale(self, max_val=default_scale):
+    def scale(self, max_val):
         self.vec = [v / max_val[i] for i, v in enumerate(self.toVec())]
 
-    def toScore(self, params=default_param):
+    def toScore(self, params):
         vec = self.toVec()
         p_tup = list(zip(*2*[iter(params)]))
         partials = [p_tup[i][0] * (vec[i] ** p_tup[i][1])
@@ -92,8 +71,9 @@ class Data(object):
         return None not in self.toVec()
 
     def __str__(self):
+        global default_param
         if self.isDone():
-            return "{} {}".format(self.pair, self.toScore())
+            return "{} {}".format(self.pair, self.toScore(default_param))
         else:
             return "{} N/A".format(self.pair)
 
@@ -106,6 +86,8 @@ def lineToPair(line):
 
 
 def main():
+    global default_param, default_scale
+    global param, scale
     parser = argparse.ArgumentParser()
     parser.add_argument("files",
                         nargs="+",
@@ -114,7 +96,21 @@ def main():
                         action="store_true",
                         dest="verbose",
                         help="print debug info")
+    parser.add_argument("-p", "--param_file",
+                        action="store",
+                        dest="param_file",
+                        default=None,
+                        help="path to param file")
     args = parser.parse_args()
+
+    if args.param_file:
+        with open(args.param_file) as pFile:
+            exec(pFile.read())
+            default_param = param
+            default_scale = scale
+        if(args.verbose):
+            print(default_param)
+            print(default_scale)
 
     pair2data = {}
     for file_name in args.files:
@@ -132,7 +128,7 @@ def main():
         if not data.isDone():
             print("ERROR:", pair, "does not have all metric values")
             exit(1)
-        data.scale()
+        data.scale(default_scale)
 
     # print
     for _, data in pair2data.items():

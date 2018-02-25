@@ -36,9 +36,7 @@ int main (int argc, char** argv){
   p.add<string>("pathFile", 'p', "input path file (idx)", true);
   p.add<string>("outputFile", 'o', "Output paths and neighborhoods", true);
   p.add<string>("labelFile", 'l', "Label file accompanying the edges file.", true);
-  p.add<unsigned int>("cloudSetN", 'N', "abstract cloud param: number of new abstracts adjacent to those on path.", false, 2000);
-  p.add<unsigned int>("cloudSetC", 'C', "abstract cloud param: number of new abstracts from keyword overlap", false, 500);
-  p.add<unsigned int>("cloudSetK", 'K', "abstract cloud param: number of new abstracts from keywords", false, 500);
+  p.add<unsigned int>("numAbstractsPerNode", 'A', "The cloud will expand until it find this many abstracts per node in path", false, 1000);
   p.add<unsigned int>("maxDistFromPath", 'n', "max separation from path (hops)", false, 2);
   p.add("verbose", 'v', "outputs debug information");
 
@@ -48,9 +46,7 @@ int main (int argc, char** argv){
   string pathPath =  p.get<string>("pathFile");
   string outputPath =  p.get<string>("outputFile");
   string labelPath =  p.get<string>("labelFile");
-  unsigned int cloudSetN = p.get<unsigned int>("cloudSetN");
-  unsigned int cloudSetC = p.get<unsigned int>("cloudSetC");
-  unsigned int cloudSetK = p.get<unsigned int>("cloudSetK");
+  unsigned int numAbstractsPerNode = p.get<unsigned int>("numAbstractsPerNode");
   unsigned int maxDistFromPath = p.get<unsigned int>("maxDistFromPath");
   verbose = p.exist("verbose");
 
@@ -65,8 +61,8 @@ int main (int argc, char** argv){
   }
   pathFile.close();
 
-  unsigned int minResult = min(cloudSetN, min(cloudSetC, cloudSetK)) * path.size() / 2;
-  vout << "Expecting a min resulting cloud of size " << minResult << endl;
+  unsigned int maxResult = numAbstractsPerNode * path.size() / 2;
+  vout << "Expecting a min resulting cloud of size " << maxResult << endl;
 
   // CONSTRUCTING GRAPH
   vout << "Loading labels from " << labelPath << endl;
@@ -98,11 +94,17 @@ int main (int argc, char** argv){
     vout << "Found " << g.numEdges() << " edges" << endl;
 
     vout << "Getting cloud" << endl;
-    neighborhood = g.getCloud(path, cloudSetN, cloudSetC, cloudSetK);
+    unordered_set<nodeIdx> cloud;
+#pragma omp parallel for schedule(dynamic)
+    for(unsigned int i = 0; i < path.size(); ++i){
+      unordered_set<nodeIdx> local = g.getCloud(path[i], numAbstractsPerNode);
+#pragma omp critical
+      cloud.insert(local.begin(), local.end());
+    }
 
     vout << "Found cloud of size " << neighborhood.size() << endl;
 
-  }while(neighborhood.size() < minResult && cycleCount < maxDistFromPath);
+  }while(neighborhood.size() < maxResult && cycleCount < maxDistFromPath);
 
   fstream outFile(outputPath, ios::out);
 

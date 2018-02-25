@@ -58,6 +58,26 @@ public:
     addEdge(e.a, e.b, e.weight);
   }
 
+  unordered_set<nodeIdx> getCloud(nodeIdx source, unsigned int maxResult){
+    typedef pair<nodeIdx, float> halfEdge;
+    pQueue<nodeIdx, float> pq;
+    unordered_set<nodeIdx> visited, abstracts(maxResult);
+    pq.push(source, 0);
+    visited.insert(source);
+    if(isAbstract(source)) abstracts.insert(source);
+    while(!pq.empty() && abstracts.size() < maxResult){
+      halfEdge cEdge = pq.pop();
+      visited.insert(cEdge.first);
+      if(isAbstract(cEdge.first)) abstracts.insert(cEdge.first);
+      for(const halfEdge& nEdge : data.at(cEdge.first)){
+        if(visited.find(nEdge.first) == visited.end())
+          pq.push(nEdge.first, cEdge.second + nEdge.second);
+      }
+    }
+    return abstracts;
+  }
+
+  // DEPRICATED
   unordered_set<nodeIdx> getCloud(const vector<nodeIdx> path, unsigned int cloudSetN, unsigned int cloudSetC, unsigned int cloudSetK){
     unordered_set<nodeIdx> res;
     for(unsigned int i = 0; i < path.size(); ++i){

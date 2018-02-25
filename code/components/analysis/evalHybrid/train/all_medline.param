@@ -1,0 +1,24 @@
+global param, scale
+param = [
+    -0.9746115311616966,   # score_a_c coef
+    1.5492325735580643,    # score_a_c exp
+    0.513138625868795,     # score_topic_center coef
+    2.665854971611072,     # score_topic_center exp
+    0.7017497381282372,    # score_topic_points coef
+    2.761011067353779,     # score_topic_points exp
+    -0.22752657252005895,  # score_topic_corr coef
+    1.9070034217853005,    # score_topic_corr exp
+    -0.3946766150567381,   # score_topic_net_btwn coef
+    1.1746781019546093,    # score_topic_net_btwn exp
+    -0.4087055911895488,   # score_topic_net_ccoef coef
+    2.022834231799606      # score_topic_net_ccoef exp
+]
+
+scale = [
+    13.1183,   # score_a_c
+    0.62918,   # score_topic_center
+    0.869151,  # score_topic_points
+    0.999596,  # score_topic_corr
+    3019.73,   # score_topic_net_btwn
+    0.607236   # score_topic_net_ccoef
+]

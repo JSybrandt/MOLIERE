@@ -1,0 +1,10 @@
+node0078.palmetto.clemson.edu
+node0079.palmetto.clemson.edu
+node0085.palmetto.clemson.edu
+node0315.palmetto.clemson.edu
+node0316.palmetto.clemson.edu
+node0317.palmetto.clemson.edu
+node0318.palmetto.clemson.edu
+node0319.palmetto.clemson.edu
+node0320.palmetto.clemson.edu
+node0321.palmetto.clemson.edu
