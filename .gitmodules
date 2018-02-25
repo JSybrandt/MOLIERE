@@ -1,12 +1,15 @@
 [submodule "build_network/parseXML/pugixml"]
 	path = build_network/parseXML/pugixml
 	url = git@github.com:zeux/pugixml.git
-[submodule "build_network/tools/AutoPhrase"]
-	path = build_network/tools/AutoPhrase
-	url = git@github.com:shangjingbo1226/AutoPhrase.git
-[submodule "build_network/tools/fastText"]
-	path = build_network/tools/fastText
-	url = git@github.com:facebookresearch/fastText.git
 [submodule "run_query/external/networkit"]
 	path = run_query/external/networkit
 	url = git@github.com:kit-parco/networkit.git
+[submodule "build_network/external/pugixml"]
+	path = build_network/external/pugixml
+	url = git@github.com:zeux/pugixml.git
+[submodule "build_network/external/fastText"]
+	path = build_network/external/fastText
+	url = git@github.com:facebookresearch/fastText.git
+[submodule "build_network/external/AutoPhrase"]
+	path = build_network/external/AutoPhrase
+	url = git@github.com:shangjingbo1226/AutoPhrase.git
