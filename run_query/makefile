@@ -46,7 +46,7 @@ $B/evalHybrid.py: $S/eval/evalHybrid.py $B/eval_l2 $B/eval_topic_path $B/eval_tp
 $B/eval_l2: $S/eval/l2/main.cpp
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
 
-$B/eval_topic_path: $S/eval/topic_path/main.cpp
+$B/eval_topic_path: $S/eval/topic_path/main.cpp $(NETWORKIT)/libNetworKit.a
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
 
 $B/eval_tpw: $S/eval/tpw/main.cpp
@@ -62,6 +62,11 @@ $B/getBestPaperFromTM: $S/tools/getBestPaperFromTM/main.cpp
 
 $B/getNearestNeighbor: $S/tools/getNearestNeighbor/main.cpp
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
+
+$(NETWORKIT)/libNetworKit.a:
+	cd $(NETWORKIT)
+	scons --optimize=Opt --target=Lib --std=c++1
+	# We intentionally do not clean this lib, it takes forever to build
 
 clean:
 	rm $B/*
