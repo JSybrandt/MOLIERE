@@ -306,7 +306,7 @@ string cleanText(const string& dirty){
           }
           break;
         case '-':
-          ss << '_'; break;
+          ss << '_'; break; // NOTE: we want hiv_ and {alpha}_
         case '?': case '!': case ';': case ':': case '.':
           if(isspace(nextChar)){  // punct is removed or tokenized
             ss << " . ";
@@ -367,10 +367,20 @@ string cleanText(const string& dirty){
       lastPeriod = true;
     }
     else{
-      lastPeriod = false;
-      //Porter2Stemmer::trim(tmp);
-      Porter2Stemmer::stem(tmp);
-      res << tmp << " ";
+
+      bool containsInfo = false;
+      for(char c : tmp){
+        if(isalpha(c) || isdigit(c)){
+          containsInfo = true;
+          break;
+        }
+      }
+      if(containsInfo){ // only include tokens that have at least one letter or number
+        lastPeriod = false;
+        //this removes stray - or symbols like {+/-}
+        Porter2Stemmer::stem(tmp);
+        res << tmp << " ";
+      }
     }
   }
   return res.str();

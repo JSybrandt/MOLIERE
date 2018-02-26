@@ -139,7 +139,6 @@ int main(int argc, char ** argv){
           transform(k.begin(), k.end(), k.begin(),
               [](char c) -> char {return (c==' ' ? '_' : c);});
            text << k << " . ";
-           vout << pmid << " " << k << endl;
         }
       }
 
