@@ -1,3 +1,4 @@
+#pragma once
 #include<string>
 #include<sstream>
 #include<fstream>
@@ -73,17 +74,6 @@ string abstractLine2Bow(string line){
     out << pair.first << " " << pair.second << " ";
   }
   return out.str();
-}
-
-string getLineFromBinary(fstream& binFile, size_t& byteCount){
-  stringstream ss;
-  char c;
-  while(binFile >> c){
-    ++byteCount;
-    if(c == '\n') break;
-    ss << c;
-  }
-  return ss.str();
 }
 
 void fastLoadAbstract2Bow(const string& abstractPath,

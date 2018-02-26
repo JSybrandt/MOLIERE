@@ -1,9 +1,14 @@
+B=./bin
+S=./src
+E=../external
+H=../shared_headers
+
 CC=g++
 
-NETWORKIT=./external/networkit
+NETWORKIT=$E/networkit
 
 INCLUDE_PATHS=-I$(NETWORKIT)/include
-INCLUDE_PATHS+=-I./../shared_headers
+INCLUDE_PATHS+=-I$H
 LINK_PATHS=-B$(NETWORKIT)
 LIB=-lNetworKit -fopenmp
 CPPV=-std=c++11
@@ -11,9 +16,6 @@ WARN=-Wall
 OPT=-O3
 
 
-B=./bin
-S=./src
-E=./external
 
 
 NO_COLOR=\x1b[0m

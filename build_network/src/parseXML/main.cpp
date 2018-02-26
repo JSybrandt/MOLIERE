@@ -26,12 +26,18 @@ int main(int argc, char ** argv){
 
   p.add<string>("file", 'f', "MEDLINE file to parse", true);
   p.add<string>("output", 'o', "result file", true);
+  p.add("include-keywords", 'k',
+        "if true, keywords provided by authors are appended to abstracts.");
+  p.add("only-keywords", 'O', "outputs pmid, keyword list from author-defined tags.");
   p.add("verbose", 'v', "Output debug info.");
 
   p.parse_check(argc, argv);
   string inPath = p.get<string>("file");
   string outPath = p.get<string>("output");
   ::verbose = p.exist("verbose");
+  bool includeKeywords = p.exist("include-keywords");
+  bool onlyKeywords = p.exist("only-keywords");
+  includeKeywords = onlyKeywords || includeKeywords;
 
 
   vout << "Setting Locale" << endl;
@@ -54,13 +60,14 @@ int main(int argc, char ** argv){
 
   unsigned int count = 0, brokenRecords = 0, missingYear = 0, retracted = 0, comment = 0;
   for(pugi::xml_node pubmedArticleNode : doc.child("PubmedArticleSet").children("PubmedArticle")){
-    try{
+//    try{
       pugi::xml_node citationNode = pubmedArticleNode.child("MedlineCitation");
       pugi::xml_node pmidNode = citationNode.child("PMID");
       pugi::xml_node articleNode = citationNode.child("Article");
       pugi::xml_node titleNode = articleNode.child("ArticleTitle");
       pugi::xml_node abstractNode = articleNode.child("Abstract");
       pugi::xml_node pubTypesNode = articleNode.child("PublicationTypeList");
+      pugi::xml_node keywordListNode = citationNode.child("KeywordList");
 
       // if retracted type
       if(pubTypesNode){
@@ -112,23 +119,35 @@ int main(int argc, char ** argv){
       string version = pmidNode.attribute("Version").value();
 
       outFile << "PMID" << pmid << "_" << version << " "
-              << year << ". "
-              << cleanText(title) << " ";
+              << year << " . ";
 
-      if(abstractNode){
-        stringstream abTextSS;
-        for(pugi::xml_node textNode : abstractNode.children("AbstractText")){
-          abTextSS << textNode.text().get() << endl;
+      stringstream text;
+      if(!onlyKeywords){
+
+        text << title << " . ";
+        if(abstractNode){
+          stringstream abTextSS;
+          for(pugi::xml_node textNode : abstractNode.children("AbstractText")){
+            text << textNode.text().get() << " . ";
+          }
         }
-        string abText = abTextSS.str();
-        outFile << cleanText(abText);
       }
 
-      outFile << endl;
+      if(keywordListNode && includeKeywords){
+        for(pugi::xml_node keyNode : keywordListNode.children("Keyword")){
+          string k = keyNode.text().get();
+          transform(k.begin(), k.end(), k.begin(),
+              [](char c) -> char {return (c==' ' ? '_' : c);});
+           text << k << " . ";
+           vout << pmid << " " << k << endl;
+        }
+      }
 
-    } catch(...){
-      vout << "Failed to parse something from " << inPath << endl;
-    }
+      outFile << cleanText(text.str()) << endl;
+
+    //} catch(...){
+      //vout << "Failed to parse something from " << inPath << endl;
+    //}
   }
 
   vout << "Parse Summary:" << endl

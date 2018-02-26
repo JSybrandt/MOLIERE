@@ -12,6 +12,9 @@
 
 #include<iconv.h>
 
+#include"porter2_stemmer.h"
+// MUST BE LINKED WITH OBJ
+
 using std::string;
 using std::wstring;
 using std::unordered_map;
@@ -151,7 +154,7 @@ const unordered_map<string, string> symbol2text = {
   {u8"≈", "approx"},
   {u8"÷", "div"},
   {u8"Ø", "null"},
-  {u8"ø", "null"},
+  {u8"ø", "o"},
   {u8"ĸ", "kra"},
   {u8"″", ""},
   {u8"\u202e", ""},
@@ -272,6 +275,7 @@ string cleanText(const string& dirty){
       // one symbol lookahead
       string nextVarWidthChar = getVarWidthChar(dirty, i);
       char nextChar;
+
       if(i >= dirty.length()) nextChar = '\n';
       else if(nextVarWidthChar.size() == 1) nextChar = nextVarWidthChar[0];
       else nextChar = '?';
@@ -287,7 +291,11 @@ string cleanText(const string& dirty){
         case ']': case '}': case ')':
           if(workingText.size() > 1){ // someone might list a) b) c)
             // if this parens might mean something
-            if(!isspace(nextChar) && !iscntrl(nextChar) && !isblank(nextChar) && nextChar != '.'){
+            if(!isspace(nextChar) &&
+               !iscntrl(nextChar) &&
+               !isblank(nextChar) &&
+               nextChar != '.')
+            {
               string tmp = ss.str();
               workingText.pop();
               workingText.top() << tmp; // reinsert text
@@ -297,10 +305,15 @@ string cleanText(const string& dirty){
             }
           }
           break;
-        case '-': ss << '_'; break;
-        case '?': case '!': case ';': case ':':
-          ss << '.'; break;
-        case '\"': case '\'': case',': break; //skip
+        case '-':
+          ss << '_'; break;
+        case '?': case '!': case ';': case ':': case '.':
+          if(isspace(nextChar)){  // punct is removed or tokenized
+            ss << " . ";
+          }
+          break;
+        case '\"': case '\'': case ',':
+          break; //skip
         default:
           if((isspace(c) || iscntrl(c) || isblank(c))){
             // if this is a space and the next char does not start a parenthetical phrase
@@ -335,16 +348,32 @@ string cleanText(const string& dirty){
         }
       }
       if(containsInfo){
-        const auto begin = str.find_first_not_of(" ");
-        const auto end = str.find_last_not_of(" ");
+        const auto begin = str.find_first_not_of(" _");
+        const auto end = str.find_last_not_of(" _.");
         const auto size = end - begin + 1;
         if(ss.str().size() > 0) ss << " ";
-        ss << str.substr(begin, size) << (str[end] == '.' ? "" : ".");
+        ss << str.substr(begin, size) << " . ";
       }
     }
   }
-  return ss.str();
 
+  string tmp;
+  stringstream res;
+  bool lastPeriod = false;
+  while(ss >> tmp){
+    if(tmp == "."){
+      if(!lastPeriod)
+        res << ". ";
+      lastPeriod = true;
+    }
+    else{
+      lastPeriod = false;
+      //Porter2Stemmer::trim(tmp);
+      Porter2Stemmer::stem(tmp);
+      res << tmp << " ";
+    }
+  }
+  return res.str();
 }
 
 

@@ -16,9 +16,8 @@
 #include <sys/stat.h>
 
 #include"cmdln.h"
-#include"pQueue.h"
-#include"util.h"
-#include"parallelAbstractLoad.h"
+#include"parallelFileOp.h"
+#include"stopword_list.h"
 
 bool verbose = false;
 #define vout if(::verbose) cout
@@ -26,61 +25,66 @@ bool verbose = false;
 using namespace std;
 
 
+string procText(const string& line){
+  stringstream reader(line);
+  stringstream writer;
+  string tmp;
+  bool first = true;
+  while(reader >> tmp){
+    if(first){ // print pmid for debug
+      vout << tmp << endl;
+      first = false;
+    }
+    if(STOP_WORDS.find(tmp) == STOP_WORDS.end()){
+      writer << tmp << " ";
+    }
+  }
+  return writer.str();
+}
+
+bool isLong(const string& line){
+  stringstream ss(line);
+  string tmp;
+  unsigned int count = 0;
+  while(ss >> tmp){
+    ++count;
+    // PMID YEAR BREAK WORD BREAK == 5 words
+    if(count > 5) return true;
+  }
+  return false;
+}
+
+
 int main (int argc, char** argv){
 
   cmdline::parser p;
 
-  p.add<string>("cloudFile", 'c', "file containing moliere IDs", true);
-  p.add<string>("outputFile", 'o', "Output bog of words", true);
-  p.add<string>("labelFile", 'l', "Label file mapping moliere ID to string.", true);
-  p.add<string>("abstractFile", 'a', "abstract file", true);
+  p.add<string>("abstractFile", 'a', "abstract file (Run After Phrase Mining)", true);
+  p.add<string>("outputFile", 'o', "output file", true);
+  p.add("keep-short-abstracts", 'k', "keeps abstracts that only contain 1 word");
   p.add("verbose", 'v', "outputs debug information");
 
   p.parse_check(argc, argv);
 
-  string cloudPath =  p.get<string>("cloudFile");
-  string outputPath =  p.get<string>("outputFile");
-  string labelPath =  p.get<string>("labelFile");
   string abstractPath =  p.get<string>("abstractFile");
+  string outPath =  p.get<string>("outputFile");
   verbose = p.exist("verbose");
+  bool keepShort = p.exist("keep-short-abstracts");
 
-  vector<string> mid2Label;
-  mid2Label.reserve(pow(2, 25));
+  vout << "Processing" << endl;
 
-  vout << "Loading labels from " << labelPath << endl;
-  fstream labelFile(labelPath, ios::in);
-  string label;
-  while(labelFile >> label){
-    mid2Label.push_back(label);
-  }
-  labelFile.close();
-
-
-  vout << "Loading cloud from " << cloudPath << endl;
-  unordered_set<string> pmids;
-  fstream cloudFile(cloudPath, ios::in);
-  nodeIdx id;
-  while(cloudFile >> id){
-    pmids.insert(mid2Label[id]);
-  }
-  cloudFile.close();
-
-  if(pmids.size() == 0){
-    throw runtime_error("Failed to load anything from cloud");
+  list<string> processedText;
+  if(keepShort){
+    fastProcFile<string>(abstractPath, processedText, procText);
+  } else {
+    fastProcFile<string>(abstractPath, processedText, procText, isLong);
   }
 
-  vout << "Loading abstracts in parallel from " << abstractPath << endl;
-  vout << "Expecting to find... " << pmids.size() << " pmids" << endl;
-  list<pair<string, string>> pmid2bow;
-  fastLoadAbstract2Bow(abstractPath, pmid2bow, pmids);
-
-  vout << "Found " << pmid2bow.size() << " pmids" << endl;
-
-
-  vout << "Writing to " << outputPath << endl;
-  fstream outFile(outputPath, ios::out);
-  for(const auto& pair : pmid2bow)
-    outFile << pair.second << endl;
+  vout << "writing" << endl;
+  fstream outFile(outPath, ios::out);
+  for(const string& str : processedText){
+    outFile << str << endl;
+  }
   outFile.close();
 
   return 0;

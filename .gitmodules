@@ -1,15 +1,15 @@
-[submodule "build_network/parseXML/pugixml"]
-	path = build_network/parseXML/pugixml
-	url = git@github.com:zeux/pugixml.git
-[submodule "run_query/external/networkit"]
-	path = run_query/external/networkit
-	url = git@github.com:kit-parco/networkit.git
-[submodule "build_network/external/pugixml"]
-	path = build_network/external/pugixml
-	url = git@github.com:zeux/pugixml.git
-[submodule "build_network/external/fastText"]
-	path = build_network/external/fastText
-	url = git@github.com:facebookresearch/fastText.git
-[submodule "build_network/external/AutoPhrase"]
-	path = build_network/external/AutoPhrase
+[submodule "external/porter2_stemmer"]
+	path = external/porter2_stemmer
+	url = git@github.com:smassung/porter2_stemmer.git
+[submodule "external/AutoPhrase"]
+	path = external/AutoPhrase
 	url = git@github.com:shangjingbo1226/AutoPhrase.git
+[submodule "external/fastText"]
+	path = external/fastText
+	url = git@github.com:facebookresearch/fastText.git
+[submodule "external/pugixml"]
+	path = external/pugixml
+	url = git@github.com:zeux/pugixml.git
+[submodule "external/networkit"]
+	path = external/networkit
+	url = git@github.com:kit-parco/networkit.git
