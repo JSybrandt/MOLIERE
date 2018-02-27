@@ -42,6 +42,16 @@ def checkFile(path):
         raise
 
 
+def shouldRemake(path, args):
+    if not os.path.isfile(path):
+        return True
+    if os.stat(path).st_size == 0:
+        return True
+    if args.rebuild:
+        return True
+    return False
+
+
 def unzip(name):
     if name.endswith(".gz"):
         vprint("Unzipping", name)
@@ -102,11 +112,20 @@ if __name__ == "__main__":
                         action="store",
                         dest="umls_dir",
                         help="location of UMLS installation")
+    parser.add_argument("--filter-year",
+                        action="store",
+                        dest="filter_year",
+                        help="train the network on historical data.")
     parser.add_argument("-V", "--vector-dim",
                         action="store",
                         dest="vector_dim",
                         default="100",
-                        help="dimensioality of word embedding")
+                        help="dimensionality of word embedding")
+    parser.add_argument("-N", "--num-nearest-neighbors",
+                        action="store",
+                        dest="num_nn",
+                        default="100",
+                        help="number of neighbors per entity")
     parser.add_argument("--skip-download",
                         action="store_true",
                         dest="skip_download",
@@ -139,7 +158,15 @@ if __name__ == "__main__":
 
     if int(args.vector_dim) <= 0:
         print(args.vector_dim)
-        raise ValueError("Vector dimensionality must be postive")
+        raise ValueError("Vector dimensionality must be positive")
+
+    if int(args.num_nn) <= 0:
+        print(args.num_nn)
+        raise ValueError("num nearest neighbors must be positive")
+
+    if args.filter_year and int(args.filter_year) <= 0:
+        print(args.filter_year)
+        raise ValueError("If you supply a filter year, it must be positive")
 
     global VERBOSE
     VERBOSE = args.verbose
@@ -153,13 +180,19 @@ if __name__ == "__main__":
     os.makedirs("{}/fastText".format(args.data_home), exist_ok=True)
     os.makedirs("{}/network".format(args.data_home), exist_ok=True)
 
+    mrconso_path = "{}/META/MRCONSO.RRF".format(args.umls_dir)
+
+    if not os.path.isfile(mrconso_path):
+        print(mrconso_path)
+        raise ValueError("UMLS not properly installed")
+
     if not args.skip_download:
         vprint("Downloading medline into", args.xml_dir)
         downloadMedline(args.xml_dir)
 
     # ABSTRACT FILE
     ab_raw_path = "{}/processedText/abstract.raw.txt".format(args.data_home)
-    if not os.path.isfile(ab_raw_path) or args.rebuild:
+    if shouldRemake(ab_raw_path, args):
         cmd = getCmdStr(linkPath, "parseXML")
 
         def parse(path):
@@ -167,10 +200,12 @@ if __name__ == "__main__":
                 vprint("Parsing", path)
                 subprocess.call([
                     cmd,
-                    '-f', os.path.join(args.xml_dir, path),
+                    '-i', os.path.join(args.xml_dir, path),
                     '-o', os.path.join(tmp_dir, path),
                     '-k',  # include author supplied keywords
-                    '-v' if VERBOSE else ''
+                    '-v' if VERBOSE else '',
+                    '-y' if args.filter_year else '',
+                    args.filter_year if args.filter_year else '',
                 ])
 
         # Parse each xml file in parallel
@@ -191,8 +226,7 @@ if __name__ == "__main__":
 
     # AUTOPHRASE Expert Phrases
     phrase_path = "{}/processedText/expertPhrases.txt" .format(args.data_home)
-    if not os.path.isfile(phrase_path) or args.rebuild:
-        mrconso_path = "{}/META/MRCONSO.RRF".format(args.umls_dir)
+    if shouldRemake(phrase_path, args):
         checkFile(mrconso_path)
         cmd = getCmdStr(linkPath, "parseXML")
 
@@ -241,9 +275,14 @@ if __name__ == "__main__":
     # AUTOPHRASE Training and parsing
     ab_w_phrases_path = "{}/processedText/abstract.parsed.txt"\
                         .format(args.data_home)
-    if not os.path.isfile(ab_w_phrases_path) or args.rebuild:
+    if shouldRemake(ab_w_phrases_path, args):
         vprint("Running autophrase")
-        cmd = getCmdStr(linkPath, "../../external/runAutoPhrase.sh")
+        cmd = getCmdStr(linkPath, "../../external/trainAutoPhrase.sh")
+        subprocess.call([cmd, ab_raw_path, num_threads,
+                         phrase_path, ab_w_phrases_path],
+                        stdout=sys.stdout if VERBOSE else
+                        open("/dev/null", 'w'))
+        cmd = getCmdStr(linkPath, "../../external/parseAutoPhrase.sh")
         subprocess.call([cmd, ab_raw_path, num_threads,
                          phrase_path, ab_w_phrases_path],
                         stdout=sys.stdout if VERBOSE else
@@ -261,7 +300,7 @@ if __name__ == "__main__":
 
     # word 2 vec
     ngram_vec_path = "{}/fastText/ngram.vec".format(args.data_home)
-    if not os.path.isfile(ngram_vec_path) or args.rebuild:
+    if shouldRemake(ngram_vec_path, args):
         ngram_bin_path = "{}/fastText/ngram.bin".format(args.data_home)
         cmd = getCmdStr(linkPath, "fasttext")
         vprint("Running fasttext")
@@ -286,5 +325,91 @@ if __name__ == "__main__":
         vprint("Reusing", ngram_vec_path)
 
     # trash all "." from abstracts
-    vprint("Updating abstrat file, removing stop token")
+    vprint("Updating abstract file, removing stop token")
     subprocess.call(['sed', '-i', r's/\s\.//g', ab_w_phrases_path])
+
+    pmid_vec_path = "{}/fastText/pmid.vec".format(args.data_home)
+    if shouldRemake(pmid_vec_path, args):
+        cmd = getCmdStr(linkPath, "makeCentroid")
+        vprint("Abstract file 2 centroids:")
+        subprocess.call([
+            cmd,
+            '-i', ab_w_phrases_path,
+            '--skip-second',
+            '-V', ngram_vec_path,
+            '-o', pmid_vec_path,
+            '-v' if VERBOSE else ''
+        ])
+    else:
+        vprint("Reusing", pmid_vec_path)
+
+    umls_text_path = "{}/processedText/umls.txt".format(args.data_home)
+    if shouldRemake(umls_text_path, args):
+        cmd = getCmdStr(linkPath, "parseUMLS")
+        subprocess.call([
+            cmd,
+            '-i', mrconso_path,
+            '-o', umls_text_path,
+            '-v' if VERBOSE else ''
+        ])
+        tmp_path = os.path.join(tmp_dir, "umls_tmp.txt")
+        cmd = getCmdStr(linkPath, "../../external/parseAutoPhrase.sh")
+        subprocess.call([cmd, umls_text_path, num_threads,
+                         phrase_path, tmp_path],
+                        stdout=sys.stdout if VERBOSE else
+                        open("/dev/null", 'w'))
+        subprocess.call(['mv', tmp_path, umls_text_path])
+        vprint("making phrases")
+        cmd = getCmdStr(linkPath, "apHighlight2Underscore")
+        subprocess.call([cmd, '-i', umls_text_path, '-o', tmp_path,
+                         "-v" if VERBOSE else ""])
+        subprocess.call(['mv', tmp_path, umls_text_path])
+        vprint("Removing stop token")
+        subprocess.call(['sed', '-i', r's/\s\.//g', umls_text_path])
+        cleanTmp(tmp_path)
+    else:
+        vprint("Reusing", umls_text_path)
+
+    umls_vec_path = "{}/fastText/umls.vec".format(args.data_home)
+    if shouldRemake(umls_vec_path, args):
+        cmd = getCmdStr(linkPath, "makeCentroid")
+        vprint("Abstract file 2 centroids:")
+        subprocess.call([
+            cmd,
+            '-i', umls_text_path,
+            '-V', ngram_vec_path,
+            '-o', umls_vec_path,
+            '-v' if VERBOSE else ''
+        ])
+    else:
+        vprint("Reusing", umls_vec_path)
+
+    pmid_network_path = "{}/network/pmid.edges".format(args.data_home)
+    if shouldRemake(pmid_network_path, args):
+        cmd = getCmdStr(linkPath, "makeApproxNNN")
+        vprint("Running FLANN to make pmid net")
+        subprocess.call([
+            cmd,
+            '-i', pmid_vec_path,
+            '-o', os.path.splitext(pmid_network_path)[0],
+            '-n',
+            '-k', args.num_nn,
+            '-v' if VERBOSE else ''
+        ])
+    else:
+        vprint("Reusing", umls_vec_path)
+
+    ngram_network_path = "{}/network/ngram.edges".format(args.data_home)
+    if shouldRemake(ngram_network_path, args):
+        cmd = getCmdStr(linkPath, "makeApproxNNN")
+        vprint("Running FLANN to make pmid net")
+        subprocess.call([
+            cmd,
+            '-i', ngram_vec_path,
+            '-o', os.path.splitext(ngram_network_path)[0],
+            '-n',
+            '-k', args.num_nn,
+            '-v' if VERBOSE else ''
+        ])
+    else:
+        vprint("Reusing", ngram_network_path)

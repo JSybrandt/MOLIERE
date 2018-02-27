@@ -5,11 +5,12 @@ H=../shared_headers
 
 CC=g++
 
-LINK_PATHS=
+LINK_PATHS=-L $B
 INCLUDE_PATHS=-I$H
 INCLUDE_PATHS+=-I$E/pugixml/src
 INCLUDE_PATHS+=-I$E/porter2_stemmer
-LIB=-fopenmp
+INCLUDE_PATHS+=-I$E/flann/src/cpp
+LIB=-fopenmp -l flann
 CPPV=-std=c++11
 WARN=-Wall
 OPT=-O3
@@ -18,7 +19,7 @@ NO_COLOR=\x1b[0m
 WARN_COLOR=\x1b[33;01m
 
 
-all: $B/parseXML $B/fasttext $B/stripStopwords $B/cleanRawText $B/apHighlight2Underscore
+all: $B/parseXML $B/fasttext $B/cleanRawText $B/apHighlight2Underscore $B/makeCentroid $B/parseUMLS $B/makeApproxNNN
 
 $B/parseXML: $S/parseXML/main.cpp $B/pugixml.o $B/porter2_stemmer.o
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
@@ -30,8 +31,6 @@ $B/fasttext:
 	make -C $E/fastText -j
 	cp $E/fastText/fasttext $B/fasttext
 
-$B/stripStopwords: $S/stripStopwords/main.cpp
-	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
 
 $B/cleanRawText: $S/cleanRawText/main.cpp $B/porter2_stemmer.o
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
@@ -41,6 +40,21 @@ $B/porter2_stemmer.o: $E/porter2_stemmer/porter2_stemmer.cpp
 
 $B/apHighlight2Underscore: $S/apHighlight2Underscore/main.cpp
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
+
+$B/makeCentroid: $S/makeCentroid/main.cpp
+	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
+
+$B/parseUMLS: $S/parseUMLS/main.cpp $B/porter2_stemmer.o
+	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
+
+$B/makeApproxNNN: $S/makeApproxNNN/main.cpp $B/libflann.so
+	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
+
+$B/libflann.so: $E/flann/build/lib/libflann.so
+	ln -s `readlink -f $<` $@
+
+$E/flann/build/lib/libflann.so:
+	Please build flann in the external dir
 
 
 clean:

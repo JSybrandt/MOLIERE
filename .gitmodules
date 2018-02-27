@@ -13,3 +13,6 @@
 [submodule "external/networkit"]
 	path = external/networkit
 	url = git@github.com:kit-parco/networkit.git
+[submodule "external/flann"]
+	path = external/flann
+	url = git@github.com:mariusmuja/flann.git

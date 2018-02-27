@@ -122,6 +122,17 @@ float magnitude(const vector<float>& a){
   return sqrt(sumsqrd);
 }
 
+ostream& operator<<(ostream& out, const vector<float>&a){
+  bool first = true;
+  for(float f : a){
+    if(!first)
+      out << " ";
+    out << f;
+    first = false;
+  }
+  return out;
+}
+
 class getVectorException: public exception {};
 class neverGaveMeAnyDamnFilesException: public exception {};
 
@@ -258,3 +269,15 @@ ostream& operator<<(ostream& out, const edge& e){
   return out;
 }
 
+void string2vec(const string& line, string& label, vector<float>& vec){
+  stringstream ss(line);
+  ss >> label;
+  float temp;
+  while(ss >> temp){ vec.push_back(temp);}
+}
+
+pair<string, vector<float>> line2vec(const string& line){
+  pair<string, vector<float>> res;
+  string2vec(line, res.first, res.second);
+  return res;
+}

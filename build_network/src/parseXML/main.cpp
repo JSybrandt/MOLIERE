@@ -24,8 +24,9 @@ const string RETRACTED_PUB = "Retracted Publication";
 int main(int argc, char ** argv){
   cmdline::parser p;
 
-  p.add<string>("file", 'f', "MEDLINE file to parse", true);
+  p.add<string>("input", 'i', "MEDLINE file to parse", true);
   p.add<string>("output", 'o', "result file", true);
+  p.add<int>("filter-year", 'y', "year to filter xml", false, -1);
   p.add("include-keywords", 'k',
         "if true, keywords provided by authors are appended to abstracts.");
   p.add("only-keywords", 'O', "outputs pmid, keyword list from author-defined tags.");
@@ -33,13 +34,14 @@ int main(int argc, char ** argv){
   p.add("verbose", 'v', "Output debug info.");
 
   p.parse_check(argc, argv);
-  string inPath = p.get<string>("file");
+  string inPath = p.get<string>("input");
   string outPath = p.get<string>("output");
   ::verbose = p.exist("verbose");
   bool includeKeywords = p.exist("include-keywords");
   bool onlyKeywords = p.exist("only-keywords");
   bool noMeta = p.exist("no-metadata");
   includeKeywords = onlyKeywords || includeKeywords;
+  int filterYear = p.get<int>("filter-year");
 
 
   vout << "Setting Locale" << endl;
@@ -115,7 +117,10 @@ int main(int argc, char ** argv){
 
       if(year == numeric_limits<int>::max()){
         missingYear += 1;
+        if(filterYear > 0) continue;
       }
+      if(filterYear > 0 && year > filterYear)
+        continue;
 
       string pmid = pmidNode.text().get();
       string version = pmidNode.attribute("Version").value();

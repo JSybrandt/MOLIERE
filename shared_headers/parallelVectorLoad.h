@@ -6,6 +6,7 @@
 #include<unordered_map>
 #include<unordered_set>
 #include"files.h"
+#include"util.h"
 
 // needed for posix io
 #include<cstdio>
@@ -22,12 +23,6 @@ using std::ios;
 using std::unordered_map;
 using std::unordered_set;
 
-void string2vec(const string& line, string& label, vector<float>& vec){
-  stringstream ss(line);
-  ss >> label;
-  float temp;
-  while(ss >> temp){ vec.push_back(temp);}
-}
 
 void fastLoadVecs(const string& vecPath,
                        list<pair<string, vector<float>>>& result,
