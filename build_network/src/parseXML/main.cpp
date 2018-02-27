@@ -29,6 +29,7 @@ int main(int argc, char ** argv){
   p.add("include-keywords", 'k',
         "if true, keywords provided by authors are appended to abstracts.");
   p.add("only-keywords", 'O', "outputs pmid, keyword list from author-defined tags.");
+  p.add("no-metadata", 'N', "silences pmid and year.");
   p.add("verbose", 'v', "Output debug info.");
 
   p.parse_check(argc, argv);
@@ -37,6 +38,7 @@ int main(int argc, char ** argv){
   ::verbose = p.exist("verbose");
   bool includeKeywords = p.exist("include-keywords");
   bool onlyKeywords = p.exist("only-keywords");
+  bool noMeta = p.exist("no-metadata");
   includeKeywords = onlyKeywords || includeKeywords;
 
 
@@ -118,8 +120,10 @@ int main(int argc, char ** argv){
       string pmid = pmidNode.text().get();
       string version = pmidNode.attribute("Version").value();
 
-      outFile << "PMID" << pmid << "_" << version << " "
-              << year << " . ";
+      if(!noMeta){
+        outFile << "PMID" << pmid << "_" << version << " "
+                << year << " . ";
+      }
 
       stringstream text;
       if(!onlyKeywords){

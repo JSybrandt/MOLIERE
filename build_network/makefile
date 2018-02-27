@@ -18,7 +18,7 @@ NO_COLOR=\x1b[0m
 WARN_COLOR=\x1b[33;01m
 
 
-all: $B/parseXML $B/fasttext $B/stripStopwords
+all: $B/parseXML $B/fasttext $B/stripStopwords $B/cleanRawText $B/apHighlight2Underscore
 
 $B/parseXML: $S/parseXML/main.cpp $B/pugixml.o $B/porter2_stemmer.o
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
@@ -31,10 +31,16 @@ $B/fasttext:
 	cp $E/fastText/fasttext $B/fasttext
 
 $B/stripStopwords: $S/stripStopwords/main.cpp
-	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
+	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
+
+$B/cleanRawText: $S/cleanRawText/main.cpp $B/porter2_stemmer.o
+	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
 
 $B/porter2_stemmer.o: $E/porter2_stemmer/porter2_stemmer.cpp
 	$(CC) -c -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
+
+$B/apHighlight2Underscore: $S/apHighlight2Underscore/main.cpp
+	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
 
 
 clean:
