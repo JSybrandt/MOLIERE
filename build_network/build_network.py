@@ -123,11 +123,11 @@ if __name__ == "__main__":
                         dest="num_nn",
                         default="100",
                         help="number of neighbors per entity")
-    parser.add_argument("--skip-download",
+    parser.add_argument("--download",
                         action="store_true",
-                        dest="skip_download",
-                        help="If set, don't download xml data")
-    parser.add_argument("--rebuild",
+                        dest="download",
+                        help="If set, download xml data")
+    parser.add_argument("--rebuild"
                         action="store_true",
                         dest="rebuild",
                         help="If set, remake existing files")
@@ -179,9 +179,12 @@ if __name__ == "__main__":
         checkFile(mrconso_path)
         checkFile(mrrel_path)
 
-    if not args.skip_download:
+    if args.download:
         vprint("Downloading medline into", xml_dir)
         downloadMedline(xml_dir)
+    elif os.listdir(xml_dir) == []:
+        raise ValueError("There are no files in " + xml_dir +
+                         ". Run again with '--download'")
 
     # ABSTRACT FILE
     ab_raw_path = "{}/processedText/abstract.raw.txt".format(data_path)
