@@ -29,14 +29,14 @@ int main (int argc, char** argv){
 
   cmdline::parser p;
 
-  p.add<string>("input-file", 'i', "each line of this file is a record", true);
-  p.add<string>("output-file", 'o', "output file", true);
+  p.add<string>("input", 'i', "each line of this file is a record", true);
+  p.add<string>("output", 'o', "output file", true);
   p.add("verbose", 'v', "outputs debug information");
 
   p.parse_check(argc, argv);
 
-  string inputPath =  p.get<string>("input-file");
-  string outPath =  p.get<string>("output-file");
+  string inputPath =  p.get<string>("input");
+  string outPath =  p.get<string>("output");
   verbose = p.exist("verbose");
 
   vout << "Processing" << endl;

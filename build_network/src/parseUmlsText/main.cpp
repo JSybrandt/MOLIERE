@@ -46,14 +46,14 @@ int main (int argc, char** argv){
 
   cmdline::parser p;
 
-  p.add<string>("input-file", 'i', "MRCONSO file", true);
-  p.add<string>("output-file", 'o', "output file", true);
+  p.add<string>("input", 'i', "MRCONSO file", true);
+  p.add<string>("output", 'o', "output file", true);
   p.add<unsigned int>("phrase-column", 'c', "1 indexed column", false, 16);
   p.add("verbose", 'v', "outputs debug information");
   p.parse_check(argc, argv);
 
-  string inputPath =  p.get<string>("input-file");
-  string outPath =  p.get<string>("output-file");
+  string inPath =  p.get<string>("input");
+  string outPath =  p.get<string>("output");
   phraseCol = p.get<unsigned int>("phrase-column");
   verbose = p.exist("verbose");
 
@@ -64,7 +64,7 @@ int main (int argc, char** argv){
   vout << "Processing" << endl;
 
   list<pair<string, string>> id2textList;
-  fastProcFile<pair<string, string>>(inputPath, id2textList, line2idText);
+  fastProcFile<pair<string, string>>(inPath, id2textList, line2idText);
 
   unordered_map<string, unordered_set<string>> id2texts;
   for(const auto& pair : id2textList){

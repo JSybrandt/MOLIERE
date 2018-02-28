@@ -68,17 +68,17 @@ int main (int argc, char** argv){
 
   cmdline::parser p;
 
-  p.add<string>("input-file", 'i', "text lines, first word is label", true);
-  p.add<string>("vector-file", 'V', "each line of this file is a vector", true);
-  p.add<string>("output-file", 'o', "output file", true);
+  p.add<string>("input", 'i', "text lines, first word is label", true);
+  p.add<string>("vectors", 'V', "each line of this file is a vector", true);
+  p.add<string>("output", 'o', "output file", true);
   p.add("skip-second", 's', "skips second token, i.e. year in the ab file");
   p.add("verbose", 'v', "outputs debug information");
 
   p.parse_check(argc, argv);
 
-  string inputPath =  p.get<string>("input-file");
-  string vectorPath =  p.get<string>("vector-file");
-  string outPath =  p.get<string>("output-file");
+  string inPath =  p.get<string>("input");
+  string vectorPath =  p.get<string>("vectors");
+  string outPath =  p.get<string>("output");
   verbose = p.exist("verbose");
   skipSecond = p.exist("skip-second");
 
@@ -91,7 +91,7 @@ int main (int argc, char** argv){
 
   vout << "Making Centroids" << endl;
   list<pair<string, vector<float>>> label2centroidList;
-  fastProcFile<pair<string, vector<float>>>(inputPath, label2centroidList,
+  fastProcFile<pair<string, vector<float>>>(inPath, label2centroidList,
                                             text2centroid, containsWord);
 
   vout << "writing" << endl;
