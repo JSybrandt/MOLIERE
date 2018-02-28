@@ -33,22 +33,22 @@ int main (int argc, char** argv){
 
   cmdline::parser p;
 
-  p.add<string>("graphFile", 'g', "input graph (BINARY) file", true);
-  p.add<string>("pathFile", 'p', "input path file (idx)", true);
-  p.add<string>("outputFile", 'o', "Output paths and neighborhoods", true);
-  p.add<string>("labelFile", 'l', "Label file accompanying the edges file.", true);
-  p.add<unsigned int>("numAbstractsPerNode", 'A', "The cloud will expand until it find this many abstracts per node in path", false, 3000);
-  p.add<unsigned int>("maxDistFromPath", 'n', "max separation from path (hops)", false, 4);
+  p.add<string>("graph", 'g', "input graph (BINARY) file", true);
+  p.add<string>("path", 'p', "input path file (idx)", true);
+  p.add<string>("output", 'o', "Output paths and neighborhoods", true);
+  p.add<string>("labels", 'l', "Label file accompanying the edges file.", true);
+  p.add<unsigned int>("abstracts-per-node", 'A', "The cloud will expand until it find this many abstracts per node in path", false, 3000);
+  p.add<unsigned int>("max-dist", 'n', "max separation from path (hops)", false, 4);
   p.add("verbose", 'v', "outputs debug information");
 
   p.parse_check(argc, argv);
 
-  string graphPath =  p.get<string>("graphFile");
-  string pathPath =  p.get<string>("pathFile");
-  string outputPath =  p.get<string>("outputFile");
-  string labelPath =  p.get<string>("labelFile");
-  unsigned int numAbstractsPerNode = p.get<unsigned int>("numAbstractsPerNode");
-  unsigned int maxDistFromPath = p.get<unsigned int>("maxDistFromPath");
+  string graphPath =  p.get<string>("graph");
+  string pathPath =  p.get<string>("path");
+  string outputPath =  p.get<string>("output");
+  string labelPath =  p.get<string>("labels");
+  unsigned int numAbstractsPerNode = p.get<unsigned int>("abstracts-per-node");
+  unsigned int maxDistFromPath = p.get<unsigned int>("max-dist");
   verbose = p.exist("verbose");
 
   vout << "Loading Path" << endl;

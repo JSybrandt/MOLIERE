@@ -30,18 +30,18 @@ int main (int argc, char** argv){
 
   cmdline::parser p;
 
-  p.add<string>("cloudFile", 'c', "file containing moliere IDs", true);
-  p.add<string>("outputFile", 'o', "Output bog of words", true);
-  p.add<string>("labelFile", 'l', "Label file mapping moliere ID to string.", true);
-  p.add<string>("abstractFile", 'a', "abstract file", true);
+  p.add<string>("cloud", 'c', "file containing moliere IDs", true);
+  p.add<string>("output", 'o', "Output bog of words", true);
+  p.add<string>("labels", 'l', "Label file mapping moliere ID to string.", true);
+  p.add<string>("abstracts", 'a', "abstract file", true);
   p.add("verbose", 'v', "outputs debug information");
 
   p.parse_check(argc, argv);
 
-  string cloudPath =  p.get<string>("cloudFile");
-  string outputPath =  p.get<string>("outputFile");
-  string labelPath =  p.get<string>("labelFile");
-  string abstractPath =  p.get<string>("abstractFile");
+  string cloudPath =  p.get<string>("cloud");
+  string outputPath =  p.get<string>("output");
+  string labelPath =  p.get<string>("labels");
+  string abstractPath =  p.get<string>("abstracts");
   verbose = p.exist("verbose");
 
   vector<string> mid2Label;

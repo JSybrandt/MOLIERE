@@ -133,31 +133,31 @@ int main (int argc, char** argv){
 
   cmdline::parser p;
 
-  p.add<string>("graphFile", 'g', "input graph file", true);
-  p.add<string>("sourceLbl", 's', "id representing the source", true);
-  p.add<string>("targetLbl", 't', "intended target", true);
-  p.add<string>("outputFile", 'o', "Output paths and neighborhoods", true);
-  p.add<string>("ngramVectors", 'V',  "File contanining text vectors for ngrams", true);
-  p.add<string>("pmidCentroids", 'P', "File containing text vectors for PMIDs", true);
-  p.add<string>("umlsCentroids", 'U', "File containing text vectors for UMLS terms", true);
-  p.add<string>("labelFile", 'l', "Label file accompanying the edges file.", true);
-  p.add<float>("elipseConst", 'e', "Constant alpha where distL2(A,B)*\\alpha = 2a", false, 1.4);
-  p.add("pmidInEllipse", 'x', "Includes pmid vectors in the initial vector set.");
+  p.add<string>("graph", 'g', "input graph file", true);
+  p.add<string>("source-label", 's', "id representing the source", true);
+  p.add<string>("target-label", 't', "intended target", true);
+  p.add<string>("output", 'o', "Output paths and neighborhoods", true);
+  p.add<string>("ngram-vecs", 'N',  "File contanining text vectors for ngrams", true);
+  p.add<string>("pmid-vecs", 'P', "File containing text vectors for PMIDs", true);
+  p.add<string>("umls-vecs", 'U', "File containing text vectors for UMLS terms", true);
+  p.add<string>("labels", 'l', "Label file accompanying the edges file.", true);
+  p.add<float>("ellipse-const", 'e', "Constant alpha where distL2(A,B)*\\alpha = 2a", false, 1.4);
+  p.add("include-pmid", 'x', "Includes pmid vectors in the initial vector set.");
   p.add("verbose", 'v', "outputs debug information");
 
   p.parse_check(argc, argv);
 
-  string graphPath =  p.get<string>("graphFile");
-  string sourceLbl =  p.get<string>("sourceLbl");
-  string targetLbl =  p.get<string>("targetLbl");
-  string outputPath =  p.get<string>("outputFile");
-  string nGramVecPath = p.get<string>("ngramVectors");
-  string pmidCentroidPath = p.get<string>("pmidCentroids");
-  string umlsCentroidPath = p.get<string>("umlsCentroids");
-  string labelPath =  p.get<string>("labelFile");
-  float elipseConstMultiple = p.get<float>("elipseConst");
+  string graphPath =  p.get<string>("graph");
+  string sourceLbl =  p.get<string>("source-label");
+  string targetLbl =  p.get<string>("target-label");
+  string outputPath =  p.get<string>("output");
+  string nGramVecPath = p.get<string>("ngram-vecs");
+  string pmidCentroidPath = p.get<string>("pmid-vecs");
+  string umlsCentroidPath = p.get<string>("umls-vecs");
+  string labelPath =  p.get<string>("labels");
+  float elipseConstMultiple = p.get<float>("ellipse-const");
   verbose = p.exist("verbose");
-  bool pmidInEllipse = p.exist("pmidInEllipse");
+  bool pmidInEllipse = p.exist("include-pmid");
 
   unordered_map<string, nodeIdx> label2idx;
   vector<string> labels;

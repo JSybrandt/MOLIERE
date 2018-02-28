@@ -167,7 +167,7 @@ def main():
             '-s', args.wordA,
             '-t', args.wordB,
             '-P', pmidVecs,
-            '-V', ngramVecs,
+            '-N', ngramVecs,
             '-U', umlsVecs,
             '-e', args.ellipse_constant,
             '-o', path_path,
@@ -280,9 +280,9 @@ def main():
             subprocess.call([
                 EVAL_L2.format(linkPath),
                 '-m', view_path,
-                '-n', ngramVecs,
-                '-c', umlsVecs,
-                '-p', pmidVecs,
+                '-N', ngramVecs,
+                '-U', umlsVecs,
+                '-P', pmidVecs,
                 '-s', args.wordA,
                 '-t', args.wordB,
                 '-e'
@@ -302,9 +302,9 @@ def main():
             subprocess.call([
                 EVAL_TPW.format(linkPath),
                 '-m', view_path,
-                '-n', ngramVecs,
-                '-c', umlsVecs,
-                '-p', pmidVecs,
+                '-N', ngramVecs,
+                '-U', umlsVecs,
+                '-P', pmidVecs,
                 '-s', args.wordA,
                 '-t', args.wordB
             ], stdout=analysis_file)
@@ -323,9 +323,9 @@ def main():
             subprocess.call([
                 EVAL_TWE.format(linkPath),
                 '-m', view_path,
-                '-n', ngramVecs,
-                '-c', umlsVecs,
-                '-p', pmidVecs,
+                '-N', ngramVecs,
+                '-U', umlsVecs,
+                '-P', pmidVecs,
                 '-s', args.wordA,
                 '-t', args.wordB
             ], stdout=analysis_file)
@@ -346,9 +346,9 @@ def main():
             subprocess.call([
                 EVAL_TOPIC_PATH.format(linkPath),
                 '-m', view_path,
-                '-n', ngramVecs,
-                '-c', umlsVecs,
-                '-p', pmidVecs,
+                '-N', ngramVecs,
+                '-U', umlsVecs,
+                '-P', pmidVecs,
                 '-s', args.wordA,
                 '-t', args.wordB
             ], stdout=analysis_file, stderr=subprocess.DEVNULL)

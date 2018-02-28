@@ -65,21 +65,21 @@ vector<Topic> getTM(string path){
 int main(int argc, char ** argv){
   cmdline::parser p;
 
-  p.add<string>("topicModel", 'm', "Topic model from VIEW_FILES", true);
-  p.add<string>("ngramVecs", 'n', "ngram vector file", false, "");
-  p.add<string>("pmidVecs", 'p', "pmid vector file", false, "");
-  p.add<string>("cuidVecs", 'c', "cuid vector file", false, "");
-  p.add<string>("sourceLabel", 's', "Source Label", true);
-  p.add<string>("targetLabel", 't', "Target Label", true);
+  p.add<string>("topic-model", 'm', "Topic model from VIEW_FILES", true);
+  p.add<string>("ngram-vecs", 'N', "ngram vector file", false, "");
+  p.add<string>("pmid-vecs", 'P', "pmid vector file", false, "");
+  p.add<string>("umls-vecs", 'U', "cuid vector file", false, "");
+  p.add<string>("source-label", 's', "Source Label", true);
+  p.add<string>("target-label", 't', "Target Label", true);
   p.add("verbose", 'v', "Output debug info.");
 
   p.parse_check(argc, argv);
-  string topicModelPath = p.get<string>("topicModel");
-  string ngramVecsPath = p.get<string>("ngramVecs");
-  string pmidVecsPath = p.get<string>("pmidVecs");
-  string cuidVecsPath = p.get<string>("cuidVecs");
-  string sourceLabel = p.get<string>("sourceLabel");
-  string targetLabel = p.get<string>("targetLabel");
+  string topicModelPath = p.get<string>("topic-model");
+  string ngramVecsPath = p.get<string>("ngram-vecs");
+  string pmidVecsPath = p.get<string>("pmid-vecs");
+  string cuidVecsPath = p.get<string>("umls-vecs");
+  string sourceLabel = p.get<string>("source-label");
+  string targetLabel = p.get<string>("target-label");
   ::verbose = p.exist("verbose");
 
   vout << "Loading topic model from " << topicModelPath << endl;
