@@ -32,7 +32,7 @@ Running
 -------
 
 The basic usage should be as simple as `./build_network.py`.
-Doing so starts by downloading all of pubmed from ftp.ncbi.nlm.nih.gov, so warning it will use quite a lot of storage space.
+Doing so starts by downloading all of pubmed from ftp.ncbi.nlm.nih.gov if `--download` is supplied, so warning it will use quite a lot of storage space.
 
 After the download is complete, and the resulting xml files are extracted, this code then extracts each abstract's text and year, cleans and stems, passes the data through autophrase, trains a vector space with fast text, and eventually assembes the whole knowledge network.
 
