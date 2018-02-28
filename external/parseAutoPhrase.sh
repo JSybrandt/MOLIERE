@@ -36,7 +36,7 @@ fi
 
 
 cd $MOLIERE_HOME
-cd code/external/AutoPhrase
+cd external/AutoPhrase
 sed -i 's/^\/\/ #define LARGE$/^#define LARGE$/g' \
        src/utils/parameters.h
 

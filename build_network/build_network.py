@@ -78,7 +78,6 @@ def downloadMedline(dir):
     ftp.cwd(FTP_DIR)
 
     for file_name in ftp.nlst():
-        break
         if file_name.endswith(".xml.gz"):
             vprint("Found:", file_name)
             with open(os.path.join(dir, file_name), 'wb') as file:
@@ -106,11 +105,6 @@ if __name__ == "__main__":
                         dest="data_path",
                         default="{}/data".format(home_path),
                         help="specifies a data directory")
-    parser.add_argument("-x", "--xml-dir",
-                        action="store",
-                        dest="xml_dir",
-                        default="{}/xml".format(data_path),
-                        help="location to store raw XML files. {} -> data")
     parser.add_argument("-u", "--umls-dir",
                         action="store",
                         dest="umls_dir",
@@ -176,7 +170,8 @@ if __name__ == "__main__":
     os.makedirs("{}/processedText".format(data_path), exist_ok=True)
     os.makedirs("{}/fastText".format(data_path), exist_ok=True)
     os.makedirs("{}/network".format(data_path), exist_ok=True)
-    os.makedirs(args.xml_dir, exist_ok=True)
+    xml_dir = "{}/xml".format(data_path)
+    os.makedirs(xml_dir, exist_ok=True)
 
     if args.umls_dir is not None:
         mrconso_path = "{}/META/MRCONSO.RRF".format(args.umls_dir)
@@ -185,8 +180,8 @@ if __name__ == "__main__":
         checkFile(mrrel_path)
 
     if not args.skip_download:
-        vprint("Downloading medline into", args.xml_dir)
-        downloadMedline(args.xml_dir)
+        vprint("Downloading medline into", xml_dir)
+        downloadMedline(xml_dir)
 
     # ABSTRACT FILE
     ab_raw_path = "{}/processedText/abstract.raw.txt".format(data_path)
@@ -198,7 +193,7 @@ if __name__ == "__main__":
                 vprint("Parsing", path)
                 subprocess.call([
                     cmd,
-                    '-i', os.path.join(args.xml_dir, path),
+                    '-i', os.path.join(xml_dir, path),
                     '-o', os.path.join(tmp_dir, path),
                     '-k',  # include author supplied keywords
                     '-v' if VERBOSE else '',
@@ -208,7 +203,7 @@ if __name__ == "__main__":
 
         # Parse each xml file in parallel
         with Pool() as p:
-            p.map(parse, os.listdir(args.xml_dir))
+            p.map(parse, os.listdir(xml_dir))
 
         # cat all abstracts together
         with open(ab_raw_path, 'w') as file:
@@ -232,7 +227,7 @@ if __name__ == "__main__":
                 vprint("parsing", path)
                 subprocess.call([
                     cmd,
-                    '-f', os.path.join(args.xml_dir, path),
+                    '-f', os.path.join(xml_dir, path),
                     '-o', os.path.join(tmp_dir, path),
                     '-O',  # only print author supplied keywords
                     '-N',  # no meta
