@@ -127,7 +127,7 @@ if __name__ == "__main__":
                         action="store_true",
                         dest="download",
                         help="If set, download xml data")
-    parser.add_argument("--rebuild"
+    parser.add_argument("--rebuild",
                         action="store_true",
                         dest="rebuild",
                         help="If set, remake existing files")
