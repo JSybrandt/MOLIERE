@@ -17,6 +17,7 @@ import string
 
 global VERBOSE
 HOME_ENV = "MOLIERE_HOME"
+DATA_ENV = "MOLIERE_DATA"
 
 
 def vprint(*args, **kargs):
@@ -91,22 +92,24 @@ def downloadMedline(dir):
 
 if __name__ == "__main__":
     if HOME_ENV not in os.environ:
-        print("ERROR: ", HOME_ENV, " not set")
-        exit(1)
+        raise ValueError(HOME_ENV + " not set")
+    home_path = os.environ[HOME_ENV]
+    data_path = None
+    if(DATA_ENV in os.environ):
+        data_path = os.environ[DATA_ENV]
 
-    homePath = os.environ[HOME_ENV]
-    linkPath = "{}/code/build_network/bin".format(homePath)
+    linkPath = "{}/build_network/bin".format(home_path)
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--data-home",
                         action="store",
-                        dest="data_home",
-                        default="{}/data".format(homePath),
+                        dest="data_path",
+                        default="{}/data".format(home_path),
                         help="specifies a data directory")
     parser.add_argument("-x", "--xml-dir",
                         action="store",
                         dest="xml_dir",
-                        default="{}/rawData",
+                        default="{}/xml".format(data_path),
                         help="location to store raw XML files. {} -> data")
     parser.add_argument("-u", "--umls-dir",
                         action="store",
@@ -141,15 +144,13 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if len([x for x in string.Formatter().parse(args.xml_dir)]) > 0:
-        args.xml_dir = args.xml_dir.format(args.data_home)
+    if args.data_path is not None:
+        data_path = args.data_path
+    if data_path is None:
+        raise ValueError("Must either supply MOLIERE_DATA through env or cmd")
 
-    if not os.path.isdir(args.xml_dir):
-        print(args.xml_dir)
-        raise ValueError("Failed to supply valid xml dir")
-
-    if not os.path.isdir(args.data_home):
-        print(args.data_home)
+    if not os.path.isdir(data_path):
+        print(data_path)
         raise ValueError("Failed to supply valid data dir")
 
     if int(args.vector_dim) <= 0:
@@ -168,13 +169,14 @@ if __name__ == "__main__":
     VERBOSE = args.verbose
 
     num_threads = str(multiprocessing.cpu_count())
-    tmp_dir = "{}/tmp".format(args.data_home)
+    tmp_dir = "{}/tmp".format(data_path)
     cleanTmp(tmp_dir)
 
     # make dirs
-    os.makedirs("{}/processedText".format(args.data_home), exist_ok=True)
-    os.makedirs("{}/fastText".format(args.data_home), exist_ok=True)
-    os.makedirs("{}/network".format(args.data_home), exist_ok=True)
+    os.makedirs("{}/processedText".format(data_path), exist_ok=True)
+    os.makedirs("{}/fastText".format(data_path), exist_ok=True)
+    os.makedirs("{}/network".format(data_path), exist_ok=True)
+    os.makedirs(args.xml_dir, exist_ok=True)
 
     if args.umls_dir is not None:
         mrconso_path = "{}/META/MRCONSO.RRF".format(args.umls_dir)
@@ -187,7 +189,7 @@ if __name__ == "__main__":
         downloadMedline(args.xml_dir)
 
     # ABSTRACT FILE
-    ab_raw_path = "{}/processedText/abstract.raw.txt".format(args.data_home)
+    ab_raw_path = "{}/processedText/abstract.raw.txt".format(data_path)
     if shouldRemake(ab_raw_path, args):
         cmd = getCmdStr(linkPath, "parseXML")
 
@@ -221,7 +223,7 @@ if __name__ == "__main__":
     checkFile(ab_raw_path)
 
     # AUTOPHRASE Expert Phrases
-    phrase_path = "{}/processedText/expertPhrases.txt" .format(args.data_home)
+    phrase_path = "{}/processedText/expertPhrases.txt" .format(data_path)
     if shouldRemake(phrase_path, args):
         cmd = getCmdStr(linkPath, "parseXML")
 
@@ -269,7 +271,7 @@ if __name__ == "__main__":
     checkFile(phrase_path)
 
     # AUTOPHRASE Training and parsing
-    abstract_path = "{}/processedText/abstracts.txt".format(args.data_home)
+    abstract_path = "{}/processedText/abstracts.txt".format(data_path)
     if shouldRemake(abstract_path, args):
         vprint("Running autophrase")
         cmd = getCmdStr(linkPath, "../../external/trainAutoPhrase.sh")
@@ -294,9 +296,9 @@ if __name__ == "__main__":
     checkFile(abstract_path)
 
     # word 2 vec
-    ngram_vec_path = "{}/fastText/ngram.vec".format(args.data_home)
+    ngram_vec_path = "{}/fastText/ngram.vec".format(data_path)
     if shouldRemake(ngram_vec_path, args):
-        ngram_bin_path = "{}/fastText/ngram.bin".format(args.data_home)
+        ngram_bin_path = "{}/fastText/ngram.bin".format(data_path)
         cmd = getCmdStr(linkPath, "fasttext")
         vprint("Running fasttext")
         subprocess.call([
@@ -324,7 +326,7 @@ if __name__ == "__main__":
     vprint("Updating abstract file, removing stop token")
     subprocess.call(['sed', '-i', r's/\s\.//g', abstract_path])
 
-    pmid_vec_path = "{}/fastText/pmid.vec".format(args.data_home)
+    pmid_vec_path = "{}/fastText/pmid.vec".format(data_path)
     if shouldRemake(pmid_vec_path, args):
         cmd = getCmdStr(linkPath, "makeCentroid")
         vprint("Abstract file 2 centroids:")
@@ -340,7 +342,7 @@ if __name__ == "__main__":
         vprint("Reusing", pmid_vec_path)
     checkFile(pmid_vec_path)
 
-    pmid_network_path = "{}/network/pmid.edges".format(args.data_home)
+    pmid_network_path = "{}/network/pmid.edges".format(data_path)
     if shouldRemake(pmid_network_path, args):
         cmd = getCmdStr(linkPath, "makeApproxNNN")
         vprint("Running FLANN to make pmid net")
@@ -356,7 +358,7 @@ if __name__ == "__main__":
         vprint("Reusing", pmid_network_path)
     checkFile(pmid_network_path)
 
-    ngram_network_path = "{}/network/ngram.edges".format(args.data_home)
+    ngram_network_path = "{}/network/ngram.edges".format(data_path)
     if shouldRemake(ngram_network_path, args):
         cmd = getCmdStr(linkPath, "makeApproxNNN")
         vprint("Running FLANN to make pmid net")
@@ -373,7 +375,7 @@ if __name__ == "__main__":
     checkFile(ngram_network_path)
 
     pmid_ngram_edges_path = "{}/network/pmid2ngram.edges"\
-                            .format(args.data_home)
+                            .format(data_path)
     if(shouldRemake(pmid_ngram_edges_path, args)):
         cmd = getCmdStr(linkPath, "makeDocumentEdges")
         vprint("Creating edges from docs to keywords")
@@ -389,7 +391,7 @@ if __name__ == "__main__":
     checkFile(pmid_ngram_edges_path)
 
     if args.umls_dir is not None:
-        umls_text_path = "{}/processedText/umls.txt".format(args.data_home)
+        umls_text_path = "{}/processedText/umls.txt".format(data_path)
         if shouldRemake(umls_text_path, args):
             cmd = getCmdStr(linkPath, "parseUmlsText")
             subprocess.call([
@@ -417,7 +419,7 @@ if __name__ == "__main__":
             vprint("Reusing", umls_text_path)
         checkFile(umls_text_path)
 
-        umls_vec_path = "{}/fastText/umls.vec".format(args.data_home)
+        umls_vec_path = "{}/fastText/umls.vec".format(data_path)
         if shouldRemake(umls_vec_path, args):
             cmd = getCmdStr(linkPath, "makeCentroid")
             vprint("Abstract file 2 centroids:")
@@ -433,7 +435,7 @@ if __name__ == "__main__":
         checkFile(umls_vec_path)
 
         umls_ngram_edges_path = "{}/network/umls2ngram.edges"\
-                                .format(args.data_home)
+                                .format(data_path)
         if(shouldRemake(umls_ngram_edges_path, args)):
             cmd = getCmdStr(linkPath, "makeDocumentEdges")
             vprint("Creating edges from docs to keywords")
@@ -448,7 +450,7 @@ if __name__ == "__main__":
         checkFile(umls_ngram_edges_path)
 
         umls_umls_edges_path = "{}/network/umls2umls.edges"\
-                               .format(args.data_home)
+                               .format(data_path)
         if shouldRemake(umls_umls_edges_path, args):
             cmd = getCmdStr(linkPath, "parseUmlsEdges")
             vprint("Extraning umls curated edges")
@@ -464,7 +466,7 @@ if __name__ == "__main__":
     else:
         vprint("Skipping UMLS data")
 
-    final_network_path = "{}/network/final".format(args.data_home)
+    final_network_path = "{}/network/final".format(data_path)
     final_network_edge_path = final_network_path + ".bin.edges"
     final_network_label_path = final_network_path + ".labels"
     if shouldRemake(final_network_edge_path, args):

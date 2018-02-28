@@ -8,6 +8,7 @@ import re
 
 
 HOME_ENV = "MOLIERE_HOME"
+DATA_ENV = "MOLIERE_DATA"
 
 FIND_PATH = "{}/findPath"
 FIND_CLOUD = "{}/findCloud"
@@ -60,11 +61,13 @@ def cleanInput(s):
 def main():
 
     if HOME_ENV not in os.environ:
-        print("ERROR: ", HOME_ENV, " not set")
-        return 1
+        raise ValueError(HOME_ENV + " not set")
 
-    homePath = os.environ[HOME_ENV]
-    linkPath = "{}/code/run_query/bin".format(homePath)
+    home_path = os.environ[HOME_ENV]
+    data_path = None
+    if(DATA_ENV in os.environ):
+        data_path = os.environ[DATA_ENV]
+    link_path = "{}/run_query/bin".format(home_path)
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--cache",
@@ -72,9 +75,9 @@ def main():
                         dest="cache",
                         default="/tmp",
                         help="specifies where to store cached files.")
-    parser.add_argument("-d", "--data_home",
+    parser.add_argument("-d", "--data_path",
                         action="store",
-                        dest="data_home",
+                        dest="data_path",
                         help="specifies a data directory")
     parser.add_argument("-n", "--num_topics",
                         action="store",
@@ -111,18 +114,21 @@ def main():
 
     args = parser.parse_args()
 
-    graphFile = "{}/network/final.bin.edges".format(args.data_home)
-    labelFile = "{}/network/final.labels".format(args.data_home)
-    abstractFile = "{}/processedText/abstracts.txt".format(args.data_home)
-    ngramVecs = "{}/fastText/ngram.vec".format(args.data_home)
-    pmidVecs = "{}/fastText/pmid.vec".format(args.data_home)
-    umlsVecs = "{}/fastText/umls.vec".format(args.data_home)
-    verboseFlag = '-v' if args.verbose else ' '
+    if args.data_path is not None:
+        data_path = args.data_path
+    if data_path is None:
+        raise ValueError("Must either supply MOLIERE_DATA through env or cmd")
+
+    graph_path = "{}/network/final.bin.edges".format(data_path)
+    label_path = "{}/network/final.labels".format(data_path)
+    abstract_path = "{}/processedText/abstracts.txt".format(data_path)
+    ngram_vec_path = "{}/fastText/ngram.vec".format(data_path)
+    pmid_vec_path = "{}/fastText/pmid.vec".format(data_path)
+    umls_vec_path = "{}/fastText/umls.vec".format(data_path)
+    verbose_flag = '-v' if args.verbose else ' '
 
     args.wordA = cleanInput(args.wordA)
     args.wordB = cleanInput(args.wordB)
-
-#    args.vector_length = int(args.vector_length)
 
     hadToRebuild = False
 
@@ -135,8 +141,8 @@ def main():
             print("Validating input")
 
         foundA = foundB = False
-        with open(labelFile) as lFile:
-            for line in lFile:
+        with open(label_path) as file:
+            for line in file:
                 line = line.strip()
                 if line == args.wordA:
                     foundA = True
@@ -146,11 +152,11 @@ def main():
                     break
 
         if not foundA:
-            print("Error, failed to find", args.wordA, "in", labelFile)
+            print("Error, failed to find", args.wordA, "in", label_path)
             return 1
 
         if not foundB:
-            print("Error, failed to find", args.wordB, "in", labelFile)
+            print("Error, failed to find", args.wordB, "in", label_path)
             return 1
 
     pair = "{}---{}".format(args.wordA, args.wordB)
@@ -161,17 +167,17 @@ def main():
         if args.verbose:
             print("Running findPath, creating", path_path)
         subprocess.call([
-            FIND_PATH.format(linkPath),
-            '-g', graphFile,
-            '-l', labelFile,
+            FIND_PATH.format(link_path),
+            '-g', graph_path,
+            '-l', label_path,
             '-s', args.wordA,
             '-t', args.wordB,
-            '-P', pmidVecs,
-            '-N', ngramVecs,
-            '-U', umlsVecs,
+            '-P', pmid_vec_path,
+            '-N', ngram_vec_path,
+            '-U', umls_vec_path,
             '-e', args.ellipse_constant,
             '-o', path_path,
-            verboseFlag
+            verbose_flag
         ])
     elif args.verbose:
         print("reusing: ", path_path)
@@ -184,12 +190,12 @@ def main():
         if args.verbose:
             print("Running path2cloud, creating", cloud_path)
         subprocess.call([
-            FIND_CLOUD.format(linkPath),
-            '-g', graphFile,
-            '-l', labelFile,
+            FIND_CLOUD.format(link_path),
+            '-g', graph_path,
+            '-l', label_path,
             '-p', path_path,
             '-o', cloud_path,
-            verboseFlag
+            verbose_flag
         ])
     elif args.verbose:
         print("reusing: ", cloud_path)
@@ -202,12 +208,12 @@ def main():
         if args.verbose:
             print("Running cloud2bag, creating", bag_path)
         subprocess.call([
-            CLOUD2BAG.format(linkPath),
+            CLOUD2BAG.format(link_path),
             '-c', cloud_path,
             '-o', bag_path,
-            '-l', labelFile,
-            '-a', abstractFile,
-            verboseFlag
+            '-l', label_path,
+            '-a', abstract_path,
+            verbose_flag
         ])
     elif args.verbose:
         print("reusing: ", bag_path)
@@ -227,7 +233,7 @@ def main():
         nullFile = open("/dev/null", 'w')
         subprocess.call([
             'mpiexec', '-n', str(psutil.cpu_count()),
-            PLDA.format(linkPath),
+            PLDA.format(link_path),
             '--num_topics', args.num_topics,
             '--alpha', '1',
             '--beta', '0.01',
@@ -244,7 +250,7 @@ def main():
             print("Running make view, creating", view_path)
         with open(view_path, 'w') as view_file:
             subprocess.call([
-                VIEW_MODEL.format(linkPath),
+                VIEW_MODEL.format(link_path),
                 model_path
             ], stdout=view_file)
 
@@ -278,11 +284,11 @@ def main():
             print("Running analysis, creating", eval_l2_path)
         with open(eval_l2_path, 'w') as analysis_file:
             subprocess.call([
-                EVAL_L2.format(linkPath),
+                EVAL_L2.format(link_path),
                 '-m', view_path,
-                '-N', ngramVecs,
-                '-U', umlsVecs,
-                '-P', pmidVecs,
+                '-N', ngram_vec_path,
+                '-U', umls_vec_path,
+                '-P', pmid_vec_path,
                 '-s', args.wordA,
                 '-t', args.wordB,
                 '-e'
@@ -300,11 +306,11 @@ def main():
             print("Running analysis, creating", eval_tpw_path)
         with open(eval_tpw_path, 'w') as analysis_file:
             subprocess.call([
-                EVAL_TPW.format(linkPath),
+                EVAL_TPW.format(link_path),
                 '-m', view_path,
-                '-N', ngramVecs,
-                '-U', umlsVecs,
-                '-P', pmidVecs,
+                '-N', ngram_vec_path,
+                '-U', umls_vec_path,
+                '-P', pmid_vec_path,
                 '-s', args.wordA,
                 '-t', args.wordB
             ], stdout=analysis_file)
@@ -321,11 +327,11 @@ def main():
             print("Running analysis, creating", eval_twe_path)
         with open(eval_twe_path, 'w') as analysis_file:
             subprocess.call([
-                EVAL_TWE.format(linkPath),
+                EVAL_TWE.format(link_path),
                 '-m', view_path,
-                '-N', ngramVecs,
-                '-U', umlsVecs,
-                '-P', pmidVecs,
+                '-N', ngram_vec_path,
+                '-U', umls_vec_path,
+                '-P', pmid_vec_path,
                 '-s', args.wordA,
                 '-t', args.wordB
             ], stdout=analysis_file)
@@ -344,11 +350,11 @@ def main():
             print("Running analysis, creating", eval_topic_path_path)
         with open(eval_topic_path_path, 'w') as analysis_file:
             subprocess.call([
-                EVAL_TOPIC_PATH.format(linkPath),
+                EVAL_TOPIC_PATH.format(link_path),
                 '-m', view_path,
-                '-N', ngramVecs,
-                '-U', umlsVecs,
-                '-P', pmidVecs,
+                '-N', ngram_vec_path,
+                '-U', umls_vec_path,
+                '-P', pmid_vec_path,
                 '-s', args.wordA,
                 '-t', args.wordB
             ], stdout=analysis_file, stderr=subprocess.DEVNULL)
@@ -364,7 +370,7 @@ def main():
             print("Running analysis, creating", eval_hybrid_path)
         with open(eval_hybrid_path, 'w') as analysis_file:
             subprocess.call([
-                EVAL_HYBRID.format(linkPath),
+                EVAL_HYBRID.format(link_path),
                 eval_l2_path,
                 eval_tpw_path,
                 eval_twe_path,
