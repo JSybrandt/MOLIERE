@@ -19,7 +19,7 @@ NO_COLOR=\x1b[0m
 WARN_COLOR=\x1b[33;01m
 
 
-all: $B/parseXML $B/fasttext $B/cleanRawText $B/apHighlight2Underscore $B/makeCentroid $B/parseUMLS $B/makeApproxNNN
+all: $B/parseXML $B/fasttext $B/cleanRawText $B/apHighlight2Underscore $B/makeCentroid $B/parseUmlsText $B/parseUmlsEdges $B/makeApproxNNN $B/makeDocumentEdges $B/finalizeNetwork
 
 $B/parseXML: $S/parseXML/main.cpp $B/pugixml.o $B/porter2_stemmer.o
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
@@ -44,7 +44,16 @@ $B/apHighlight2Underscore: $S/apHighlight2Underscore/main.cpp
 $B/makeCentroid: $S/makeCentroid/main.cpp
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
 
-$B/parseUMLS: $S/parseUMLS/main.cpp $B/porter2_stemmer.o
+$B/makeDocumentEdges: $S/makeDocumentEdges/main.cpp
+	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
+
+$B/parseUmlsText: $S/parseUmlsText/main.cpp $B/porter2_stemmer.o
+	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
+
+$B/parseUmlsEdges: $S/parseUmlsEdges/main.cpp
+	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
+
+$B/finalizeNetwork: $S/finalizeNetwork/main.cpp
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
 
 $B/makeApproxNNN: $S/makeApproxNNN/main.cpp $B/libflann.so

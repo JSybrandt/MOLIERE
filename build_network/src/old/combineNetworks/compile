@@ -1,9 +1,0 @@
-#!/bin/bash
-module load gcc
-module load openmpi
-clear
-rm -rf bin
-mkdir bin
-g++ *.cpp -O2 -o ./bin/mergeNets
-ln -sf ./bin/mergeNets
-

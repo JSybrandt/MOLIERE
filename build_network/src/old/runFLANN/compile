@@ -1,9 +1,0 @@
-#!/bin/bash
-module load gcc
-module load openmpi
-clear
-rm -rf bin
-mkdir bin
-g++ *.cpp -I ~/lib/include/ -l flann -L ~/lib/ -fopenmp -O2 -o ./bin/runFlann
-ln -sf ./bin/runFlann
-

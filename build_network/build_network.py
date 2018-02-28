@@ -273,30 +273,29 @@ if __name__ == "__main__":
     checkFile(phrase_path)
 
     # AUTOPHRASE Training and parsing
-    ab_w_phrases_path = "{}/processedText/abstract.parsed.txt"\
-                        .format(args.data_home)
-    if shouldRemake(ab_w_phrases_path, args):
+    abstract_path = "{}/processedText/abstracts.txt".format(args.data_home)
+    if shouldRemake(abstract_path, args):
         vprint("Running autophrase")
         cmd = getCmdStr(linkPath, "../../external/trainAutoPhrase.sh")
         subprocess.call([cmd, ab_raw_path, num_threads,
-                         phrase_path, ab_w_phrases_path],
+                         phrase_path, abstract_path],
                         stdout=sys.stdout if VERBOSE else
                         open("/dev/null", 'w'))
         cmd = getCmdStr(linkPath, "../../external/parseAutoPhrase.sh")
         subprocess.call([cmd, ab_raw_path, num_threads,
-                         phrase_path, ab_w_phrases_path],
+                         phrase_path, abstract_path],
                         stdout=sys.stdout if VERBOSE else
                         open("/dev/null", 'w'))
         vprint("Processing autophrase")
         cmd = getCmdStr(linkPath, "apHighlight2Underscore")
         tmp_path = os.path.join(tmp_dir, "tmp.txt")
-        subprocess.call([cmd, '-i', ab_w_phrases_path, '-o', tmp_path,
+        subprocess.call([cmd, '-i', abstract_path, '-o', tmp_path,
                          "-v" if VERBOSE else ""])
-        subprocess.call(['mv', tmp_path, ab_w_phrases_path])
+        subprocess.call(['mv', tmp_path, abstract_path])
         cleanTmp(tmp_dir)
     else:
-        vprint("Reusing", ab_w_phrases_path)
-    checkFile(ab_w_phrases_path)
+        vprint("Reusing", abstract_path)
+    checkFile(abstract_path)
 
     # word 2 vec
     ngram_vec_path = "{}/fastText/ngram.vec".format(args.data_home)
@@ -307,7 +306,7 @@ if __name__ == "__main__":
         subprocess.call([
             cmd,
             "skipgram",
-            "-input", ab_w_phrases_path,
+            "-input", abstract_path,
             "-output", os.path.splitext(ngram_vec_path)[0],
             "-thread", num_threads,
             "-dim", args.vector_dim
@@ -323,10 +322,11 @@ if __name__ == "__main__":
         subprocess.call(['sed', '-i', r'/^<\/s>\s.*/d', ngram_vec_path])
     else:
         vprint("Reusing", ngram_vec_path)
+    checkFile(ngram_vec_path)
 
     # trash all "." from abstracts
     vprint("Updating abstract file, removing stop token")
-    subprocess.call(['sed', '-i', r's/\s\.//g', ab_w_phrases_path])
+    subprocess.call(['sed', '-i', r's/\s\.//g', abstract_path])
 
     pmid_vec_path = "{}/fastText/pmid.vec".format(args.data_home)
     if shouldRemake(pmid_vec_path, args):
@@ -334,7 +334,7 @@ if __name__ == "__main__":
         vprint("Abstract file 2 centroids:")
         subprocess.call([
             cmd,
-            '-i', ab_w_phrases_path,
+            '-i', abstract_path,
             '--skip-second',
             '-V', ngram_vec_path,
             '-o', pmid_vec_path,
@@ -342,10 +342,11 @@ if __name__ == "__main__":
         ])
     else:
         vprint("Reusing", pmid_vec_path)
+    checkFile(pmid_vec_path)
 
     umls_text_path = "{}/processedText/umls.txt".format(args.data_home)
     if shouldRemake(umls_text_path, args):
-        cmd = getCmdStr(linkPath, "parseUMLS")
+        cmd = getCmdStr(linkPath, "parseUmlsText")
         subprocess.call([
             cmd,
             '-i', mrconso_path,
@@ -369,6 +370,7 @@ if __name__ == "__main__":
         cleanTmp(tmp_path)
     else:
         vprint("Reusing", umls_text_path)
+    checkFile(umls_text_path)
 
     umls_vec_path = "{}/fastText/umls.vec".format(args.data_home)
     if shouldRemake(umls_vec_path, args):
@@ -383,6 +385,7 @@ if __name__ == "__main__":
         ])
     else:
         vprint("Reusing", umls_vec_path)
+    checkFile(umls_vec_path)
 
     pmid_network_path = "{}/network/pmid.edges".format(args.data_home)
     if shouldRemake(pmid_network_path, args):
@@ -391,13 +394,14 @@ if __name__ == "__main__":
         subprocess.call([
             cmd,
             '-i', pmid_vec_path,
-            '-o', os.path.splitext(pmid_network_path)[0],
+            '-o', pmid_network_path,
             '-n',
             '-k', args.num_nn,
             '-v' if VERBOSE else ''
         ])
     else:
-        vprint("Reusing", umls_vec_path)
+        vprint("Reusing", pmid_network_path)
+    checkFile(pmid_network_path)
 
     ngram_network_path = "{}/network/ngram.edges".format(args.data_home)
     if shouldRemake(ngram_network_path, args):
@@ -406,10 +410,76 @@ if __name__ == "__main__":
         subprocess.call([
             cmd,
             '-i', ngram_vec_path,
-            '-o', os.path.splitext(ngram_network_path)[0],
+            '-o', ngram_network_path,
             '-n',
             '-k', args.num_nn,
             '-v' if VERBOSE else ''
         ])
     else:
         vprint("Reusing", ngram_network_path)
+    checkFile(ngram_network_path)
+
+    pmid_ngram_edges_path = "{}/network/pmid2ngram.edges"\
+                            .format(args.data_home)
+    if(shouldRemake(pmid_ngram_edges_path, args)):
+        cmd = getCmdStr(linkPath, "makeDocumentEdges")
+        vprint("Creating edges from docs to keywords")
+        subprocess.call([
+            cmd,
+            '-i', abstract_path,
+            '-o', pmid_ngram_edges_path,
+            '--skip-second',
+            '-v' if VERBOSE else ''
+        ])
+    else:
+        vprint("Reusing", pmid_ngram_edges_path)
+    checkFile(pmid_ngram_edges_path)
+
+    umls_ngram_edges_path = "{}/network/umls2ngram.edges"\
+                            .format(args.data_home)
+    if(shouldRemake(umls_ngram_edges_path, args)):
+        cmd = getCmdStr(linkPath, "makeDocumentEdges")
+        vprint("Creating edges from docs to keywords")
+        subprocess.call([
+            cmd,
+            '-i', umls_text_path,
+            '-o', umls_ngram_edges_path,
+            '-v' if VERBOSE else ''
+        ])
+    else:
+        vprint("Reusing", umls_ngram_edges_path)
+    checkFile(umls_ngram_edges_path)
+
+    umls_umls_edges_path = "{}/network/umls2umls.edges".format(args.data_home)
+    if shouldRemake(umls_umls_edges_path, args):
+        cmd = getCmdStr(linkPath, "parseUmlsEdges")
+        vprint("Extraning umls curated edges")
+        subprocess.call([
+            cmd,
+            '-i', os.path.join(args.umls_dir, 'META/MRREL.RRF'),
+            '-o', umls_umls_edges_path,
+            '-v' if VERBOSE else ''
+        ])
+    else:
+        vprint("Reusing", umls_umls_edges_path)
+    checkFile(umls_umls_edges_path)
+
+    final_network_path = "{}/network/final".format(args.data_home)
+    final_network_edge_path = final_network_path + ".bin.edges"
+    final_network_label_path = final_network_path + ".labels"
+    if shouldRemake(final_network_edge_path, args):
+        cmd = getCmdStr(linkPath, "finalizeNetwork")
+        subprocess.call([
+            cmd,
+            '-o', final_network_path,
+            '-v' if VERBOSE else '',
+            pmid_network_path, '1',
+            ngram_network_path, '2',
+            pmid_ngram_edges_path, '2',
+            umls_ngram_edges_path, '0.5',
+            umls_umls_edges_path, '2'
+        ])
+    else:
+        vprint("Reusing", final_network_path)
+    checkFile(final_network_edge_path)
+    checkFile(final_network_label_path)

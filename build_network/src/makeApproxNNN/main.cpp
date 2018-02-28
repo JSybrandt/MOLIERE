@@ -24,7 +24,7 @@ int main(int argc, char** argv){
   cmdline::parser p;
 
   p.add<string>("input", 'i', "input vector file", true);
-  p.add<string>("output", 'o', "output graph file (.edges .labels)", true);
+  p.add<string>("output", 'o', "output edge list", true);
   p.add("verbose", 'v', "outputs debug information");
   p.add("normalize", 'n', "performs 0-1 scaling on edge weights");
   p.add<unsigned int>("numNN", 'k', "expected num nearest neighbors", true);
@@ -33,8 +33,6 @@ int main(int argc, char** argv){
 
   string inPath =  p.get<string>("input");
   string outPath =  p.get<string>("output");
-  string graphPath = outPath + ".edges";
-  string labelPath = outPath + ".labels";
   ::verbose = p.exist("verbose");
   bool normalize = p.exist("normalize");
   unsigned int numNN = p.get<unsigned int>("numNN");
@@ -95,7 +93,7 @@ int main(int argc, char** argv){
 
   vout << "Outputting Graph" << endl;
 
-  fstream graphFile(graphPath, ios::out);
+  fstream graphFile(outPath, ios::out);
   unordered_set<string> edges;
   for(nodeIdx cNode = 0; cNode < indicies.size(); ++cNode){
       for(unsigned int j = 0; j < indicies[cNode].size(); ++j){
@@ -113,16 +111,11 @@ int main(int argc, char** argv){
           key << a << " " << b;
           if(edges.find(key.str()) == edges.end()){
             edges.insert(key.str());
-            graphFile << a << " " << b << " " << nDist << endl;
+            graphFile << labels[a] << " "
+                      << labels[b] << " "
+                      << nDist << endl;
           }
       }
   }
   graphFile.close();
-
-  vout << "Outputting Labels" << endl;
-  fstream labelFile(labelPath, ios::out);
-  for(string label : labels)
-    labelFile << label << endl;
-  labelFile.close();
-  vout << "Done, cleaning up" << endl;
 }

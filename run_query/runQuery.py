@@ -114,9 +114,9 @@ def main():
     graphFile = "{}/network/final.bin.edges".format(args.data_home)
     labelFile = "{}/network/final.labels".format(args.data_home)
     abstractFile = "{}/processedText/abstracts.txt".format(args.data_home)
-    ngramVecs = "{}/fastText/canon.vec".format(args.data_home)
-    pmidVecs = "{}/fastText/centroids.data".format(args.data_home)
-    umlsVecs = "{}/fastText/umls.data".format(args.data_home)
+    ngramVecs = "{}/fastText/ngram.vec".format(args.data_home)
+    pmidVecs = "{}/fastText/pmid.vec".format(args.data_home)
+    umlsVecs = "{}/fastText/umls.vec".format(args.data_home)
     verboseFlag = '-v' if args.verbose else ' '
 
     args.wordA = cleanInput(args.wordA)
