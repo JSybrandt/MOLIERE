@@ -19,8 +19,7 @@
 
 #include"cmdln.h"
 #include"parallelEdgeListLoad.h"
-#include"parallelAbstractLoad.h"
-#include"parallelVectorLoad.h"
+#include"parallelFileOp.h"
 #include"util.h"
 #include"graph.h"
 
@@ -31,7 +30,7 @@ using namespace std;
 bool verbose = false;
 #define vout if(::verbose) cout
 
-bool isInElipse(const vector<float>& fociiA,
+bool isInEllipse(const vector<float>& fociiA,
                 const vector<float>& fociiB,
                 float elipseConst,
                 const vector<float>& point){
@@ -40,94 +39,21 @@ bool isInElipse(const vector<float>& fociiA,
   return d1 + d2 < elipseConst;
 }
 
-void fastLoadVecsFromEllipse(const string& vecPath,
-                             list<pair<string, vector<float>>>& result,
-                             const vector<float>& fociiA,
-                             const vector<float>& fociiB,
-                             float ellipseConst){
+vector<float> vecA, vecC;
+float ellipseConst;
 
-  vout << "Loading vecs from " << vecPath << endl;
-
-  //get properties of abstract path
-  struct stat st;
-  stat(vecPath.c_str(), &st);
-  size_t totalFileSize = st.st_size;
-
-  vector<size_t> fileStarts;
-
-#pragma omp parallel
-  {
-    unsigned int tid = omp_get_thread_num();
-    unsigned int totalThreadNum = omp_get_num_threads();
-    size_t bytesPerThread = totalFileSize / totalThreadNum;
-
-#pragma omp single
-    {
-      fileStarts = vector<size_t>(totalThreadNum + 1, 0);
-      fileStarts[totalThreadNum] = totalFileSize;
-    }
-
-#pragma omp barrier
-
-    // each thread puts its start position
-    fstream localVecFile(vecPath, ios::in | ios::binary);
-    localVecFile.seekg(tid * bytesPerThread);
-
-    string localLine;
-    if(tid > 0){
-      // jump to next newline
-      getline(localVecFile, localLine);
-    }
-
-    fileStarts[tid] = localVecFile.tellg();
-
-#pragma omp barrier
-
-    list<pair<string, vector<float>>> localEllipse;
-
-    // while we are still inside our own section
-    while(localVecFile.tellg() < fileStarts[tid+1] && localVecFile){
-
-      bool firstLineCheck = false;
-      if(localVecFile.tellg() == fileStarts[0]){
-        firstLineCheck = true;
-      }
-
-      getline(localVecFile, localLine);
-
-      string lbl;
-      if(firstLineCheck){
-        stringstream ss (localLine);
-        int count = 0;
-        while(ss >> lbl) ++ count;
-        //skip fasttext header at top of file
-        vout << "Caught first line count of " << count << endl;
-        if(count == 2) continue;
-      } else {
-      }
-
-      vector<float> vec;
-      string2vec(localLine, lbl, vec);
-      if(stopwords.find(lbl) == stopwords.end() &&
-         isInElipse(fociiA, fociiB, ellipseConst, vec))
-      {
-        localEllipse.emplace_back(lbl, vec);
-      }
-    }
-
-    localVecFile.close();
-
-#pragma omp critical
-    {
-      result.splice(result.end(), localEllipse);
-    }
-
-  }
-
+bool selectVecFromEllipse(const string& line){
+  const pair<string, vector<float>>& l2v = line2vec(line);
+  return isInEllipse(vecA, vecC, ellipseConst, l2v.second);
 }
 
-
-
+unordered_set<string> vectorSubsetLabels;
+bool selectVecFromSubset(const string& line){
+  stringstream ss(line);
+  string label;
+  ss >> label;
+  return (vectorSubsetLabels.find(label) != vectorSubsetLabels.end());
+}
 
 int main (int argc, char** argv){
 
@@ -151,9 +77,9 @@ int main (int argc, char** argv){
   string sourceLbl =  p.get<string>("source-label");
   string targetLbl =  p.get<string>("target-label");
   string outputPath =  p.get<string>("output");
-  string nGramVecPath = p.get<string>("ngram-vecs");
-  string pmidCentroidPath = p.get<string>("pmid-vecs");
-  string umlsCentroidPath = p.get<string>("umls-vecs");
+  string ngramVecPath = p.get<string>("ngram-vecs");
+  string pmidVecPath = p.get<string>("pmid-vecs");
+  string umlsVecPath = p.get<string>("umls-vecs");
   string labelPath =  p.get<string>("labels");
   float elipseConstMultiple = p.get<float>("ellipse-const");
   verbose = p.exist("verbose");
@@ -171,37 +97,44 @@ int main (int argc, char** argv){
     ++count;
   }
 
-  unordered_set<string> vectorSubset = {sourceLbl, targetLbl};
-
   vout << "Loading inital vectors for ellipse" << endl;
+  vectorSubsetLabels.insert(sourceLbl);
+  vectorSubsetLabels.insert(targetLbl);
+  vector<string> paths;
+  if(sourceLbl[0] == 'P' || targetLbl[0] == 'P')
+    paths.push_back(pmidVecPath);
+  if(sourceLbl[0] == 'C' || targetLbl[0] == 'C')
+    paths.push_back(umlsVecPath);
+  if(sourceLbl[0] != 'P' || sourceLbl[0] != 'C' ||
+     targetLbl[0] != 'P' || targetLbl[0] != 'C')
+    paths.push_back(ngramVecPath);
+
   list<pair<string, vector<float>>> word2vecList;
-  fastLoadVecs(nGramVecPath,
-               pmidCentroidPath,
-               umlsCentroidPath,
-               word2vecList,
-               vectorSubset);
-  unordered_map<string, vector<float>> word2vec = {
+  for(const string& path : paths)
+    fastProcFile<pair<string, vector<float>>>(
+        path, word2vecList, line2vec, selectVecFromSubset);
+  unordered_map<string, vector<float>> word2vec {
     word2vecList.begin(),
     word2vecList.end()
   };
+
+  vecA = word2vec.at(sourceLbl);
+  vecC = word2vec.at(targetLbl);
 
   vout << "Found " << word2vec.at(sourceLbl).size() << endl;
   vout << "Found " << word2vec.at(targetLbl).size() << endl;
 
 
-  float elipseConst = distL2(word2vec.at(sourceLbl), word2vec.at(targetLbl)) * elipseConstMultiple;
+  ellipseConst = distL2(vecA, vecC) * elipseConstMultiple;
 
   // we don't load papers, takes too long
-  vector<string> filePaths = {nGramVecPath, umlsCentroidPath};
-  if(pmidInEllipse) filePaths.push_back(pmidCentroidPath);
+  paths = {ngramVecPath, umlsVecPath};
+  if(pmidInEllipse) paths.push_back(pmidVecPath);
 
-  for(const string& path : filePaths){
+  for(const string& path : paths){
     vout << "Loading nearby vectors from " << path << endl;
-    fastLoadVecsFromEllipse(path,
-                            word2vecList,
-                            word2vec[sourceLbl],
-                            word2vec[targetLbl],
-                            elipseConst);
+    fastProcFile<pair<string, vector<float>>>(
+        path, word2vecList, line2vec, selectVecFromEllipse);
   }
 
   if(::verbose){

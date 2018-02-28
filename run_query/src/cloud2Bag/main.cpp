@@ -18,12 +18,26 @@
 #include"cmdln.h"
 #include"pQueue.h"
 #include"util.h"
-#include"parallelAbstractLoad.h"
+#include"bow.h"
+#include"parallelFileOp.h"
 
 bool verbose = false;
 #define vout if(::verbose) cout
 
 using namespace std;
+
+unordered_set<string> pmidSubset;
+bool selectAbFromSubset(const string& line){
+  stringstream ss(line);
+  string label;
+  ss >> label;
+  return (pmidSubset.find(label) != pmidSubset.end());
+}
+
+Bow line2bow(const string& line){
+  // bow skips pmid and year
+  return Bow(line, 2);
+}
 
 
 int main (int argc, char** argv){
@@ -57,30 +71,30 @@ int main (int argc, char** argv){
 
 
   vout << "Loading cloud from " << cloudPath << endl;
-  unordered_set<string> pmids;
   fstream cloudFile(cloudPath, ios::in);
   nodeIdx id;
   while(cloudFile >> id){
-    pmids.insert(mid2Label[id]);
+    pmidSubset.insert(mid2Label[id]);
   }
   cloudFile.close();
 
-  if(pmids.size() == 0){
+  if(pmidSubset.size() == 0){
     throw runtime_error("Failed to load anything from cloud");
   }
 
   vout << "Loading abstracts in parallel from " << abstractPath << endl;
-  vout << "Expecting to find... " << pmids.size() << " pmids" << endl;
-  list<pair<string, string>> pmid2bow;
-  fastLoadAbstract2Bow(abstractPath, pmid2bow, pmids);
+  vout << "Expecting to find... " << pmidSubset.size() << " pmids" << endl;
+  list<Bow> bags;
+  fastProcFile<Bow>(abstractPath, bags, line2bow, selectAbFromSubset);
 
-  vout << "Found " << pmid2bow.size() << " pmids" << endl;
-
+  vout << "Found " << bags.size() << " pmids" << endl;
 
   vout << "Writing to " << outputPath << endl;
   fstream outFile(outputPath, ios::out);
-  for(const auto& pair : pmid2bow)
-    outFile << pair.second << endl;
+  for(Bow& bag : bags){
+    bag.removeName();
+    outFile << bag << endl;
+  }
   outFile.close();
 
   return 0;

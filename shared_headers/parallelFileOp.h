@@ -105,4 +105,3 @@ void fastProcFile(const string& filePath,
   }
 
 }
-

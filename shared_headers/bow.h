@@ -69,6 +69,9 @@ public:
   string getName() const{
     return name;
   }
+  void removeName() {
+    name = "";
+  }
 private:
   string name;
   unordered_map<string, size_t> counts;
