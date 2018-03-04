@@ -1,5 +1,4 @@
-MOLIERE
-=======
+![moliere_logo](https://github.com/JSybrandt/jsybrandt.github.io/blob/master/img/logo/moliere_logo.png?raw=true)
 
 This repo contains the code described in the publication: *MOLIERE: Automatic Biomedical Hypothesis Generation System*
 
