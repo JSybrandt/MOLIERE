@@ -18,19 +18,6 @@ public:
   Bow():name(""),totalCount(0){};
   Bow(const string& name_, const unordered_map<string, size_t> counts_):name(name_),counts(counts_),totalCount(counts_.size()){}
   Bow(const string& record, size_t ignoreCount = 1, bool firstIsName = true):name(""),totalCount(0){
-    add(record, ignoreCount, firstIsName);
-  }
-  void add(const Bow& other){
-    for(const auto& pair : other.counts){
-      if(this->counts.find(pair.first) == this->counts.end()){
-        this->counts[pair.first] = pair.second;
-      } else {
-        this->counts[pair.first] += pair.second;
-      }
-      totalCount += pair.second;
-    }
-  }
-  void add(const string& record, size_t ignoreCount = 0, bool firstIsName = false){
     stringstream ss(record);
     bool first = true;
     string tmp;
@@ -45,6 +32,24 @@ public:
         totalCount += 1;
       }
     }
+  }
+  void add(const Bow& other){
+    for(const auto& pair : other.counts){
+      if(this->counts.find(pair.first) == this->counts.end()){
+        this->counts[pair.first] = pair.second;
+      } else {
+        this->counts[pair.first] += pair.second;
+      }
+      totalCount += pair.second;
+    }
+  }
+  void add(const string& word, size_t count = 1){
+      if(this->counts.find(word) == this->counts.end()){
+        this->counts[word] = count;
+      } else {
+        this->counts[word] += count;
+      }
+      totalCount += count;
   }
   size_t getTotalCount() const{
     return totalCount;

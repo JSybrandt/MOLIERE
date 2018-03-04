@@ -37,7 +37,5 @@ fi
 
 cd $MOLIERE_HOME
 cd external/AutoPhrase
-sed -i 's/^\/\/ #define LARGE$/^#define LARGE$/g' \
-       src/utils/parameters.h
 
 ./auto_phrase.sh

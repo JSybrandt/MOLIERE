@@ -103,7 +103,6 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--data-home",
                         action="store",
                         dest="data_path",
-                        default="{}/data".format(home_path),
                         help="specifies a data directory")
     parser.add_argument("-u", "--umls-dir",
                         action="store",
@@ -123,10 +122,20 @@ if __name__ == "__main__":
                         dest="num_nn",
                         default="100",
                         help="number of neighbors per entity")
+    parser.add_argument("-M", "--min-count",
+                        action="store",
+                        dest="min_count",
+                        default="5",
+                        help="min number of times for a word to occur")
     parser.add_argument("--download",
                         action="store_true",
                         dest="download",
                         help="If set, download xml data")
+    parser.add_argument("--skip-phrase-training",
+                        action="store_true",
+                        dest="skip_phrase_training",
+                        help="If set, we parse with autophrase,\
+                              but don't train a phrase model")
     parser.add_argument("--rebuild",
                         action="store_true",
                         dest="rebuild",
@@ -154,6 +163,10 @@ if __name__ == "__main__":
     if int(args.num_nn) <= 0:
         print(args.num_nn)
         raise ValueError("num nearest neighbors must be positive")
+
+    if int(args.min_count) <= 0:
+        print(args.min_count)
+        raise ValueError("min_count must be positive")
 
     if args.filter_year and int(args.filter_year) <= 0:
         print(args.filter_year)
@@ -269,29 +282,30 @@ if __name__ == "__main__":
     checkFile(phrase_path)
 
     # AUTOPHRASE Training and parsing
-    abstract_path = "{}/processedText/abstracts.txt".format(data_path)
-    if shouldRemake(abstract_path, args):
-        vprint("Running autophrase")
-        cmd = getCmdStr(linkPath, "../../external/trainAutoPhrase.sh")
-        subprocess.call([cmd, ab_raw_path, num_threads,
-                         phrase_path, abstract_path],
-                        stdout=sys.stdout if VERBOSE else
-                        open("/dev/null", 'w'))
+    ab_pre_path = "{}/processedText/abstracts.pre.txt".format(data_path)
+    if shouldRemake(ab_pre_path, args):
+        if(not args.skip_phrase_training):
+            vprint("Running autophrase")
+            cmd = getCmdStr(linkPath, "../../external/trainAutoPhrase.sh")
+            subprocess.call([cmd, ab_raw_path, num_threads,
+                             phrase_path, ab_pre_path],
+                            stdout=sys.stdout if VERBOSE else
+                            open("/dev/null", 'w'))
         cmd = getCmdStr(linkPath, "../../external/parseAutoPhrase.sh")
         subprocess.call([cmd, ab_raw_path, num_threads,
-                         phrase_path, abstract_path],
+                         phrase_path, ab_pre_path],
                         stdout=sys.stdout if VERBOSE else
                         open("/dev/null", 'w'))
         vprint("Processing autophrase")
         cmd = getCmdStr(linkPath, "apHighlight2Underscore")
         tmp_path = os.path.join(tmp_dir, "tmp.txt")
-        subprocess.call([cmd, '-i', abstract_path, '-o', tmp_path,
+        subprocess.call([cmd, '-i', ab_pre_path, '-o', tmp_path,
                          "-v" if VERBOSE else ""])
-        subprocess.call(['mv', tmp_path, abstract_path])
+        subprocess.call(['mv', tmp_path, ab_pre_path])
         cleanTmp(tmp_dir)
     else:
-        vprint("Reusing", abstract_path)
-    checkFile(abstract_path)
+        vprint("Reusing", ab_pre_path)
+    checkFile(ab_pre_path)
 
     # word 2 vec
     ngram_vec_path = "{}/fastText/ngram.vec".format(data_path)
@@ -302,11 +316,13 @@ if __name__ == "__main__":
         subprocess.call([
             cmd,
             "skipgram",
-            "-input", abstract_path,
+            "-input", ab_pre_path,
             "-output", os.path.splitext(ngram_vec_path)[0],
             "-thread", num_threads,
-            "-dim", args.vector_dim
+            "-dim", args.vector_dim,
+            "-minCount", args.min_count
         ], stdout=sys.stdout if VERBOSE else open("/dev/null", 'w'))
+        checkFile(ngram_vec_path)
         vprint("Removing", ngram_bin_path)
         subprocess.call(['rm', '-f', ngram_bin_path])
         vprint("cleaning", ngram_vec_path)
@@ -316,13 +332,27 @@ if __name__ == "__main__":
         subprocess.call(['sed', '-i', r'/^.\s.*/d', ngram_vec_path])
         # trash space
         subprocess.call(['sed', '-i', r'/^<\/s>\s.*/d', ngram_vec_path])
+
     else:
         vprint("Reusing", ngram_vec_path)
     checkFile(ngram_vec_path)
 
-    # trash all "." from abstracts
-    vprint("Updating abstract file, removing stop token")
-    subprocess.call(['sed', '-i', r's/\s\.//g', abstract_path])
+    abstract_path = "{}/processedText/abstracts.txt".format(data_path)
+    if shouldRemake(abstract_path, args):
+        cmd = getCmdStr(linkPath, "filterWordsByCount")
+        vprint("Filtering words and removeing periods")
+        subprocess.call([
+            cmd,
+            '-i', ab_raw_path,
+            '-o', abstract_path,
+            '-m', args.minCount,
+            '--skip-second',
+            '--remove-period',
+            '-v' if VERBOSE else ''
+        ])
+    else:
+        vprint("Reusing", abstract_path)
+    checkFile(abstract_path)
 
     pmid_vec_path = "{}/fastText/pmid.vec".format(data_path)
     if shouldRemake(pmid_vec_path, args):

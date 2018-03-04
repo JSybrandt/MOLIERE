@@ -19,7 +19,7 @@ NO_COLOR=\x1b[0m
 WARN_COLOR=\x1b[33;01m
 
 
-all: $B/parseXML $B/fasttext $B/cleanRawText $B/apHighlight2Underscore $B/makeCentroid $B/parseUmlsText $B/parseUmlsEdges $B/makeApproxNNN $B/makeDocumentEdges $B/finalizeNetwork
+all: $B/parseXML $B/fasttext $B/cleanRawText $B/apHighlight2Underscore $B/makeCentroid $B/parseUmlsText $B/parseUmlsEdges $B/makeApproxNNN $B/makeDocumentEdges $B/finalizeNetwork $B/filterWordsByCount
 
 $B/parseXML: $S/parseXML/main.cpp $B/pugixml.o $B/porter2_stemmer.o
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
@@ -27,10 +27,11 @@ $B/parseXML: $S/parseXML/main.cpp $B/pugixml.o $B/porter2_stemmer.o
 $B/pugixml.o: $E/pugixml/src/pugixml.cpp
 	$(CC) -c -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
 
-$B/fasttext:
-	make -C $E/fastText -j
-	cp $E/fastText/fasttext $B/fasttext
+$B/fasttext: $E/fastText/fasttext
+	ln -s -f $$(readlink -f $E/fastText/fasttext) $B/fasttext
 
+$E/fastText/fasttext:
+	make -C $E/fastText
 
 $B/cleanRawText: $S/cleanRawText/main.cpp $B/porter2_stemmer.o
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
@@ -39,6 +40,9 @@ $B/porter2_stemmer.o: $E/porter2_stemmer/porter2_stemmer.cpp
 	$(CC) -c -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
 
 $B/apHighlight2Underscore: $S/apHighlight2Underscore/main.cpp
+	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
+
+$B/filterWordsByCount: $S/filterWordsByCount/main.cpp
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
 
 $B/makeCentroid: $S/makeCentroid/main.cpp
