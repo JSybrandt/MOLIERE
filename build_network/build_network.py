@@ -345,7 +345,7 @@ if __name__ == "__main__":
             cmd,
             '-i', ab_raw_path,
             '-o', abstract_path,
-            '-m', args.minCount,
+            '-m', args.min_count,
             '--skip-second',
             '--remove-period',
             '-v' if VERBOSE else ''
