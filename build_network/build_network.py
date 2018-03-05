@@ -477,20 +477,20 @@ if __name__ == "__main__":
             vprint("Reusing", umls_ngram_edges_path)
         checkFile(umls_ngram_edges_path)
 
-        umls_umls_edges_path = "{}/network/umls2umls.edges"\
-                               .format(data_path)
-        if shouldRemake(umls_umls_edges_path, args):
+        umls_network_path = "{}/network/umls2umls.edges"\
+                            .format(data_path)
+        if shouldRemake(umls_network_path, args):
             cmd = getCmdStr(linkPath, "parseUmlsEdges")
             vprint("Extraning umls curated edges")
             subprocess.call([
                 cmd,
                 '-i', mrrel_path,
-                '-o', umls_umls_edges_path,
+                '-o', umls_network_path,
                 '-v' if VERBOSE else ''
             ])
         else:
-            vprint("Reusing", umls_umls_edges_path)
-        checkFile(umls_umls_edges_path)
+            vprint("Reusing", umls_network_path)
+        checkFile(umls_network_path)
     else:
         vprint("Skipping UMLS data")
 
@@ -501,12 +501,12 @@ if __name__ == "__main__":
         cmd = [getCmdStr(linkPath, "finalizeNetwork"),
                '-o', final_network_path,
                '-v' if VERBOSE else '',
-               pmid_network_path, '1',
-               ngram_network_path, '2',
-               pmid_ngram_edges_path, '2']
+               pmid_network_path, '1.5',
+               ngram_network_path, '1',
+               pmid_ngram_edges_path, '1.5']
         if args.umls_dir is not None:
             cmd += [umls_ngram_edges_path, '0.5',
-                    umls_umls_edges_path, '2']
+                    umls_network_path, '1']
         subprocess.call(cmd)
     else:
         vprint("Reusing", final_network_path)
