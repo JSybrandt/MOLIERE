@@ -343,7 +343,7 @@ if __name__ == "__main__":
         vprint("Filtering words and removeing periods")
         subprocess.call([
             cmd,
-            '-i', ab_raw_path,
+            '-i', ab_pre_path,
             '-o', abstract_path,
             '-m', args.min_count,
             '--skip-second',
