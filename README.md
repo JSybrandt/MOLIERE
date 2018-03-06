@@ -2,12 +2,16 @@
 
 This repo contains the code described in the publication: *MOLIERE: Automatic Biomedical Hypothesis Generation System*
 
-Warning, this code does not contain the datasets used to train the network.
-These files can be obtained from PubMed.
+We organize our code into two major sub-projects, `build_network` and `run_query`.
 
-The tools directory contains a slightly modified version of ToPMine, a utility which finds meaningful n-grams. The modification simply stops ToPMine from removing tokens which contain numbers, very important for gene names.
+As the names imply, you will need to run the former in order to construct a dataset that the latter can use.
+Further details can be found in each sub-porjects own ReadMe.md.
+But, in short, running either python script with the `-h` flag will print our all command-line arguments for each utility.
+This should get you pointed in the right direction.
 
-Then in the code directory, there are sub directories wherein each component used to create and query the network can be found.
+If you have any questions, feel free to reach out to:
+
+jsybran [at] clemson [dot] edu
 
 If you use or reference any of this work, please cite the following paper:
 
