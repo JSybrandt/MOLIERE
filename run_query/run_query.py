@@ -32,14 +32,17 @@ def checkFile(path):
         raise
 
 
-def createOrRecoverFile(args, sub_dir, extension):
+def getQueryName(args):
+    return "---".join(args.query_words)
+
+
+def createOrRecoverFile(args, sub_dir, name, extension):
     dir_path = "{}/{}".format(args.cache, sub_dir)
     if not os.path.isdir(dir_path):
         os.mkdir(dir_path)
-    file_path = "{}/{}---{}.{}".format(dir_path,
-                                       args.wordA,
-                                       args.wordB,
-                                       extension)
+    file_path = "{}/{}.{}".format(dir_path,
+                                  name,
+                                  extension)
     if(os.path.isfile(file_path) and
        os.stat(file_path).st_size > 0 and
        not args.reconstruct):
@@ -71,54 +74,50 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--cache",
-                        action="store",
-                        dest="cache",
                         default="/tmp",
                         help="specifies where to store cached files.")
-    parser.add_argument("-d", "--data_path",
-                        action="store",
-                        dest="data_path",
+    parser.add_argument("-d", "--data-path",
                         help="specifies a data directory")
-    parser.add_argument("-n", "--num_topics",
-                        action="store",
-                        dest="num_topics",
+    parser.add_argument("-n", "--num-topics",
                         default="20",
                         help="specifies the number of topics to generate.")
-    parser.add_argument("-!", "--no_analysis",
+    parser.add_argument("-!", "--no-analysis",
                         action="store_true",
-                        dest="no_analysis",
                         help="If set, don't create any analysis files.")
-    parser.add_argument("-e", "--ellipse_constant",
-                        action="store",
-                        dest="ellipse_constant",
+    parser.add_argument("-e", "--ellipse-constant",
                         default="1.4",
                         help="size of ellipse optimization")
-    parser.add_argument("-m", "--move_here",
+    parser.add_argument("-m", "--move-here",
                         action="store_true",
-                        dest="move_here",
                         help="move topic / analysis files to working dir")
     parser.add_argument("-r", "--reconstruct",
                         action="store_true",
-                        dest="reconstruct",
                         help="if set, do not reuse existing cached files.")
-    parser.add_argument("-s", "--skip_sanitize",
+    parser.add_argument("-s", "--skip-sanitize",
                         action="store_true",
-                        dest="skip_sanitize",
                         help="if set, do not check for input in labels.")
     parser.add_argument("-v", "--verbose",
                         action="store_true",
-                        dest="verbose",
                         help="if set, run pipeline with verbose flags.")
-    parser.add_argument("wordA")
-    parser.add_argument("wordB")
+    parser.add_argument("query_words",
+                        nargs=argparse.REMAINDER,
+                        help="(at least 2) query words." +
+                             "additional words specify required intermediates")
 
     args = parser.parse_args()
+
+    if args.verbose:
+        print(args)
 
     if args.data_path is not None:
         data_path = args.data_path
     if data_path is None:
         raise ValueError("Must either supply MOLIERE_DATA through env or cmd")
 
+    if len(args.query_words) < 2:
+        raise ValueError("Must supply at least 2 query words!")
+
+    hadToRebuild = False
     graph_path = "{}/network/final.bin.edges".format(data_path)
     label_path = "{}/network/final.labels".format(data_path)
     abstract_path = "{}/processedText/abstracts.txt".format(data_path)
@@ -127,64 +126,89 @@ def main():
     umls_vec_path = "{}/fastText/umls.vec".format(data_path)
     verbose_flag = '-v' if args.verbose else ' '
 
-    args.wordA = cleanInput(args.wordA)
-    args.wordB = cleanInput(args.wordB)
-
-    hadToRebuild = False
+    args.query_words = [cleanInput(x) for x in args.query_words]
+    wordA = args.query_words[0]
+    wordB = args.query_words[-1]
 
     # always put then in order
-    if args.wordA > args.wordB:
-        args.wordB, args.wordA = (args.wordA, args.wordB)
+    if wordA > wordB:
+        wordB, wordA = (wordA, wordB)
 
     if not args.skip_sanitize:
         if args.verbose:
             print("Validating input")
 
-        foundA = foundB = False
+        found = [False for x in args.query_words]
         with open(label_path) as file:
             for line in file:
                 line = line.strip()
-                if line == args.wordA:
-                    foundA = True
-                if line == args.wordB:
-                    foundB = True
-                if foundA and foundB:
+                if line in args.query_words:
+                    found[args.query_words.index(line)] = True
+                if False not in found:
                     break
 
-        if not foundA:
-            print("Error, failed to find", args.wordA, "in", label_path)
-            return 1
+        for word, f in zip(args.query_words, found):
+            if not f:
+                raise ValueError("Failed to find", word)
 
-        if not foundB:
-            print("Error, failed to find", args.wordB, "in", label_path)
-            return 1
+    query_name = getQueryName(args)
 
-    pair = "{}---{}".format(args.wordA, args.wordB)
+    if args.verbose:
+        print("Starting", query_name)
 
-    path_path, reuse = createOrRecoverFile(args, pair, "path")
+    path_path, reuse = createOrRecoverFile(args,
+                                           query_name,
+                                           query_name,
+                                           "path")
     if not reuse or hadToRebuild:
+        sub_path_paths = []
+        for idx in range(len(args.query_words)-1):
+            wordI = args.query_words[idx]
+            wordJ = args.query_words[idx+1]
+            sub_path_name = "---".join([wordI, wordJ])
+            sub_path_path, reuse = createOrRecoverFile(args,
+                                                       query_name,
+                                                       sub_path_name,
+                                                       "path")
+            if not reuse or hadToRebuild:
+                if args.verbose:
+                    print("Running findPath, creating", sub_path_path)
+                subprocess.call([
+                    FIND_PATH.format(link_path),
+                    '-g', graph_path,
+                    '-l', label_path,
+                    '-s', wordI,
+                    '-t', wordJ,
+                    '-P', pmid_vec_path,
+                    '-N', ngram_vec_path,
+                    '-U', umls_vec_path,
+                    '-e', args.ellipse_constant,
+                    '-o', sub_path_path,
+                    verbose_flag
+                ])
+            elif args.verbose:
+                print("reusing sub path:", sub_path_path)
+            sub_path_paths.append(sub_path_path)
+        if len(args.query_words) > 2:
+            # need to concatinate paths together
+            path_nodes = set()
+            for p in sub_path_paths:
+                with open(p, 'r') as p_file:
+                    for line in p_file:
+                        tokens = line.strip().split()
+                        for t in tokens:
+                            path_nodes.add(t)
+            with open(path_path, "w") as file:
+                file.write(" ".join(path_nodes) + "\n")
+
         hadToRebuild = True
-        if args.verbose:
-            print("Running findPath, creating", path_path)
-        subprocess.call([
-            FIND_PATH.format(link_path),
-            '-g', graph_path,
-            '-l', label_path,
-            '-s', args.wordA,
-            '-t', args.wordB,
-            '-P', pmid_vec_path,
-            '-N', ngram_vec_path,
-            '-U', umls_vec_path,
-            '-e', args.ellipse_constant,
-            '-o', path_path,
-            verbose_flag
-        ])
     elif args.verbose:
         print("reusing: ", path_path)
 
     checkFile(path_path)
 
-    cloud_path, reuse = createOrRecoverFile(args, pair, "cloud")
+    cloud_path, reuse = createOrRecoverFile(args, query_name,
+                                            query_name, "cloud")
     if not reuse or hadToRebuild:
         hadToRebuild = True
         if args.verbose:
@@ -202,7 +226,8 @@ def main():
 
     checkFile(cloud_path)
 
-    bag_path, reuse = createOrRecoverFile(args, pair, "bag")
+    bag_path, reuse = createOrRecoverFile(args, query_name,
+                                          query_name, "bag")
     if not reuse or hadToRebuild:
         hadToRebuild = True
         if args.verbose:
@@ -221,13 +246,15 @@ def main():
     checkFile(bag_path)
 
     view_ext = "{}.view".format(args.num_topics)
-    view_path, reuse = createOrRecoverFile(args, pair, view_ext)
+    view_path, reuse = createOrRecoverFile(args, query_name,
+                                           query_name, view_ext)
     if not reuse or hadToRebuild:
         hadToRebuild = True
 
         # building the view requires the model
         model_ext = "{}.model".format(args.num_topics)
-        model_path, reuse = createOrRecoverFile(args, pair, model_ext)
+        model_path, reuse = createOrRecoverFile(args, query_name,
+                                                query_name, model_ext)
         if args.verbose:
             print("Running plda, creating", model_path)
         nullFile = open("/dev/null", 'w')
@@ -274,10 +301,11 @@ def main():
         return
 
     # intermediate analysis files
-    eval_dir = "{}/eval".format(pair)
+    eval_dir = "{}/eval".format(query_name)
 
     analysis_ext = "{}.l2.eval".format(args.num_topics)
-    eval_l2_path, reuse = createOrRecoverFile(args, eval_dir, analysis_ext)
+    eval_l2_path, reuse = createOrRecoverFile(args, eval_dir,
+                                              query_name, analysis_ext)
     if not reuse or hadToRebuild:
         hadToRebuild = True
         if args.verbose:
@@ -289,8 +317,8 @@ def main():
                 '-N', ngram_vec_path,
                 '-U', umls_vec_path,
                 '-P', pmid_vec_path,
-                '-s', args.wordA,
-                '-t', args.wordB,
+                '-s', wordA,
+                '-t', wordB,
                 '-e'
             ], stdout=analysis_file)
     elif args.verbose:
@@ -299,7 +327,8 @@ def main():
     checkFile(eval_l2_path)
 
     analysis_ext = "{}.tpw.eval".format(args.num_topics)
-    eval_tpw_path, reuse = createOrRecoverFile(args, eval_dir, analysis_ext)
+    eval_tpw_path, reuse = createOrRecoverFile(args, eval_dir,
+                                               query_name, analysis_ext)
     if not reuse or hadToRebuild:
         hadToRebuild = True
         if args.verbose:
@@ -311,8 +340,8 @@ def main():
                 '-N', ngram_vec_path,
                 '-U', umls_vec_path,
                 '-P', pmid_vec_path,
-                '-s', args.wordA,
-                '-t', args.wordB
+                '-s', wordA,
+                '-t', wordB
             ], stdout=analysis_file)
     elif args.verbose:
         print("reusing: ", eval_tpw_path)
@@ -320,7 +349,8 @@ def main():
     checkFile(eval_tpw_path)
 
     analysis_ext = "{}.twe.eval".format(args.num_topics)
-    eval_twe_path, reuse = createOrRecoverFile(args, eval_dir, analysis_ext)
+    eval_twe_path, reuse = createOrRecoverFile(args, eval_dir,
+                                               query_name, analysis_ext)
     if not reuse or hadToRebuild:
         hadToRebuild = True
         if args.verbose:
@@ -332,8 +362,8 @@ def main():
                 '-N', ngram_vec_path,
                 '-U', umls_vec_path,
                 '-P', pmid_vec_path,
-                '-s', args.wordA,
-                '-t', args.wordB
+                '-s', wordA,
+                '-t', wordB
             ], stdout=analysis_file)
     elif args.verbose:
         print("reusing: ", eval_twe_path)
@@ -343,6 +373,7 @@ def main():
     analysis_ext = "{}.path.eval".format(args.num_topics)
     eval_topic_path_path, reuse = createOrRecoverFile(args,
                                                       eval_dir,
+                                                      query_name,
                                                       analysis_ext)
     if not reuse or hadToRebuild:
         hadToRebuild = True
@@ -355,8 +386,8 @@ def main():
                 '-N', ngram_vec_path,
                 '-U', umls_vec_path,
                 '-P', pmid_vec_path,
-                '-s', args.wordA,
-                '-t', args.wordB
+                '-s', wordA,
+                '-t', wordB
             ], stdout=analysis_file, stderr=subprocess.DEVNULL)
     elif args.verbose:
         print("reusing: ", eval_topic_path_path)
@@ -364,7 +395,8 @@ def main():
     checkFile(eval_topic_path_path)
 
     analysis_ext = "{}.hybrid.eval".format(args.num_topics)
-    eval_hybrid_path, reuse = createOrRecoverFile(args, eval_dir, analysis_ext)
+    eval_hybrid_path, reuse = createOrRecoverFile(args, eval_dir,
+                                                  query_name, analysis_ext)
     if not reuse or hadToRebuild:
         if args.verbose:
             print("Running analysis, creating", eval_hybrid_path)

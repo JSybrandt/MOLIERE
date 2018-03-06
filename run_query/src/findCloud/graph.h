@@ -57,6 +57,9 @@ public:
   void addEdge(const edge& e){
     addEdge(e.a, e.b, e.weight);
   }
+  void setData(unordered_map<nodeIdx, unordered_map<nodeIdx, float>> && nData){
+    data = nData;
+  }
 
   unordered_set<nodeIdx> getCloud(nodeIdx source, unsigned int maxResult){
     typedef pair<nodeIdx, float> halfEdge;

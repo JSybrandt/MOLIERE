@@ -70,21 +70,49 @@ int main (int argc, char** argv){
   graph g(labelPath);
   unordered_set<nodeIdx> cloud;
 
-  list<edge> edges;
+  list<edge> edgeList;
   unsigned int cycleCount = 0;
   bool needMoreNeighbors = false;
 
-  cycleCount = loadAnotherOrderNeighbors(graphPath, edges, allNodes);
+  cycleCount = loadAnotherOrderNeighbors(graphPath, edgeList, allNodes);
 
   do{
 
-    edges.clear();
+    edgeList.clear();
     vout << "Loading " << cycleCount + 1 << "-order neighbors" << endl;
-    cycleCount = loadAnotherOrderNeighbors(graphPath, edges, allNodes);
+    cycleCount = loadAnotherOrderNeighbors(graphPath, edgeList, allNodes);
+
+    vout << "List 2 vec" << endl;
+    vector<edge> edgeVec;
+    edgeVec.reserve(edgeList.size());
+    edgeVec.insert(edgeVec.end(),
+        make_move_iterator(edgeList.begin()),
+        make_move_iterator(edgeList.end())
+    );
 
     vout << "constructing graph" << endl;
-    for(const auto & e : edges)
-      g.addEdge(e);
+    unordered_map<nodeIdx, unordered_map<nodeIdx, float>> graphData;
+    #pragma omp parallel
+    {
+      unordered_map<nodeIdx, unordered_map<nodeIdx, float>> localGraphData;
+      #pragma omp for
+      for(size_t i = 0; i < edgeVec.size(); ++i){
+        const edge& e = edgeVec[i];
+        localGraphData[e.a][e.b] = e.weight;
+        localGraphData[e.b][e.a] = e.weight;
+      }
+      #pragma omp critical
+      {
+        for(auto& pair : localGraphData){
+          graphData[pair.first].insert(
+            make_move_iterator(pair.second.begin()),
+            make_move_iterator(pair.second.end())
+          );
+        }
+      }
+    }
+
+    g.setData(move(graphData));
 
     vout << "Found " << g.numNodes() << " nodes" << endl;
     vout << "Found " << g.numEdges() << " edges" << endl;

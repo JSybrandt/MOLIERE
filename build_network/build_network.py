@@ -531,12 +531,12 @@ if __name__ == "__main__":
         cmd = [getCmdStr(linkPath, "finalizeNetwork"),
                '-o', final_network_path,
                '-v' if VERBOSE else '',
-               pmid_network_path, '1.5',
+               pmid_network_path, '1',
                ngram_network_path, '1',
-               pmid_ngram_edges_path, '1.5']
+               pmid_ngram_edges_path, '1']
         if args.umls_dir is not None:
-            cmd += [umls_ngram_edges_path, '0.5',
-                    umls_network_path, '1']
+            cmd += [umls_ngram_edges_path, '1.5',
+                    umls_network_path, '2']
         if plugin_data:
             # we are going to add edge-plugins
             for path, weight in plugin_data['edge-plugins']:

@@ -84,9 +84,11 @@ void getUniqueLabels(
       stringstream ss(localLine);
       string tmp;
       ss >> tmp;
-      localData.emplace(tmp);
+      if(localData.find(tmp) == localData.end())
+        localData.emplace(move(tmp));
       ss >> tmp;
-      localData.emplace(tmp);
+      if(localData.find(tmp) == localData.end())
+        localData.emplace(move(tmp));
 
     }
 

@@ -137,11 +137,6 @@ int main (int argc, char** argv){
         path, word2vecList, line2vec, selectVecFromEllipse);
   }
 
-  if(::verbose){
-    cout << "found:" << endl;
-    for(const auto & p : word2vecList) cout << p.first << endl;
-  }
-
   vout << "Loading Graph." << endl;
 
   list<edge> edges;
