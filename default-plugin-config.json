@@ -1,0 +1,12 @@
+{
+  "_comment" : [
+    "Use text-plugins to list additional text sources,",
+    "and edge-plugins to list additional plan-text edge",
+    "lists, along with their corresponding weights.",
+
+    "Each plugin should provide its own config specifying which "
+  ],
+
+  "text-plugins" : [],
+  "edge-plugins" : []
+}

@@ -14,6 +14,7 @@ from ftplib import FTP
 import multiprocessing
 from multiprocessing import Pool
 import string
+import json
 
 global VERBOSE
 HOME_ENV = "MOLIERE_HOME"
@@ -36,7 +37,7 @@ def getCmdStr(linkPath, cmd):
 
 def checkFile(path):
     if not os.path.isfile(path):
-        print("FAILED TO MAKE " + path, file=sys.stderr)
+        print("FAILED TO FIND " + path, file=sys.stderr)
         raise
     if os.stat(path).st_size == 0:
         print("EMPTY: " + path, file=sys.stderr)
@@ -122,11 +123,15 @@ if __name__ == "__main__":
                         dest="num_nn",
                         default="100",
                         help="number of neighbors per entity")
-    parser.add_argument("-M", "--min-count",
+    parser.add_argument("-m", "--min-count",
                         action="store",
                         dest="min_count",
                         default="5",
                         help="min number of times for a word to occur")
+    parser.add_argument("--plugin-config",
+                        action="store",
+                        dest="plugin_config",
+                        help="json config file describing additional data.")
     parser.add_argument("--download",
                         action="store_true",
                         dest="download",
@@ -174,6 +179,21 @@ if __name__ == "__main__":
 
     global VERBOSE
     VERBOSE = args.verbose
+
+    plugin_data = None
+    if args.plugin_config:
+        vprint("Checking plugin config", args.plugin_config)
+        with open(args.plugin_config) as file:
+            plugin_data = json.load(file)
+        assert("text-plugins" in plugin_data)
+        assert("edge-plugins" in plugin_data)
+        for path in plugin_data["text-plugins"]:
+            vprint("Adding text-plugin data:", path)
+            checkFile(path)
+        for path, weight in plugin_data["edge-plugins"]:
+            vprint("Adding edge-plugin data:", path, ":", weight)
+            checkFile(path)
+            assert(weight >= 0)
 
     num_threads = str(multiprocessing.cpu_count())
     tmp_dir = "{}/tmp".format(data_path)
@@ -232,6 +252,16 @@ if __name__ == "__main__":
     else:
         vprint("Reusing", ab_raw_path)
     checkFile(ab_raw_path)
+
+    if plugin_data:
+        # we are going to append all the text plugins
+        # to our parsed abstracts
+        with open(ab_raw_path, 'a') as write_file:
+            for path in plugin_data['text-plugins']:
+                vprint("Adding", path, "to", ab_raw_path)
+                with open(path) as read_file:
+                    for line in read_file:
+                        write_file.write(line)
 
     # AUTOPHRASE Expert Phrases
     phrase_path = "{}/processedText/expertPhrases.txt" .format(data_path)
@@ -507,6 +537,11 @@ if __name__ == "__main__":
         if args.umls_dir is not None:
             cmd += [umls_ngram_edges_path, '0.5',
                     umls_network_path, '1']
+        if plugin_data:
+            # we are going to add edge-plugins
+            for path, weight in plugin_data['edge-plugins']:
+                vprint("Adding", path, ":", weight)
+                cmd += [path, weight]
         subprocess.call(cmd)
     else:
         vprint("Reusing", final_network_path)
