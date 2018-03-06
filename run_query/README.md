@@ -27,6 +27,7 @@ make
 Next, you just need to get the data file into `$MOLIERE_HOME/data`.
 The latest data we have avalible can be found in the following link:
 
+(Depricated:)
 [Get Data Here (Google Drive Link)](https://drive.google.com/drive/u/0/folders/0B2hkrBZ0Qc40VXNwcGQ1eEtMTDg)
 
 

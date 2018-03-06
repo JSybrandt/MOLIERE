@@ -5,9 +5,12 @@ This repo contains the code described in the publication: *MOLIERE: Automatic Bi
 We organize our code into two major sub-projects, `build_network` and `run_query`.
 
 As the names imply, you will need to run the former in order to construct a dataset that the latter can use.
-Further details can be found in each sub-porjects own ReadMe.md.
+Further details can be found in each sub-projects own ReadMe.md.
 But, in short, running either python script with the `-h` flag will print our all command-line arguments for each utility.
 This should get you pointed in the right direction.
+
+Note, please add `export MOLIERE_HOME=<location of this git repo>` to your bashrc.
+Both sub-projects are going to expect it.
 
 If you have any questions, feel free to reach out to:
 
