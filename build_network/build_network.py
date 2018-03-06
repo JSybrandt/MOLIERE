@@ -541,7 +541,7 @@ if __name__ == "__main__":
             # we are going to add edge-plugins
             for path, weight in plugin_data['edge-plugins']:
                 vprint("Adding", path, ":", weight)
-                cmd += [path, weight]
+                cmd += [path, str(weight)]
         subprocess.call(cmd)
     else:
         vprint("Reusing", final_network_path)
