@@ -16,6 +16,8 @@ If you have any questions, feel free to reach out to:
 
 jsybran [at] clemson [dot] edu
 
+Or just leave an issue in this repo.
+
 If you use or reference any of this work, please cite the following paper:
 
     @inproceedings{Sybrandt:2017:MAB:3097983.3098057,

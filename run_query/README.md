@@ -14,32 +14,41 @@ To run on Palmetto simply use `module load gcc mpich python`.
 ## Install Process
 
 The install process is pretty informal.
-The following steps are how I would setup Moliere on a linux system.
+You should be able to just type 'make' and all utilities contained in `./src/` will be placed into `./bin/`.
 
-```bash
-export MOLIERE_HOME=<some install directory>
-mkdir -p $MOLIERE_HOME
-cd $MOLIERE_HOME
-git clone https://github.com/JSybrandt/Moliere_Query_Runner .
-make
-```
+Note: this system is going to expect a "data directory."
+This is the same directory that `build_network` creates.
 
-Next, you just need to get the data file into `$MOLIERE_HOME/data`.
-The latest data we have avalible can be found in the following link:
+If you don't want to build your own network, and instead want to download a couple hundred GB, the following link contains a past version of our data.
 
-(Depricated:)
+
+(Deprecated: Some files may not have compatible names)
 [Get Data Here (Google Drive Link)](https://drive.google.com/drive/u/0/folders/0B2hkrBZ0Qc40VXNwcGQ1eEtMTDg)
 
 
 ## Running
 
-Okay, now you have everything you need, assuming you ran make, setup the `$MOLIERE_HOME` environment variable, and downloaded the provided data in to `$MOLIERE_HOME/data`.
 To run our system, you will be executing `runQuery.py`.
 Note, feel free to move this file anywhere you would like, as long as `$MOLIERE_HOME` is set, you're good to go.
 
+By default, the code assumes your root data directory is `$MOLIERE_DATA`, and inside that directory we expect the following files:
+
+```
+$MOLIERE_DATA/
+  processedText/
+    abstracts.txt          < This file contains a post-processed version of MEDLINE
+  fastText/                < The files here contain vector embeddings for network nodes
+    ngram.vec
+    pmid.vec
+    umls.vec
+  network/
+    final.bin.edges        < This is a binary edge list file
+    final.labels           < This provides names for each node id in the edge list
+```
+
 If you run `runQuery.py -h` you can see the options for the system.
 But, the general usage is going to be `runQuery.py -n $TOPIC_COUNT -m $TERM_A $TERM_B`.
-Note that -n sets the number of topics (defaults to 100) and -m moves the resulting topic model and evaluation files from the local cache (default to /tmp) to the working directory.
+Note that -n sets the number of topics (defaults to 20) and -m moves the resulting topic model and evaluation files from the local cache (default to /tmp) to the working directory.
 
 ## Citation
 
