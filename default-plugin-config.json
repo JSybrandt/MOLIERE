@@ -4,7 +4,8 @@
     "and edge-plugins to list additional plan-text edge",
     "lists, along with their corresponding weights.",
 
-    "Each plugin should provide its own config specifying which "
+    "Each plugin should provide its own config specifying which",
+    "files need to be included"
   ],
 
   "text-plugins" : [],
