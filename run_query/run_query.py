@@ -84,9 +84,6 @@ def main():
     parser.add_argument("-!", "--no-analysis",
                         action="store_true",
                         help="If set, don't create any analysis files.")
-    parser.add_argument("-e", "--ellipse-constant",
-                        default="1.4",
-                        help="size of ellipse optimization")
     parser.add_argument("-m", "--move-here",
                         action="store_true",
                         help="move topic / analysis files to working dir")
@@ -96,6 +93,10 @@ def main():
     parser.add_argument("-s", "--skip-sanitize",
                         action="store_true",
                         help="if set, do not check for input in labels.")
+    parser.add_argument("--cloud-size",
+                        action="store",
+                        default="3000",
+                        help="Nuber of abstracts per node in cloud.")
     parser.add_argument("-v", "--verbose",
                         action="store_true",
                         help="if set, run pipeline with verbose flags.")
@@ -116,6 +117,9 @@ def main():
 
     if len(args.query_words) < 2:
         raise ValueError("Must supply at least 2 query words!")
+
+    if int(args.cloud_size) <= 0:
+        raise ValueError("Cloud-size must be a positive number")
 
     hadToRebuild = False
     graph_path = "{}/network/final.bin.edges".format(data_path)
@@ -179,10 +183,6 @@ def main():
                     '-l', label_path,
                     '-s', wordI,
                     '-t', wordJ,
-                    '-P', pmid_vec_path,
-                    '-N', ngram_vec_path,
-                    '-U', umls_vec_path,
-                    '-e', args.ellipse_constant,
                     '-o', sub_path_path,
                     verbose_flag
                 ])
@@ -217,6 +217,7 @@ def main():
             FIND_CLOUD.format(link_path),
             '-g', graph_path,
             '-l', label_path,
+            '-A', args.cloud_size,
             '-p', path_path,
             '-o', cloud_path,
             verbose_flag

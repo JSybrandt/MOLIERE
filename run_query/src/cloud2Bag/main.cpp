@@ -20,6 +20,7 @@
 #include"util.h"
 #include"bow.h"
 #include"parallelFileOp.h"
+#include"labelManager.h"
 
 bool verbose = false;
 #define vout if(::verbose) cout
@@ -58,23 +59,14 @@ int main (int argc, char** argv){
   string abstractPath =  p.get<string>("abstracts");
   verbose = p.exist("verbose");
 
-  vector<string> mid2Label;
-  mid2Label.reserve(pow(2, 25));
-
   vout << "Loading labels from " << labelPath << endl;
-  fstream labelFile(labelPath, ios::in);
-  string label;
-  while(labelFile >> label){
-    mid2Label.push_back(label);
-  }
-  labelFile.close();
-
+  LabelManager labels(labelPath);
 
   vout << "Loading cloud from " << cloudPath << endl;
   fstream cloudFile(cloudPath, ios::in);
   nodeIdx id;
   while(cloudFile >> id){
-    pmidSubset.insert(mid2Label[id]);
+    pmidSubset.insert(labels[id]);
   }
   cloudFile.close();
 

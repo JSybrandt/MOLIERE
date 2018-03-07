@@ -33,7 +33,7 @@ using namespace std;
 
 void fastLoadEdgeList(const string& graphPath, // file path
                       list<edge>& result,  //pass by ref result
-                      unordered_set<nodeIdx> subset = unordered_set<nodeIdx>()) // if inducing net
+                      const unordered_set<nodeIdx>& subset = unordered_set<nodeIdx>()) // if inducing net
 {
   bool loadEverything = subset.size() == 0;
   const string hwErrMsg =
@@ -55,11 +55,11 @@ void fastLoadEdgeList(const string& graphPath, // file path
   }
   size_t totalEdgeCount = totalFileSize / NUM_BYTE_PER_EDGE;
 
-#pragma omp parallel
+  #pragma omp parallel
   {
 
-    unsigned int tid = omp_get_thread_num();
-    unsigned int totalThreadNum = omp_get_num_threads();
+    size_t tid = omp_get_thread_num();
+    size_t totalThreadNum = omp_get_num_threads();
     size_t edgesPerThread = totalEdgeCount / totalThreadNum;
 
     size_t startEdgeNum = tid * edgesPerThread;
@@ -76,7 +76,7 @@ void fastLoadEdgeList(const string& graphPath, // file path
     charBuff buff[3];
 
     //load all the edges this thread is responsible for
-    for(unsigned int i = startEdgeNum; i < endEdgeNum; ++i){
+    for(size_t i = startEdgeNum; i < endEdgeNum; ++i){
       fread(buff, sizeof(charBuff), 3, file);
       edge e(buff[0].i, buff[1].i, buff[2].f);
 
@@ -89,18 +89,19 @@ void fastLoadEdgeList(const string& graphPath, // file path
     }
     fclose(file);
 
-    //concatinate local vecs to the result
-#pragma omp critical
-    result.splice(result.end(), localEdges);
-
+    if(localEdges.size() > 0){
+      //concatinate local vecs to the result
+      #pragma omp critical
+        result.splice(result.end(), localEdges);
+    }
   }
 }
 
 
-unsigned int loadAnotherOrderNeighbors(const string& path,
+size_t loadAnotherOrderNeighbors(const string& path,
                                        list<edge>& edges,
                                        unordered_set<nodeIdx>& allNodes){
-  static unsigned int order = 0;
+  static size_t order = 0;
   order += 1;
 
   fastLoadEdgeList(path, edges, allNodes);

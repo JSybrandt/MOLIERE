@@ -104,12 +104,12 @@ int main(int argc, char ** argv){
     vout << "NN = " << numNN << endl;
     Graph graph = createNNN(dataPoints, numNN, euclidian);
     vout << "Getting shortest path" << endl;
-    Graph::Path path = graph.getShortestPath(sourceIdx, targetIdx);
+    vector<nodeIdx> path = graph.getShortestPath(sourceIdx, targetIdx);
     path = graph.getShortestPath(sourceIdx, targetIdx);
-    if(!path.path.empty()){
+    if(!path.empty()){
       if(::verbose){
         vout << "Path:";
-        for(nodeIdx n : path.path)
+        for(nodeIdx n : path)
           vout << n << " ";
         vout << endl;
       }
@@ -133,7 +133,7 @@ int main(int argc, char ** argv){
       eigen.run();
       float totalBtwn = 0;
       float totalEigen = 0;
-      for(nodeIdx n : path.path){
+      for(nodeIdx n : path){
         totalBtwn += btwn.score(n);
         totalEigen += eigen.score(n);
       }
@@ -145,12 +145,12 @@ int main(int argc, char ** argv){
       cout << sourceLabel << " "
            << targetLabel << " "
            << numNN << " "
-           << path.weight << " "
-           << path.weight / path.path.size() << " "
+           << -1 << " "
+           << -1 << " "
            << (btwn.score(sourceIdx) + btwn.score(targetIdx))/2 << " "
-           << totalBtwn / path.path.size() << " "
+           << totalBtwn / path.size() << " "
            << (eigen.score(sourceIdx) + eigen.score(targetIdx))/2 << " "
-           << totalEigen / path.path.size() << " "
+           << totalEigen / path.size() << " "
            << NetworKit::ClusteringCoefficient::exactGlobal(nkGraph) << " "
            << mod.getQuality(plp.getPartition(), nkGraph) << " "
            << endl;

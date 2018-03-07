@@ -27,7 +27,7 @@ all: $B/evalHybrid.py $B/cloud2Bag $B/findCloud $B/findPath $B/mpi_lda $B/view_m
 $B/cloud2Bag: $S/cloud2Bag/main.cpp
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
 
-$B/findCloud: $S/findCloud/main.cpp $S/findCloud/graph.h
+$B/findCloud: $S/findCloud/main.cpp
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
 
 $B/findPath: $S/findPath/main.cpp

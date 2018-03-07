@@ -15,9 +15,12 @@
 #include<exception>
 #include<stack>
 #include<list>
+#include<functional>
 
 #include"util.h"
 #include"pQueue.h"
+#include"parallelFileOp.h"
+#include"parallelEdgeListLoad.h"
 
 #include<omp.h>
 
@@ -25,8 +28,41 @@ using namespace std;
 
 class Graph{
 public:
-  unsigned int numNodes() const { return data.size();}
-  unsigned int numEdges() const { return edgeCount;}
+  Graph(){};
+  Graph(const string& path, const unordered_set<nodeIdx>& subset){
+    list<edge> edgeList;
+    fastLoadEdgeList(path, edgeList, subset);
+    vector<edge> edgeVec;
+    edgeVec.reserve(edgeList.size());
+    for(auto& e : edgeList){
+      edgeVec.emplace_back(move(e));
+    }
+
+    edgeCount = edgeVec.size();
+
+    #pragma omp parallel
+    {
+      unordered_map<nodeIdx, unordered_map<nodeIdx, float>> localGraphData;
+      #pragma omp for
+      for(size_t i = 0; i < edgeVec.size(); ++i){
+        const edge& e = edgeVec[i];
+        localGraphData[e.a][e.b] = e.weight;
+        localGraphData[e.b][e.a] = e.weight;
+      }
+      #pragma omp critical
+      {
+        for(auto& pair : localGraphData){
+          data[pair.first].insert(
+            pair.second.begin(),
+            pair.second.end()
+          );
+        }
+      }
+    }
+  }
+
+  size_t numNodes() const { return data.size();}
+  size_t numEdges() const { return edgeCount;}
   void addEdges(const list<edge>& edges){
     for(const edge& e : edges){
       addEdge(e.a, e.b, e.weight);
@@ -42,12 +78,80 @@ public:
     }
   }
 
-  struct Path{
-    vector<nodeIdx> path;
-    float weight;
-  };
+  unordered_set<nodeIdx> getSelectNearby(nodeIdx source,
+                                         size_t maxResult,
+                                         function<bool(nodeIdx)> filter) const{
+    typedef pair<nodeIdx, float> halfEdge;
+    pQueue<nodeIdx, float> pq;
+    unordered_set<nodeIdx> visited, result(maxResult);
+    pq.push(source, 0);
+    visited.insert(source);
+    if(filter(source)) result.insert(source);
+    while(!pq.empty() && result.size() < maxResult){
+      halfEdge cEdge = pq.pop();
+      visited.insert(cEdge.first);
+      if(filter(cEdge.first)) result.insert(cEdge.first);
+      for(const halfEdge& nEdge : data.at(cEdge.first)){
+        if(visited.find(nEdge.first) == visited.end())
+          pq.push(nEdge.first, cEdge.second + nEdge.second);
+      }
+    }
+    return result;
+  }
 
-  unordered_set<nodeIdx> getNeighbors(nodeIdx source, unsigned int n) const{
+  //bool connected(nodeIdx a, nodeIdx b) const {
+    //unordered_map<nodeIdx, nodeIdx> node2set;
+    //vector<nodeIdx> nodes;
+    //nodes.reserve(data.size());
+    //for(const auto& p : data)
+      //nodes.push_back(p.first);
+
+    ////initial set
+    //#pragma omp parallel for
+    //for(size_t i = 0; i < nodes.size(); ++i){
+      //const nodeIdx node = nodes[i];
+      //const unordered_map<nodeIdx, float>& edges = data.at(node);
+      //nodeIdx minId = node;
+      //for(const auto& e : edges)
+        //minId = min(e.first, minId);
+      //#pragma omp critical
+      //node2set.emplace(node, minId);
+    //}
+
+    //bool anyChanges = true;
+    //while(anyChanges){
+      //anyChanges = false;
+      //if(node2set[a] == node2set[b]){
+        //return true;
+      //}
+      //#pragma omp parallel
+      //{
+        //unordered_map<nodeIdx, nodeIdx> localUpdates;
+        //#pragma omp for
+        //for(size_t i = 0; i < nodes.size(); ++i){
+          //const nodeIdx node = nodes[i];
+          //const unordered_map<nodeIdx, float>& edges = data.at(node);
+          //nodeIdx minId = node2set.at(node);
+          //for(const auto& e : edges)
+            //if(node2set.find(e.first) != node2set.end())
+              //minId = min(node2set.at(e.first), minId);
+          //if(minId != node2set.at(node)){
+            //localUpdates[node] = minId;
+          //}
+        //}
+        //#pragma omp critical
+        //{
+          //if(localUpdates.size() > 0){
+            //anyChanges = true;
+            //node2set.insert(localUpdates.begin(), localUpdates.end());
+          //}
+        //}
+      //}
+    //}
+    //return false;
+  //}
+
+  unordered_set<nodeIdx> getNeighbors(nodeIdx source, size_t n) const{
     unordered_set<nodeIdx> visited;
     pQueue<nodeIdx, float> pq;
     pq.push(source, 0);
@@ -64,7 +168,9 @@ public:
     return visited;
   }
 
-  Path getShortestPath(nodeIdx source, nodeIdx target) const{
+
+  vector<nodeIdx> getShortestPath(nodeIdx source, nodeIdx target) const{
+    vector<nodeIdx> res;
     // first, we are going to tighten edges
     pQueue<nodeIdx, float> pq;
     unordered_map<nodeIdx, float> finalDists;
@@ -113,18 +219,12 @@ public:
       while(backTraversal.top() != source){
         backTraversal.push(backPointers[backTraversal.top()]);
       }
-      Path res;
       while(!backTraversal.empty()){
-        res.path.push_back(backTraversal.top());
+        res.push_back(backTraversal.top());
         backTraversal.pop();
       }
-      res.weight = finalDists[target];
-      return res;
-    } else {
-      Path res;
-      res.weight = -1;
-      return res;
     }
+    return res;
   }
 
   list<edge> toEdgeList() const{
@@ -156,7 +256,7 @@ private:
   typedef pair<nodeIdx, float> halfEdge; // half edge only has one node
 
   unordered_map<nodeIdx, unordered_map<nodeIdx, float>> data;
-  unsigned long long edgeCount;
+  size_t edgeCount;
 };
 
 ostream& operator<<(ostream& out, const Graph& g){
@@ -167,12 +267,3 @@ ostream& operator<<(ostream& out, const Graph& g){
   }
   return out;
 }
-
-ostream& operator<<(ostream& out, const Graph::Path& p){
-  out << p.weight << " : ";
-  for(nodeIdx n : p.path){
-    out << n << " ";
-  }
-  return out;
-}
-

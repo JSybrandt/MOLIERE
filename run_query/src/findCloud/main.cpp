@@ -21,15 +21,34 @@
 #include"graph.h"
 #include"util.h"
 #include"parallelEdgeListLoad.h"
+#include"labelManager.h"
 
 bool verbose = false;
 #define vout if(::verbose) cout
 
 using namespace std;
 
-
+unordered_set<nodeIdx> getCloud(const vector<nodeIdx>& path,
+                                const Graph& graph,
+                                const function<bool(nodeIdx)> isAbstract,
+                                size_t minPerNode,
+                                bool& needsMoreNeighbors){
+  vout << "Getting Cloud" << endl;
+  unordered_set<nodeIdx> cloud;
+  #pragma omp parallel for
+  for(size_t i = 0; i < path.size(); ++i){
+    unordered_set<nodeIdx> localCloud;
+    localCloud = graph.getSelectNearby(path[i], minPerNode, isAbstract);
+    if(localCloud.size() < minPerNode) needsMoreNeighbors = true;
+    #pragma omp critical
+    cloud.insert(localCloud.begin(), localCloud.end());
+  }
+  return cloud;
+}
 
 int main (int argc, char** argv){
+
+  unordered_set<char> abstractTags = {'P'};
 
   cmdline::parser p;
 
@@ -38,7 +57,6 @@ int main (int argc, char** argv){
   p.add<string>("output", 'o', "Output paths and neighborhoods", true);
   p.add<string>("labels", 'l', "Label file accompanying the edges file.", true);
   p.add<unsigned int>("abstracts-per-node", 'A', "The cloud will expand until it find this many abstracts per node in path", false, 3000);
-  p.add<unsigned int>("max-dist", 'n', "max separation from path (hops)", false, 4);
   p.add("verbose", 'v', "outputs debug information");
 
   p.parse_check(argc, argv);
@@ -48,7 +66,6 @@ int main (int argc, char** argv){
   string outputPath =  p.get<string>("output");
   string labelPath =  p.get<string>("labels");
   unsigned int numAbstractsPerNode = p.get<unsigned int>("abstracts-per-node");
-  unsigned int maxDistFromPath = p.get<unsigned int>("max-dist");
   verbose = p.exist("verbose");
 
   vout << "Loading Path" << endl;
@@ -62,79 +79,35 @@ int main (int argc, char** argv){
   }
   pathFile.close();
 
-  unsigned int maxResult = numAbstractsPerNode * path.size();
-  vout << "Expecting a min resulting cloud of size " << maxResult << endl;
-
   // CONSTRUCTING GRAPH
   vout << "Loading labels from " << labelPath << endl;
-  graph g(labelPath);
+  LabelManager labels(labelPath);
+
+  const auto& isAbstract = [&labels, &abstractTags](nodeIdx node) -> bool{
+    char tag = labels[node][0];
+    return abstractTags.find(tag) != abstractTags.end();
+  };
+
+  Graph graph(graphPath, allNodes);
   unordered_set<nodeIdx> cloud;
 
   list<edge> edgeList;
-  unsigned int cycleCount = 0;
   bool needMoreNeighbors = false;
 
-  cycleCount = loadAnotherOrderNeighbors(graphPath, edgeList, allNodes);
+  cloud = getCloud(path, graph,
+                   isAbstract,
+                   numAbstractsPerNode,
+                   needMoreNeighbors);
 
-  do{
-
-    edgeList.clear();
-    vout << "Loading " << cycleCount + 1 << "-order neighbors" << endl;
-    cycleCount = loadAnotherOrderNeighbors(graphPath, edgeList, allNodes);
-
-    vout << "List 2 vec" << endl;
-    vector<edge> edgeVec;
-    edgeVec.reserve(edgeList.size());
-    edgeVec.insert(edgeVec.end(),
-        make_move_iterator(edgeList.begin()),
-        make_move_iterator(edgeList.end())
-    );
-
-    vout << "constructing graph" << endl;
-    unordered_map<nodeIdx, unordered_map<nodeIdx, float>> graphData;
-    #pragma omp parallel
-    {
-      unordered_map<nodeIdx, unordered_map<nodeIdx, float>> localGraphData;
-      #pragma omp for
-      for(size_t i = 0; i < edgeVec.size(); ++i){
-        const edge& e = edgeVec[i];
-        localGraphData[e.a][e.b] = e.weight;
-        localGraphData[e.b][e.a] = e.weight;
-      }
-      #pragma omp critical
-      {
-        for(auto& pair : localGraphData){
-          graphData[pair.first].insert(
-            make_move_iterator(pair.second.begin()),
-            make_move_iterator(pair.second.end())
-          );
-        }
-      }
-    }
-
-    g.setData(move(graphData));
-
-    vout << "Found " << g.numNodes() << " nodes" << endl;
-    vout << "Found " << g.numEdges() << " edges" << endl;
-
-    vout << "Getting cloud" << endl;
-    cloud.clear();
-    needMoreNeighbors = false;
-#pragma omp parallel for schedule(dynamic)
-    for(unsigned int i = 0; i < path.size(); ++i){
-      unordered_set<nodeIdx> local = g.getCloud(path[i], numAbstractsPerNode);
-      vout << "Found " << local.size() << " near " << path[i] << endl;
-#pragma omp critical
-      {
-        if(local.size() < numAbstractsPerNode)
-          needMoreNeighbors = true;
-        cloud.insert(local.begin(), local.end());
-      }
-    }
-
-    vout << "Found cloud of size " << cloud.size() << endl;
-
-  }while(needMoreNeighbors && cycleCount < maxDistFromPath);
+  while(needMoreNeighbors){
+    vout << "Loading More Neighbors" << endl;
+    allNodes = graph.getNodes();
+    graph = Graph(graphPath, allNodes);
+    cloud = getCloud(path, graph,
+                     isAbstract,
+                     numAbstractsPerNode,
+                     needMoreNeighbors);
+  }
 
   fstream outFile(outputPath, ios::out);
 
