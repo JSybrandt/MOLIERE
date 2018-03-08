@@ -311,7 +311,7 @@ def main():
     elif args.verbose:
         print("reusing: ", eval_path)
 
-    checkFile(bag_path)
+    checkFile(eval_path)
 
     if args.move_here:
         if args.verbose:
