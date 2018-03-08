@@ -14,7 +14,7 @@ using namespace std;
 
 typedef vector<float> Point;
 
-Graph createNNN(vector<Point>& points, unsigned int numNN, bool l2 = true){
+Graph createNNN(const vector<Point>& points, unsigned int numNN, bool l2 = true){
   unsigned int numVecs = points.size();
   if(numVecs == 0)
     return Graph();

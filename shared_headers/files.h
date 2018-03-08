@@ -34,7 +34,8 @@ bool isFile(const string& path){
     return s.st_mode & S_IFREG;
   }
   else{
-    throw std::runtime_error("Unable to Open File");
+    return false;
+    //throw std::runtime_error("Unable to Open File");
   }
 }
 
@@ -44,7 +45,8 @@ bool isDir(const string& path){
     return s.st_mode & S_IFDIR;
   }
   else{
-    throw std::runtime_error("Unable to Open Directory");
+    return false;
+    //throw std::runtime_error("Unable to Open Directory");
   }
 }
 

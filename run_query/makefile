@@ -22,7 +22,7 @@ NO_COLOR=\x1b[0m
 WARN_COLOR=\x1b[33;01m
 
 
-all: $B/evalHybrid.py $B/cloud2Bag $B/findCloud $B/findPath $B/mpi_lda $B/view_model.py
+all: $B/evalHybrid.py $B/cloud2Bag $B/findCloud $B/findPath $B/mpi_lda $B/view_model.py $B/evaluate
 
 $B/cloud2Bag: $S/cloud2Bag/main.cpp
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
@@ -40,25 +40,7 @@ $B/mpi_lda:
 $B/view_model.py: $E/plda/view_model.py
 	cp $< $@
 
-$B/evalHybrid.py: $S/eval/evalHybrid.py $B/eval_l2 $B/eval_topic_path $B/eval_tpw $B/eval_twe
-	cp $< $@
-
-$B/eval_l2: $S/eval/l2/main.cpp
-	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
-
-$B/eval_topic_path: $S/eval/topic_path/main.cpp $(NETWORKIT)/libNetworKit.a
-	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
-
-$B/eval_tpw: $S/eval/tpw/main.cpp
-	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
-
-$B/eval_twe: $S/eval/twe/main.cpp
-	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
-
-$B/getBestPaperFromTM: $S/tools/getBestPaperFromTM/main.cpp
-	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
-
-$B/getNearestNeighbor: $S/tools/getNearestNeighbor/main.cpp
+$B/evaluate: $S/evaluate/main.cpp $S/evaluate/metrics.h $(NETWORKIT)/libNetworKit.a
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
 
 $(NETWORKIT)/libNetworKit.a:

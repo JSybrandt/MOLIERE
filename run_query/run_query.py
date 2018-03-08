@@ -16,11 +16,7 @@ CLOUD2BAG = "{}/cloud2Bag"
 PLDA = "{}/mpi_lda"
 VIEW_MODEL = "{}/view_model.py"
 
-EVAL_L2 = "{}/eval_l2"
-EVAL_TPW = "{}/eval_tpw"
-EVAL_TWE = "{}/eval_twe"
-EVAL_TOPIC_PATH = "{}/eval_topic_path"
-EVAL_HYBRID = "{}/evalHybrid.py"
+EVAL = "{}/evaluate"
 
 
 def checkFile(path):
@@ -131,12 +127,6 @@ def main():
     verbose_flag = '-v' if args.verbose else ' '
 
     args.query_words = [cleanInput(x) for x in args.query_words]
-    wordA = args.query_words[0]
-    wordB = args.query_words[-1]
-
-    # always put then in order
-    if wordA > wordB:
-        wordB, wordA = (wordA, wordB)
 
     if not args.skip_sanitize:
         if args.verbose:
@@ -301,123 +291,32 @@ def main():
             print("Skipping Analysis")
         return
 
-    # intermediate analysis files
-    eval_dir = "{}/eval".format(query_name)
-
-    analysis_ext = "{}.l2.eval".format(args.num_topics)
-    eval_l2_path, reuse = createOrRecoverFile(args, eval_dir,
-                                              query_name, analysis_ext)
+    eval_path, reuse = createOrRecoverFile(args, query_name,
+                                           query_name, "eval")
     if not reuse or hadToRebuild:
         hadToRebuild = True
         if args.verbose:
-            print("Running analysis, creating", eval_l2_path)
-        with open(eval_l2_path, 'w') as analysis_file:
-            subprocess.call([
-                EVAL_L2.format(link_path),
-                '-m', view_path,
-                '-N', ngram_vec_path,
-                '-U', umls_vec_path,
-                '-P', pmid_vec_path,
-                '-s', wordA,
-                '-t', wordB,
-                '-e'
-            ], stdout=analysis_file)
+            print("Running evaluate, creating", eval_path)
+        subprocess.call([
+            EVAL.format(link_path),
+            '-o', eval_path,
+            '-m', view_path,
+            '-N', ngram_vec_path,
+            '-P', pmid_vec_path,
+            '-U', umls_vec_path,
+            '-s', args.query_words[0],
+            '-t', args.query_words[-1],
+            verbose_flag
+        ])
     elif args.verbose:
-        print("reusing: ", eval_l2_path)
+        print("reusing: ", eval_path)
 
-    checkFile(eval_l2_path)
-
-    analysis_ext = "{}.tpw.eval".format(args.num_topics)
-    eval_tpw_path, reuse = createOrRecoverFile(args, eval_dir,
-                                               query_name, analysis_ext)
-    if not reuse or hadToRebuild:
-        hadToRebuild = True
-        if args.verbose:
-            print("Running analysis, creating", eval_tpw_path)
-        with open(eval_tpw_path, 'w') as analysis_file:
-            subprocess.call([
-                EVAL_TPW.format(link_path),
-                '-m', view_path,
-                '-N', ngram_vec_path,
-                '-U', umls_vec_path,
-                '-P', pmid_vec_path,
-                '-s', wordA,
-                '-t', wordB
-            ], stdout=analysis_file)
-    elif args.verbose:
-        print("reusing: ", eval_tpw_path)
-
-    checkFile(eval_tpw_path)
-
-    analysis_ext = "{}.twe.eval".format(args.num_topics)
-    eval_twe_path, reuse = createOrRecoverFile(args, eval_dir,
-                                               query_name, analysis_ext)
-    if not reuse or hadToRebuild:
-        hadToRebuild = True
-        if args.verbose:
-            print("Running analysis, creating", eval_twe_path)
-        with open(eval_twe_path, 'w') as analysis_file:
-            subprocess.call([
-                EVAL_TWE.format(link_path),
-                '-m', view_path,
-                '-N', ngram_vec_path,
-                '-U', umls_vec_path,
-                '-P', pmid_vec_path,
-                '-s', wordA,
-                '-t', wordB
-            ], stdout=analysis_file)
-    elif args.verbose:
-        print("reusing: ", eval_twe_path)
-
-    checkFile(eval_twe_path)
-
-    analysis_ext = "{}.path.eval".format(args.num_topics)
-    eval_topic_path_path, reuse = createOrRecoverFile(args,
-                                                      eval_dir,
-                                                      query_name,
-                                                      analysis_ext)
-    if not reuse or hadToRebuild:
-        hadToRebuild = True
-        if args.verbose:
-            print("Running analysis, creating", eval_topic_path_path)
-        with open(eval_topic_path_path, 'w') as analysis_file:
-            subprocess.call([
-                EVAL_TOPIC_PATH.format(link_path),
-                '-m', view_path,
-                '-N', ngram_vec_path,
-                '-U', umls_vec_path,
-                '-P', pmid_vec_path,
-                '-s', wordA,
-                '-t', wordB
-            ], stdout=analysis_file, stderr=subprocess.DEVNULL)
-    elif args.verbose:
-        print("reusing: ", eval_topic_path_path)
-
-    checkFile(eval_topic_path_path)
-
-    analysis_ext = "{}.hybrid.eval".format(args.num_topics)
-    eval_hybrid_path, reuse = createOrRecoverFile(args, eval_dir,
-                                                  query_name, analysis_ext)
-    if not reuse or hadToRebuild:
-        if args.verbose:
-            print("Running analysis, creating", eval_hybrid_path)
-        with open(eval_hybrid_path, 'w') as analysis_file:
-            subprocess.call([
-                EVAL_HYBRID.format(link_path),
-                eval_l2_path,
-                eval_tpw_path,
-                eval_twe_path,
-                eval_topic_path_path
-            ], stdout=analysis_file)
-    elif args.verbose:
-        print("reusing: ", eval_hybrid_path)
-
-    checkFile(eval_hybrid_path)
+    checkFile(bag_path)
 
     if args.move_here:
         if args.verbose:
-            print("Moving", eval_hybrid_path, " to local dir")
-        subprocess.call(['cp', eval_hybrid_path, './'])
+            print("Moving", eval_path, " to local dir")
+        subprocess.call(['cp', eval_path, './'])
 
 
 if __name__ == "__main__":
