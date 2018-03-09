@@ -291,8 +291,9 @@ def main():
             print("Skipping Analysis")
         return
 
+    eval_ext = "{}.eval".format(args.num_topics)
     eval_path, reuse = createOrRecoverFile(args, query_name,
-                                           query_name, "eval")
+                                           query_name, eval_ext)
     if not reuse or hadToRebuild:
         hadToRebuild = True
         if args.verbose:
