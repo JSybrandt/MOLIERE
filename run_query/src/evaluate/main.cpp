@@ -22,6 +22,8 @@
 #include"util.h"
 #include"topic_model.h"
 #include"vectorManager.h"
+#include"labelManager.h"
+#include"estimateVector.h"
 
 #include"metrics.h"
 
@@ -65,6 +67,8 @@ unordered_map<string, tuple<float, float, float>> getHParam(const string& path){
 int main(int argc, char ** argv){
   cmdline::parser p;
 
+  p.add<string>("labels", 'l', "Label file", true);
+  p.add<string>("graph", 'g', "Edges file", true);
   p.add<string>("output", 'o', "Path to resulting file", true);
   p.add<string>("topic-model", 'm', "Topic model from VIEW_FILES", true);
   p.add<string>("ngram-vecs", 'N', "ngram vector file", false, "");
@@ -79,6 +83,8 @@ int main(int argc, char ** argv){
 
   p.parse_check(argc, argv);
 
+  string graphPath =  p.get<string>("graph");
+  string labelPath =  p.get<string>("labels");
   string outPath = p.get<string>("output");
   string topicModelPath = p.get<string>("topic-model");
   string ngramVecsPath = p.get<string>("ngram-vecs");
@@ -122,17 +128,25 @@ int main(int argc, char ** argv){
 
   pair<string, string> queryWords = {sourceLabel, targetLabel};
 
-  bool missing = false;
+  vout << "Checking that vectors exist. Making estimates if not" << endl;
+  vector<string> needed;
   if(word2vec.find(sourceLabel) == word2vec.end()){
-    missing = true;
-    cerr << "MISSING: " << sourceLabel << endl;
+    vout << "MISSING: " << sourceLabel << endl;
+    needed.push_back(sourceLabel);
   }
   if(word2vec.find(targetLabel) == word2vec.end()){
-    missing = true;
-    cerr << "MISSING: " << targetLabel << endl;
+    vout << "MISSING: " << targetLabel << endl;
+    needed.push_back(targetLabel);
   }
-  if(missing)
-    return 1;
+
+  if(needed.size() > 0){
+    vout << "Loading labels for reconstruction." << endl;
+    LabelManager labels(labelPath);
+    for(string& s : needed){
+      vout << "Reconstructing: " << s << endl;
+      word2vec[s] = estimateVector(s, graphPath, vectors, labels);
+    }
+  }
 
   vout << "Creating network data" << endl;
   TopicNetworkMetricData netData(queryWords, topicModel, topicCentroids, word2vec);

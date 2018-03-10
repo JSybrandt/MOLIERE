@@ -300,6 +300,8 @@ def main():
             print("Running evaluate, creating", eval_path)
         subprocess.call([
             EVAL.format(link_path),
+            '-l', label_path,
+            '-g', graph_path,
             '-o', eval_path,
             '-m', view_path,
             '-N', ngram_vec_path,
