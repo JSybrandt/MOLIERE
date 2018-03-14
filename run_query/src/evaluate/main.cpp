@@ -9,6 +9,7 @@
 
 #include<iostream>
 #include<unordered_map>
+#include<map>
 #include<unordered_set>
 #include<fstream>
 #include<sstream>
@@ -152,7 +153,8 @@ int main(int argc, char ** argv){
   TopicNetworkMetricData netData(queryWords, topicModel, topicCentroids, word2vec);
 
   vout << "Creating Metric Map" << endl;
-  unordered_map<string, Metric*> metrics = {
+  // want order
+  map<string, Metric*> metrics = {
     {"L2",
       new L2Metric(queryWords, topicModel, topicCentroids, word2vec)},
     {"BestCentrL2",
@@ -176,7 +178,7 @@ int main(int argc, char ** argv){
     float scale = get<2>(p.second);
 
     float score = metrics[metric]->calculate();
-    outFile << metric << "\t" << score << endl;
+    outFile << metric << "\t" << score;
 
     //if its a per-word metric
     PerTopicMetric* perTopic = dynamic_cast<PerTopicMetric*>(metrics[metric]);
@@ -184,15 +186,15 @@ int main(int argc, char ** argv){
       vector<pair<size_t, float>> topic2score = perTopic->getBestTopics();
       for(size_t t = 0; t < min(topicModel.size(), numReportedTopics); ++t){
         size_t topicIdx = topic2score[t].first;
-        outFile << "\t Topic: " << topicIdx
-             << "\t Score: " << topic2score[t].second
-             << endl << "\t\t";
+        // print topic number
+        outFile << "\tT" << topicIdx;
         for(size_t w = 0; w < min(topicCutoff, topicModel[topicIdx].size()); ++w){
-          outFile << topicModel[topicIdx][w].first << " ";
+          // print topic words
+          outFile << " " << topicModel[topicIdx][w].first;
         }
-        outFile << endl;
       }
     }
+    outFile << endl;
     result += coef * powf(max(score/scale, 0.0f), expo);
   }
   outFile << "PolyMultiple\t" << result << endl;
