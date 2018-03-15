@@ -22,7 +22,7 @@ NO_COLOR=\x1b[0m
 WARN_COLOR=\x1b[33;01m
 
 
-all: $B/evalHybrid.py $B/cloud2Bag $B/findCloud $B/findPath $B/mpi_lda $B/view_model.py $B/evaluate
+all: $B/cloud2Bag $B/findCloud $B/findPath $B/mpi_lda $B/view_model.py $B/evaluate
 
 $B/cloud2Bag: $S/cloud2Bag/main.cpp
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
