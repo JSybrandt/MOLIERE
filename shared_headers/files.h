@@ -10,6 +10,7 @@
 using std::vector;
 using std::string;
 using std::stringstream;
+using std::runtime_error;
 
 vector<string> getDirContents(const string& dirPath){
   DIR *dpdf;
@@ -39,6 +40,11 @@ bool isFile(const string& path){
   }
 }
 
+void assertIsFile(const string& path){
+  if(! isFile(path))
+    throw runtime_error("Failed to find " + path);
+}
+
 bool isDir(const string& path){
   struct stat s;
   if(stat(path.c_str(), &s) == 0){
@@ -48,6 +54,11 @@ bool isDir(const string& path){
     return false;
     //throw std::runtime_error("Unable to Open Directory");
   }
+}
+
+void assertIsDir(const string& path){
+  if(! isDir(path))
+    throw runtime_error("Failed to find " + path);
 }
 
 string join(const string& a, const string& b){
@@ -67,7 +78,7 @@ vector<string> getFileOrFiles(const string& path){
     for(string fileName : getDirContents(path)){
       string filePath = join(path, fileName);
       if(isFile(filePath)){
-        res.push_back(filePath);
+        res.push_back(fileName);
       }
     }
   } else {
