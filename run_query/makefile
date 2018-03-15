@@ -22,9 +22,15 @@ NO_COLOR=\x1b[0m
 WARN_COLOR=\x1b[33;01m
 
 
-all: $B/evalHybrid.py $B/cloud2Bag $B/findCloud $B/findPath $B/mpi_lda $B/view_model.py $B/evaluate
+all: $B/evalHybrid.py $B/cloud2Bag $B/findCloud $B/findPath $B/mpi_lda $B/view_model.py $B/evaluate $B/dtm $B/cloud2Dtm $B/dtm2View
 
 $B/cloud2Bag: $S/cloud2Bag/main.cpp
+	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
+
+$B/cloud2Dtm: $S/cloud2Dtm/main.cpp
+	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
+
+$B/dtm2View: $S/dtm2View/main.cpp
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
 
 $B/findCloud: $S/findCloud/main.cpp
@@ -36,6 +42,10 @@ $B/findPath: $S/findPath/main.cpp
 $B/mpi_lda:
 	make -C $E/plda
 	cp $E/plda/mpi_lda $@
+
+$B/dtm:
+	make -C $E/dtm/dtm
+	cp $E/dtm/dtm/main $@
 
 $B/view_model.py: $E/plda/view_model.py
 	cp $< $@

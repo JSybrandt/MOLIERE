@@ -12,8 +12,9 @@ DATA_ENV = "MOLIERE_DATA"
 
 FIND_PATH = "{}/findPath"
 FIND_CLOUD = "{}/findCloud"
-CLOUD2BAG = "{}/cloud2Bag"
+CLOUD2DTM = "{}/cloud2Dtm"
 PLDA = "{}/mpi_lda"
+DTM = "{}/dtm"
 VIEW_MODEL = "{}/view_model.py"
 
 EVAL = "{}/evaluate"
@@ -217,24 +218,51 @@ def main():
 
     checkFile(cloud_path)
 
-    bag_path, reuse = createOrRecoverFile(args, query_name,
-                                          query_name, "bag")
+    dtm_in_root_path, _ = createOrRecoverFile(args,
+                                              query_name,
+                                              query_name,
+                                              "dtm")
+    _, reuse = createOrRecoverFile(args, query_name,
+                                   query_name, "dtm-mult.dat")
     if not reuse or hadToRebuild:
         hadToRebuild = True
         if args.verbose:
-            print("Running cloud2bag, creating", bag_path)
+            print("Running cloud2Dtm, creating", dtm_in_root_path)
         subprocess.call([
-            CLOUD2BAG.format(link_path),
+            CLOUD2DTM.format(link_path),
             '-c', cloud_path,
-            '-o', bag_path,
+            '-o', dtm_in_root_path,
             '-l', label_path,
             '-a', abstract_path,
+            '--years-per-timestep', '5',
             verbose_flag
         ])
     elif args.verbose:
-        print("reusing: ", bag_path)
+        print("reusing: ", dtm_in_root_path)
 
-    checkFile(bag_path)
+    checkFile(dtm_in_root_path + "-mult.dat")
+    checkFile(dtm_in_root_path + "-seq.dat")
+    checkFile(dtm_in_root_path + "-words.dat")
+
+    dtm_out_root_path, _ = createOrRecoverFile(args,
+                                               query_name,
+                                               query_name,
+                                               "dtm_res")
+    subprocess.call([
+        DTM.format(link_path),
+        '--ntopics=' + args.num_topics,
+        '--mode=fit',
+        '--initialize_lda=true',
+        '--corpus_prefix=' + dtm_in_root_path,
+        '--outname=' + dtm_out_root_path,
+        '--top_chain_var=0.005',
+        '--alpha=0.01',
+        '--lda_sequence_min_iter=6',
+        '--lda_sequence_max_iter=20',
+        '--lda_max_em_iter=10',
+    ])
+
+    return
 
     view_ext = "{}.view".format(args.num_topics)
     view_path, reuse = createOrRecoverFile(args, query_name,
@@ -255,7 +283,7 @@ def main():
             '--num_topics', args.num_topics,
             '--alpha', '1',
             '--beta', '0.01',
-            '--training_data_file', bag_path,
+            '--training_data_file', cloud_path,
             '--model_file', model_path,
             '--total_iterations', '500',
             '--burn_in_iterations', '50'

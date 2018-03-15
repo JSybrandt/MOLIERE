@@ -54,6 +54,10 @@ public:
     return idx < idx2lbl.size();
   }
 
+  size_t size() const {
+    return idx2lbl.size();
+  }
+
 private:
   unordered_map<string, nodeIdx> lbl2idxCache;
   vector<string> idx2lbl;

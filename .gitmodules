@@ -16,3 +16,6 @@
 [submodule "external/flann"]
 	path = external/flann
 	url = git@github.com:mariusmuja/flann.git
+[submodule "external/dtm"]
+	path = external/dtm
+	url = git@github.com:blei-lab/dtm.git
