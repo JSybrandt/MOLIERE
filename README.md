@@ -40,5 +40,5 @@ If you use or reference any of this work, please cite the following paper:
      keywords = {hypothesis generation, mining scientific publications, topic modeling, undiscovered public knowledge},
     }
 
-[moliere_logo]:https://github.com/JSybrandt/jsybrandt.github.io/blob/master/img/logo/moliere_logo.png?raw=true
+[moliere_logo]:http://sybrandt.com/img/logo/moliere_logo.png
 [moliere_query]:http://sybrandt.com/post/moliere-run-query/
