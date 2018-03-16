@@ -13,6 +13,7 @@ DATA_ENV = "MOLIERE_DATA"
 FIND_PATH = "{}/findPath"
 FIND_CLOUD = "{}/findCloud"
 CLOUD2DTM = "{}/cloud2Dtm"
+DTM2VIEW = "{}/dtm2View"
 PLDA = "{}/mpi_lda"
 DTM = "{}/dtm"
 VIEW_MODEL = "{}/view_model.py"
@@ -230,11 +231,11 @@ def main():
             print("Running cloud2Dtm, creating", dtm_in_root_path)
         subprocess.call([
             CLOUD2DTM.format(link_path),
-            '-c', cloud_path,
+            '-i', cloud_path,
             '-o', dtm_in_root_path,
             '-l', label_path,
             '-a', abstract_path,
-            '--years-per-timestep', '5',
+            '--years-per-ts', '5',
             verbose_flag
         ])
     elif args.verbose:
@@ -246,8 +247,8 @@ def main():
 
     dtm_out_root_path, _ = createOrRecoverFile(args,
                                                query_name,
-                                               query_name,
-                                               "dtm_res")
+                                               "dtm",
+                                               "model")
     subprocess.call([
         DTM.format(link_path),
         '--ntopics=' + args.num_topics,
@@ -258,8 +259,20 @@ def main():
         '--top_chain_var=0.005',
         '--alpha=0.01',
         '--lda_sequence_min_iter=6',
-        '--lda_sequence_max_iter=20',
-        '--lda_max_em_iter=10',
+        '--lda_sequence_max_iter=40',
+        '--lda_max_em_iter=20',
+    ])
+
+    dtm_view_root_path, _ = createOrRecoverFile(args,
+                                                query_name,
+                                                "dtm",
+                                                "view")
+    subprocess.call([
+        DTM2VIEW.format(link_path),
+        '-o', dtm_view_root_path,
+        '-d', dtm_in_root_path,
+        '-i', dtm_out_root_path,
+        verbose_flag
     ])
 
     return
