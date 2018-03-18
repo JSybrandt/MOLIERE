@@ -268,7 +268,7 @@ string cleanText(const string& dirty){
         //if(ascii == "?"){
           //std::cout << "Replacing " << varWidthChar << " with ?" << std::endl;
         //}
-        ss << ascii;
+        ss << "{" << ascii << "}";
       }
     } else { // is regular character
       char c = varWidthChar[0];
