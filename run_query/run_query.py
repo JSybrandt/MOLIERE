@@ -235,7 +235,7 @@ def main():
             '-o', dtm_in_root_path,
             '-l', label_path,
             '-a', abstract_path,
-            '--years-per-ts', '5',
+            '--years-per-ts', '1',
             verbose_flag
         ])
     elif args.verbose:
@@ -257,10 +257,13 @@ def main():
         '--corpus_prefix=' + dtm_in_root_path,
         '--outname=' + dtm_out_root_path,
         '--top_chain_var=0.005',
+        '--top_obs_var=0.5',
         '--alpha=0.01',
+        '--sigma_d=0.0001',
+        '--sigma_l=0.0001',
         '--lda_sequence_min_iter=6',
-        '--lda_sequence_max_iter=40',
-        '--lda_max_em_iter=20',
+        '--lda_sequence_max_iter=20',
+        '--lda_max_em_iter=10',
     ])
 
     dtm_view_root_path, _ = createOrRecoverFile(args,
