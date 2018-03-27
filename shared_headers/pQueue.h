@@ -121,11 +121,11 @@ struct pQueue{
       cout << "*" << endl;
     }
   }
-  unsigned int size(){
+  size_t size(){
     return this->currSize;
   }
   pNode<K,V>* head;
   unordered_map<K, pNode<K,V>*> key2Node;
 private:
-  unsigned int currSize;
+  size_t currSize;
 };

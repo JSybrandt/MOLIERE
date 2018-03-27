@@ -40,7 +40,7 @@ $B/mpi_lda:
 $B/view_model.py: $E/plda/view_model.py
 	cp $< $@
 
-$B/evaluate: $S/evaluate/main.cpp $S/evaluate/metrics.h $(NETWORKIT)/libNetworKit.a
+$B/evaluate: $S/evaluate/main.cpp $(NETWORKIT)/libNetworKit.a
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
 
 $(NETWORKIT)/libNetworKit.a:

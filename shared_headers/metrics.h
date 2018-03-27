@@ -243,6 +243,33 @@ protected:
   }
 };
 
+pair<Graph, vector<nodeIdx>> simpleTopicNetData(
+    const pair<string, string>& queryWords,
+    const vector<Topic>& topicModel,
+    const vector<vector<float>>& topicCentroids,
+    const unordered_map<string, vector<float>>& word2vec)
+{
+  size_t numNN = 3;
+  vector<vector<float>> networkPoints;
+  networkPoints.reserve(topicCentroids.size() + 2);
+  networkPoints.push_back(word2vec.at(queryWords.first));
+  networkPoints.push_back(word2vec.at(queryWords.second));
+  networkPoints.insert(networkPoints.end(),
+                       topicCentroids.begin(),
+                       topicCentroids.end());
+  Graph graph = createNNN(networkPoints, numNN);
+
+  //get shortest path between the two query words
+  vector<nodeIdx> queryWordPath;
+  queryWordPath = graph.getShortestPath(0, 1);
+  while(queryWordPath.size() == 0){
+    numNN += 1;
+    graph = createNNN(networkPoints, numNN);
+    queryWordPath = graph.getShortestPath(0, 1);
+  }
+  return {graph, queryWordPath};
+}
+
 struct TopicNetworkMetricData{
   TopicNetworkMetricData(
     const pair<string, string>& queryWords_,
@@ -254,23 +281,12 @@ struct TopicNetworkMetricData{
      topicCentroids(topicCentroids_),
      word2vec(word2vec_)
   {
-    size_t numNN = 3;
-    vector<vector<float>> networkPoints;
-    networkPoints.reserve(topicCentroids.size() + 2);
-    networkPoints.push_back(word2vec.at(queryWords.first));
-    networkPoints.push_back(word2vec.at(queryWords.second));
-    networkPoints.insert(networkPoints.end(),
-                         topicCentroids.begin(),
-                         topicCentroids.end());
-    Graph graph = createNNN(networkPoints, numNN);
-
-    //get shortest path between the two query words
-    queryWordPath = graph.getShortestPath(0, 1);
-    while(queryWordPath.size() == 0){
-      numNN += 1;
-      graph = createNNN(networkPoints, numNN);
-      queryWordPath = graph.getShortestPath(0, 1);
-    }
+    auto graphPath = simpleTopicNetData(queryWords,
+                                        topicModel,
+                                        topicCentroids,
+                                        word2vec);
+    Graph graph = move(graphPath.first);
+    queryWordPath = move(graphPath.second);
 
     //our graph is loaded, need to convert to nk graph
     for(size_t i = 0; i < graph.numNodes(); ++i){
