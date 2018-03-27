@@ -63,10 +63,12 @@ int main (int argc, char** argv){
   LabelManager labels(labelPath);
 
   vout << "Loading cloud from " << cloudPath << endl;
+  vector<string> pmidOrdering;
   fstream cloudFile(cloudPath, ios::in);
   nodeIdx id;
   while(cloudFile >> id){
     pmidSubset.insert(labels[id]);
+    pmidOrdering.push_back(labels[id]);
   }
   cloudFile.close();
 
@@ -81,9 +83,15 @@ int main (int argc, char** argv){
 
   vout << "Found " << bags.size() << " pmids" << endl;
 
+  unordered_map<string, Bow> pmid2bag;
+  for(Bow& bag : bags){
+    pmid2bag[bag.getName()] = move(bag);
+  }
+
   vout << "Writing to " << outputPath << endl;
   fstream outFile(outputPath, ios::out);
-  for(Bow& bag : bags){
+  for(const string& pmid : pmidOrdering){
+    Bow& bag = pmid2bag[pmid];
     bag.removeName();
     outFile << bag << endl;
   }
