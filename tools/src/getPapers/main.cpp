@@ -25,6 +25,7 @@
 #include"labelManager.h"
 #include"estimateVector.h"
 #include"metrics.h"
+#include"parallelFileOp.h"
 
 using namespace std;
 
@@ -48,7 +49,7 @@ int main(int argc, char ** argv){
   p.add<string>("target-label", 't', "Target Label", true);
   p.add("verbose", 'v', "Output debug info.");
   p.add<size_t>("num-best-topics", 'X', "Number of best topics to get papers from.", false, 3);
-  p.add<size_t>("num-per-mix", 'Y', "Number of papers per mix.", false, 2);
+  p.add<size_t>("num-per-mix", 'Y', "Number of papers per mix.", false, 1);
 
 
   p.parse_check(argc, argv);
@@ -143,8 +144,9 @@ int main(int argc, char ** argv){
     stringstream ss(line);
     vector<float> mix;
     mix.reserve(topicModel.size());
-    while(ss >> tmp)
+    while(ss >> tmp){
       mix.push_back(tmp);
+    }
     const string& pmid = labels[id];
     pmid2mix[pmid] = move(mix);
   }
@@ -162,16 +164,12 @@ int main(int argc, char ** argv){
     desiredMixes.emplace_back(move(mix));
   }
 
-  for(size_t i = 1; i < topicPath.size(); ++i){
-    nodeIdx n1 = topicPath[i-1];
-    nodeIdx n2 = topicPath[i];
-    // remember, idx 0 and 1 are both keywords
-    if(n1 > 1 && n2 > 1){
-      n1 -= 2;
-      n2 -= 2;
+  for(size_t i = 1; i < topicPath.size()-1; ++i){
+    for(size_t j = i+1; j < topicPath.size()-1; ++j){
       vector<float> mix(topicModel.size(), 0.0f);
-      mix[n1] = 0.5;
-      mix[n2] = 0.5;
+      for(size_t x = i; x < j; ++x){
+        mix[x] = 1;
+      }
       desiredMixes.emplace_back(move(mix));
     }
   }
@@ -188,16 +186,35 @@ int main(int argc, char ** argv){
   }
   vout << "  -- Done --" << endl;
 
-  vout << "Writing Papers";
-  fstream outFile(outPath, ios::out);
+  vout << "Collecting Papers";
+  unordered_set<string> selectPmid;
   for(pQueue<string, float> paperQ : bestPapersPerMix){
     for(size_t i = 0; i < min(paperQ.size(), numPerMix); ++i){
-      outFile << paperQ.pop().first << endl;
+      selectPmid.insert(paperQ.pop().first);
     }
   }
-  outFile.close();
   vout << "  -- Done --" << endl;
 
+  if(::verbose)
+    for(cost string& pmid : selectPmid)
+
+  vout << "Finding Abstract Text";
+  list<string> abstracts;
+  auto selectPmidFun = [&selectPmid](const string& line) -> bool {
+    stringstream ss(line);
+    string tmp;
+    ss >> tmp;
+    return selectPmid.find(tmp) != selectPmid.end();
+  };
+
+  auto get = [](const string& line) -> string { return line; };
+  fastProcFile<string>(abstractPath, abstracts, get, selectPmidFun);
+
+  fstream outFile(outPath, ios::out);
+  for(string s : abstracts)
+    outFile << s << endl;
+  outFile.close();
+  vout << "  -- Done --" << endl;
 
   return 0;
 }
