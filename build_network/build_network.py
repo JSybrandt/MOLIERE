@@ -19,6 +19,7 @@ import json
 global VERBOSE
 HOME_ENV = "MOLIERE_HOME"
 DATA_ENV = "MOLIERE_DATA"
+NUM_THREADS = "OMP_NUM_THREADS"
 
 
 def vprint(*args, **kargs):
@@ -86,7 +87,7 @@ def downloadMedline(dir):
     ftp.quit()
     ftp.close()
 
-    with Pool() as p:
+    with Pool(int(os.environ[NUM_THREADS])) as p:
         p.map(unzip, [os.path.join(dir, f) for f in os.listdir(dir)])
 
 
@@ -97,6 +98,9 @@ if __name__ == "__main__":
     data_path = None
     if(DATA_ENV in os.environ):
         data_path = os.environ[DATA_ENV]
+
+    if(NUM_THREADS not in os.environ):
+        raise ValueError("Needs " + NUM_THREADS + " set.")
 
     linkPath = "{}/build_network/bin".format(home_path)
 
@@ -238,7 +242,7 @@ if __name__ == "__main__":
                 ])
 
         # Parse each xml file in parallel
-        with Pool() as p:
+        with Pool(int(os.environ[NUM_THREADS])) as p:
             p.map(parse, os.listdir(xml_dir))
 
         # cat all abstracts together

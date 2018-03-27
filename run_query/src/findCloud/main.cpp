@@ -99,7 +99,7 @@ int main (int argc, char** argv){
                    numAbstractsPerNode,
                    needMoreNeighbors);
 
-  while(needMoreNeighbors){
+  if(needMoreNeighbors){
     vout << "Loading More Neighbors" << endl;
     allNodes = graph.getNodes();
     graph = Graph(graphPath, allNodes);
