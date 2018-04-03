@@ -92,7 +92,7 @@ def main():
     parser.add_argument("--cloud-size",
                         action="store",
                         default="3000",
-                        help="Nuber of abstracts per node in cloud.")
+                        help="Number of abstracts per node in cloud.")
     parser.add_argument("-v", "--verbose",
                         action="store_true",
                         help="if set, run pipeline with verbose flags.")

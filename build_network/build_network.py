@@ -19,7 +19,9 @@ import json
 global VERBOSE
 HOME_ENV = "MOLIERE_HOME"
 DATA_ENV = "MOLIERE_DATA"
-NUM_THREADS = "OMP_NUM_THREADS"
+NUM_THREADS_ENV = "OMP_NUM_THREADS"
+
+MEDLINE_FTP_DOMAIN = "ftp.ncbi.nlm.nih.gov"
 
 
 def vprint(*args, **kargs):
@@ -55,10 +57,21 @@ def shouldRemake(path, args):
     return False
 
 
-def unzip(name):
-    if name.endswith(".gz"):
-        vprint("Unzipping", name)
-        subprocess.call(["gunzip", os.path.join(name)])
+def unzip(file_path):
+    if file_path.endswith(".gz") and os.path.isfile(file_path):
+        vprint("Unzipping", file_path)
+        subprocess.call(["gunzip", file_path])
+    else:
+        raise ValueError("Attempted to unzip the wrong file.")
+
+
+def untar(file_path, to_dir):
+    if file_path.endswith(".tar.gz") and os.path.isfile(file_path):
+        vprint("Unzipping", file_path, "to", to_dir)
+        os.makedirs(to_dir, exist_ok=True)
+        subprocess.call(["tar", "xf", file_path, '-C', to_dir])
+    else:
+        raise ValueError("Attempted to untar the wrong file.")
 
 
 def cleanTmp(tmp_dir):
@@ -70,12 +83,34 @@ def cleanTmp(tmp_dir):
     os.makedirs(tmp_dir, exist_ok=True)
 
 
+def downloadPhraseData(dir):
+    vprint("Making", dir)
+    os.makedirs(dir, exist_ok=True)
+
+    FTP_DIR = "/pub/wilbur/PHRASES/"
+    FILE_NAME = "PubMed_Phrases.tar.gz"
+    vprint("Connecting", MEDLINE_FTP_DOMAIN)
+    ftp = FTP(MEDLINE_FTP_DOMAIN)
+    ftp.login()
+    ftp.cwd(FTP_DIR)
+    vprint("Downloading", FILE_NAME)
+    with open(os.path.join(dir, FILE_NAME), 'wb') as file:
+        ftp.retrbinary('RETR ' + FILE_NAME, file.write)
+    ftp.quit()
+    ftp.close()
+    vprint("Disconnected")
+    untar(os.path.join(dir, FILE_NAME), dir)
+    phrase_path = os.path.join(dir, "all_dictionary.txt")
+    if not os.path.isfile(phrase_path):
+        raise ValueError("Failed to find all_dictionary.txt in ", dir)
+    return phrase_path
+
+
 def downloadMedline(dir):
-    MEDLINE_URL = "ftp.ncbi.nlm.nih.gov"
     FTP_DIR = "/pubmed/baseline/"
     vprint("Making", dir)
     os.makedirs(dir, exist_ok=True)
-    ftp = FTP(MEDLINE_URL)
+    ftp = FTP(MEDLINE_FTP_DOMAIN)
     ftp.login()
     ftp.cwd(FTP_DIR)
 
@@ -87,7 +122,7 @@ def downloadMedline(dir):
     ftp.quit()
     ftp.close()
 
-    with Pool(int(os.environ[NUM_THREADS])) as p:
+    with Pool(int(os.environ[NUM_THREADS_ENV])) as p:
         p.map(unzip, [os.path.join(dir, f) for f in os.listdir(dir)])
 
 
@@ -99,8 +134,8 @@ if __name__ == "__main__":
     if(DATA_ENV in os.environ):
         data_path = os.environ[DATA_ENV]
 
-    if(NUM_THREADS not in os.environ):
-        raise ValueError("Needs " + NUM_THREADS + " set.")
+    if(NUM_THREADS_ENV not in os.environ):
+        raise ValueError("Needs " + NUM_THREADS_ENV + " set.")
 
     linkPath = "{}/build_network/bin".format(home_path)
 
@@ -242,7 +277,7 @@ if __name__ == "__main__":
                 ])
 
         # Parse each xml file in parallel
-        with Pool(int(os.environ[NUM_THREADS])) as p:
+        with Pool(int(os.environ[NUM_THREADS_ENV])) as p:
             p.map(parse, os.listdir(xml_dir))
 
         # cat all abstracts together
@@ -269,48 +304,21 @@ if __name__ == "__main__":
 
     # AUTOPHRASE Expert Phrases
     phrase_path = "{}/processedText/expertPhrases.txt" .format(data_path)
+    phrase_download_path = "{}/processedText/phrase_data".format(data_path)
     if shouldRemake(phrase_path, args):
-        cmd = getCmdStr(linkPath, "parseXML")
-
-        def parse(path):
-            if path.endswith(".xml"):
-                vprint("parsing", path)
-                subprocess.call([
-                    cmd,
-                    '-f', os.path.join(xml_dir, path),
-                    '-o', os.path.join(tmp_dir, path),
-                    '-O',  # only print author supplied keywords
-                    '-N',  # no meta
-                    '-v' if VERBOSE else ''
-                ])
-        tmp_path = os.path.join(tmp_dir, 'temp_phrases.txt')
-        with open(tmp_path, "w") as file:
-            if args.umls_dir is not None:
-                vprint("Getting phrase data from MRCONSO")
-                subprocess.call(
-                    ['awk', 'BEGIN{FS="|"}{print $15}', mrconso_path],
-                    stdout=file)
-            for path in os.listdir(tmp_dir):
-                if path.endswith(".xml"):
-                    vprint("Getting phrase data from", path)
-                    subprocess.call([
-                        'cat', os.path.join(tmp_dir, path)
-                    ], stdout=file)
-
-        vprint("cleaning phrase file")
+        phrase_download_path = "{}/processedText/phrase_data".format(data_path)
+        raw_phrase_file = downloadPhraseData(phrase_download_path)
         cmd = getCmdStr(linkPath, "cleanRawText")
-        subprocess.call([cmd, '-i', tmp_path, '-o', phrase_path,
-                         '-v' if VERBOSE else ''])
-        vprint('removing trailing periods')
-        subprocess.call(['sed', '-i', r's/\..*$//g', phrase_path])
-        vprint('finding unique phrases')
-        subprocess.call(['uniq', phrase_path],
-                        stdout=open(tmp_path, 'w'))
-        subprocess.call(['mv', tmp_path, phrase_path])
-        subprocess.call(['sort', '-u', phrase_path],
-                        stdout=open(tmp_path, 'w'))
-        subprocess.call(['mv', tmp_path, phrase_path])
-        cleanTmp(tmp_dir)
+        subprocess.call([
+            cmd,
+            '-i', raw_phrase_file,
+            '-o', phrase_path,
+            '-v' if VERBOSE else ''])
+        vprint("Removing trailing periods from phrase file")
+        subprocess.call([
+            'sed',
+            '-i', '-E', '-e', "'s/\s?\.\s?$//g'",
+            phrase_path])
     else:
         vprint("Reusing", phrase_path)
     checkFile(phrase_path)
