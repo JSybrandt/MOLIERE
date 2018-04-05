@@ -241,6 +241,10 @@ def main():
     view_ext = "{}.view".format(args.num_topics)
     view_path, reuse = createOrRecoverFile(args, query_name,
                                            query_name, view_ext)
+    inf_ext = "{}.inf".format(args.num_topics)
+    inf_path, tmp = createOrRecoverFile(args, query_name,
+                                        query_name, inf_ext)
+    reuse = reuse and tmp
     if not reuse or hadToRebuild:
         hadToRebuild = True
 
@@ -267,9 +271,6 @@ def main():
         checkFile(model_path)
 
         if not args.no_analysis:
-            inf_ext = "{}.inf".format(args.num_topics)
-            inf_path, reuse = createOrRecoverFile(args, query_name,
-                                                  query_name, inf_ext)
             if args.verbose:
                 print("Writing paper inferences for later analysis.")
             subprocess.call([
@@ -349,7 +350,7 @@ def main():
             PAPERS.format(link_path),
             '-c', cloud_path,
             '-i', inf_path,
-            '-a', abstract_path,
+            # '-a', abstract_path,
             '-l', label_path,
             '-g', graph_path,
             '-o', papers_path,

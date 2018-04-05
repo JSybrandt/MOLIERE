@@ -37,7 +37,7 @@ int main(int argc, char ** argv){
 
   p.add<string>("cloud", 'c', "Cloud file", true);
   p.add<string>("inference", 'i', "Inference file", true);
-  p.add<string>("abstracts", 'a', "Abstract file", true);
+  // p.add<string>("abstracts", 'a', "Abstract file", true);
   p.add<string>("labels", 'l', "Label file", true);
   p.add<string>("graph", 'g', "Edges file", true);
   p.add<string>("output", 'o', "Path to resulting file", true);
@@ -56,7 +56,7 @@ int main(int argc, char ** argv){
 
   string cloudPath = p.get<string>("cloud");
   string inferencePath = p.get<string>("inference");
-  string abstractPath = p.get<string>("abstracts");
+  // string abstractPath = p.get<string>("abstracts");
   string graphPath =  p.get<string>("graph");
   string labelPath =  p.get<string>("labels");
   string outPath = p.get<string>("output");
@@ -201,23 +201,23 @@ int main(int argc, char ** argv){
   }
   vout << "  -- Done --" << endl;
 
-  vout << "Finding Abstract Text";
-  list<string> abstracts;
-  auto selectPmidFun = [&selectPmid](const string& line) -> bool {
-    stringstream ss(line);
-    string tmp;
-    ss >> tmp;
-    return selectPmid.find(tmp) != selectPmid.end();
-  };
+  //vout << "Finding Abstract Text";
+  //list<string> abstracts;
+  //auto selectPmidFun = [&selectPmid](const string& line) -> bool {
+    //stringstream ss(line);
+    //string tmp;
+    //ss >> tmp;
+    //return selectPmid.find(tmp) != selectPmid.end();
+  //};
 
-  auto get = [](const string& line) -> string { return line; };
-  fastProcFile<string>(abstractPath, abstracts, get, selectPmidFun);
+  //auto get = [](const string& line) -> string { return line; };
+  //fastProcFile<string>(abstractPath, abstracts, get, selectPmidFun);
 
   fstream outFile(outPath, ios::out);
-  for(string s : abstracts)
+  for(string s : selectPmid)
     outFile << s << endl;
   outFile.close();
-  vout << "  -- Done --" << endl;
+  // vout << "  -- Done --" << endl;
 
   return 0;
 }
