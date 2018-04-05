@@ -180,8 +180,14 @@ int main(int argc, char ** argv){
 
   for(auto& pmidMix : pmid2mix){
     for(size_t i = 0 ; i < desiredMixes.size(); ++i){
+      // intentionally biased towards long documents
       // push in neg sim because we want high values to come out first
-      bestPapersPerMix[i].push(pmidMix.first, -cosSim(pmidMix.second, desiredMixes[i]));
+      float res = 0; //, total=0;
+      for(size_t j = 0; j < desiredMixes[i].size(); ++j){
+        res += pmidMix.second[j] * desiredMixes[i][j];
+        // total += pmidMix.second[j];
+      }
+      bestPapersPerMix[i].push(pmidMix.first, -res);
     }
   }
   vout << "  -- Done --" << endl;
@@ -194,9 +200,6 @@ int main(int argc, char ** argv){
     }
   }
   vout << "  -- Done --" << endl;
-
-  if(::verbose)
-    for(cost string& pmid : selectPmid)
 
   vout << "Finding Abstract Text";
   list<string> abstracts;
