@@ -25,6 +25,7 @@ using std::list;
 using std::pair;
 using std::vector;
 using std::function;
+using std::runtime_error;
 
 /*
  * This function extracts the first two words of every line
@@ -85,10 +86,10 @@ void getUniqueLabels(
       string tmp;
       ss >> tmp;
       if(localData.find(tmp) == localData.end())
-        localData.emplace(move(tmp));
+        localData.insert(move(tmp));
       ss >> tmp;
       if(localData.find(tmp) == localData.end())
-        localData.emplace(move(tmp));
+        localData.insert(move(tmp));
 
     }
 
@@ -96,8 +97,8 @@ void getUniqueLabels(
 
 #pragma omp critical
     {
-      res.insert(make_move_iterator(localData.begin()),
-                  make_move_iterator(localData.end()));
+      res.insert(localData.begin(),
+                 localData.end());
     }
 
   }
