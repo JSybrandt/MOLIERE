@@ -9,6 +9,7 @@
 #include<stack>
 #include<vector>
 #include<list>
+#include<algorithm>
 
 #include<iconv.h>
 
@@ -22,6 +23,7 @@ using std::stringstream;
 using std::stack;
 using std::vector;
 using std::list;
+using std::tolower;
 
 const unordered_map<string, string> symbol2text = {
   {u8"\u0391", "alpha"},
@@ -383,7 +385,11 @@ string cleanText(const string& dirty){
       }
     }
   }
-  return res.str();
+  // last check, couldn't solve smarter earlier.
+  string str = res.str();
+  for(char& c : str)
+    c = tolower(c);
+  return str;
 }
 
 
