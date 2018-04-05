@@ -15,8 +15,10 @@ FIND_CLOUD = "{}/findCloud"
 CLOUD2BAG = "{}/cloud2Bag"
 PLDA = "{}/mpi_lda"
 VIEW_MODEL = "{}/view_model.py"
+INFER_MODEL = "{}/infer"
 
 EVAL = "{}/evaluate"
+PAPERS = "{}/getPapers"
 
 
 def checkFile(path):
@@ -91,7 +93,7 @@ def main():
                         help="if set, do not check for input in labels.")
     parser.add_argument("--cloud-size",
                         action="store",
-                        default="3000",
+                        default="5000",
                         help="Number of abstracts per node in cloud.")
     parser.add_argument("-v", "--verbose",
                         action="store_true",
@@ -264,6 +266,26 @@ def main():
 
         checkFile(model_path)
 
+        if not args.no_analysis:
+            inf_ext = "{}.inf".format(args.num_topics)
+            inf_path, reuse = createOrRecoverFile(args, query_name,
+                                                  query_name, inf_ext)
+            if args.verbose:
+                print("Writing paper inferences for later analysis.")
+            subprocess.call([
+                INFER_MODEL.format(link_path),
+                '--num_topics', args.num_topics,
+                '--alpha', '1',
+                '--beta', '0.01',
+                '--training_data_file', bag_path,
+                '--inference_data_file', bag_path,
+                '--inference_result_file', inf_path,
+                '--model_file', model_path,
+                '--total_iterations', '500',
+                '--burn_in_iterations', '50'
+            ])
+            checkFile(inf_path)
+
         if args.verbose:
             print("Running make view, creating", view_path)
         with open(view_path, 'w') as view_file:
@@ -316,10 +338,41 @@ def main():
 
     checkFile(eval_path)
 
+    papers_ext = "{}.papers".format(args.num_topics)
+    papers_path, reuse = createOrRecoverFile(args, query_name,
+                                             query_name, papers_ext)
+    if not reuse or hadToRebuild:
+        hadToRebuild = True
+        if args.verbose:
+            print("Finding relevant papers, creating", papers_path)
+        subprocess.call([
+            PAPERS.format(link_path),
+            '-c', cloud_path,
+            '-i', inf_path,
+            '-a', abstract_path,
+            '-l', label_path,
+            '-g', graph_path,
+            '-o', papers_path,
+            '-m', view_path,
+            '-N', ngram_vec_path,
+            '-P', pmid_vec_path,
+            '-U', umls_vec_path,
+            '-s', args.query_words[0],
+            '-t', args.query_words[-1],
+            verbose_flag
+        ])
+    elif args.verbose_flag:
+        print("Reusing: ", papers_path)
+
+    checkFile(papers_path)
+
     if args.move_here:
         if args.verbose:
             print("Moving", eval_path, " to local dir")
         subprocess.call(['cp', eval_path, './'])
+        if args.verbose:
+            print("Moving", papers_path, " to local dir")
+        subprocess.call(['cp', papers_path, './'])
 
 
 if __name__ == "__main__":

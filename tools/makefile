@@ -22,6 +22,3 @@ $B/getWordCount: $S/getWordCount/main.cpp
 
 $B/ldaView2Model: $S/ldaView2Model/main.cpp
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
-
-$B/getPapers: $S/getPapers/main.cpp
-	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
