@@ -49,7 +49,7 @@ int main(int argc, char ** argv){
   p.add<string>("target-label", 't', "Target Label", true);
   p.add("verbose", 'v', "Output debug info.");
   p.add<size_t>("num-best-topics", 'X', "Number of best topics to get papers from.", false, 3);
-  p.add<size_t>("num-per-mix", 'Y', "Number of papers per mix.", false, 1);
+  p.add<size_t>("num-per-mix", 'Y', "Number of papers per mix.", false, 2);
 
 
   p.parse_check(argc, argv);
