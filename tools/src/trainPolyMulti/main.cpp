@@ -160,7 +160,8 @@ float getAUC(const vector<pair<float, float>>& xyPts){
 
 
 float calcROC(const vector<Eval>& evals,
-              const unordered_map<string, pair<float, float>>& name2CoefPow){
+              const unordered_map<string, pair<float, float>>& name2CoefPow,
+              vector<pair<float, float>>* rocRet = nullptr){
   // start by making a helper array
   vector<pair<float, bool>> score2label(evals.size());
   #pragma omp parallel for
@@ -219,6 +220,12 @@ float calcROC(const vector<Eval>& evals,
   // adds (1, 1)
   fracts.emplace_back(tp/conPos, fp/conNeg);
 
+  // optional return value
+  if(rocRet){
+    *rocRet = fracts;
+  }
+
+
   return getAUC(fracts);
 }
 
@@ -275,7 +282,7 @@ int main (int argc, char** argv){
   p.add<string>("positives", 'p', "list of positive example eval files", true);
   p.add<string>("negatives", 'n', "list of negative example eval files", true);
   p.add<string>("output", 'o', "output param file", true);
-  p.add<string>("new-eval", 'e', "output best-case eval results", false, "");
+  p.add<string>("roc-plot-out", 'r', "output roc results", false, "");
   p.add<size_t>("num-trials", 't', "Number of bb trials", false, 100000);
   p.add("verbose", 'v', "outputs debug information");
 
@@ -284,7 +291,7 @@ int main (int argc, char** argv){
   string positivesPath =  p.get<string>("positives");
   string negativesPath =  p.get<string>("negatives");
   string outPath =  p.get<string>("output");
-  string newEvalPath =  p.get<string>("new-eval");
+  string rocPlotPath =  p.get<string>("roc-plot-out");
   size_t numTrials = p.get<size_t>("num-trials");
   ::verbose = p.exist("verbose");
 
@@ -344,5 +351,35 @@ int main (int argc, char** argv){
       vout << "Shrinking: " << del << "\tIt:" << i << endl;
       picker.setBestParam(bestParam, del);
     }
+  }
+
+  vout << "Writing Param File" << endl;
+  fstream outFile(outPath, ios::out);
+  for(const string& name : SCORE_NAMES){
+    float coef = bestParam[name].first;
+    float power = bestParam[name].second;
+    float min = ranges[name].first;
+    float range = ranges[name].second;
+    vout << name << " "
+         << coef << " "
+         << power << " "
+         << min << " "
+         << range << endl;
+    outFile << name << " "
+            << coef << " "
+            << power << " "
+            << min << " "
+            << range << endl;
+  }
+  outFile.close();
+
+  if(rocPlotPath != ""){
+    vector<pair<float, float>> xys;
+    calcROC(evals, bestParam, &xys);
+    fstream outFile(rocPlotPath, ios::out);
+    for(pair<float, float> xy : xys){
+      outFile << xy.first << " " << xy.second << endl;
+    }
+    outFile.close();
   }
 }

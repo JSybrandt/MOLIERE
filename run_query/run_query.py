@@ -76,6 +76,8 @@ def main():
                         help="specifies where to store cached files.")
     parser.add_argument("-d", "--data-path",
                         help="specifies a data directory")
+    parser.add_argument("-y", "--hyperparam",
+                        help="specifies a hyper parameter file for eval.")
     parser.add_argument("-n", "--num-topics",
                         default="20",
                         help="specifies the number of topics to generate.")
@@ -107,6 +109,9 @@ def main():
 
     if args.verbose:
         print(args)
+
+    if args.hyperparam is not None:
+        checkFile(args.hyperparam)
 
     if args.data_path is not None:
         data_path = args.data_path
@@ -332,8 +337,9 @@ def main():
             '-U', umls_vec_path,
             '-s', args.query_words[0],
             '-t', args.query_words[-1],
-            verbose_flag
-        ])
+            verbose_flag]
+            + ['-h', args.hyperparam] if args.hyperparam is not None else []
+        )
     elif args.verbose:
         print("reusing: ", eval_path)
 

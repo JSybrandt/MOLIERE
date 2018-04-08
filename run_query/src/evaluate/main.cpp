@@ -33,29 +33,31 @@ using namespace std;
 bool verbose;
 #define vout if(::verbose) cout
 
-const unordered_map<string, tuple<float, float, float>> DEFAULT_CONFIG = {
-  {"L2",                {-0.9746, 1.5492, 13.1183}},
-  {"BestCentrL2",       {+0.5131, 2.6658, 0.62918}},
-  {"BestTopicPerWord",  {+0.0717, 2.7610, 0.869151}},
-  {"TopicCorr",         {-0.2275, 1.9070, 0.999596}},
-  {"TopicWalkBtwn",     {-0.3946, 1.1746, 3019.73}},
-  {"TopicNetCCoef",     {-0.4087, 2.0228, 0.607236}}
+typedef tuple<float, float, float, float> FourFloats;
+
+const unordered_map<string, FourFloats> DEFAULT_CONFIG = {
+  {"L2",                {-0.9746, 1.5492, 0, 13.1183}},
+  {"BestCentrL2",       {+0.5131, 2.6658, 0, 0.62918}},
+  {"BestTopicPerWord",  {+0.0717, 2.7610, 0, 0.869151}},
+  {"TopicCorr",         {-0.2275, 1.9070, 0, 0.999596}},
+  {"TopicWalkBtwn",     {-0.3946, 1.1746, 0, 3019.73}},
+  {"TopicNetCCoef",     {-0.4087, 2.0228, 0, 0.607236}}
 };
 
-unordered_map<string, tuple<float, float, float>> getHParam(const string& path){
+unordered_map<string, FourFloats> getHParam(const string& path){
   if(isFile(path)){
     vout << "Loading Hyper Param from " << path << endl;
-    unordered_map<string, tuple<float, float, float>> param;
+    unordered_map<string, FourFloats> param;
     fstream fin(path, ios::in);
     string name;
-    float coef, expo, scale;
+    float coef, expo, minVal, range;
 
     // load from file
-    while(fin >> name >> coef >> expo >> scale){
+    while(fin >> name >> coef >> expo >> minVal >> range){
       if(DEFAULT_CONFIG.find(name) == DEFAULT_CONFIG.end()){
         throw runtime_error("Illegal hyperparam file");
       }
-      param[name] = {coef, expo, scale};
+      param[name] = {coef, expo, minVal, range};
     }
     fin.close();
     return param;
@@ -98,7 +100,7 @@ int main(int argc, char ** argv){
   size_t topicCutoff = p.get<size_t>("topic-cutoff");
   string hyperParamPath = p.get<string>("hyper-parameter-config");
 
-  unordered_map<string, tuple<float, float, float>> hyperParam = getHParam(hyperParamPath);
+  unordered_map<string, FourFloats> hyperParam = getHParam(hyperParamPath);
 
   vout << "Loading topic model from " << topicModelPath << endl;
   vector<Topic> topicModel = getTM(topicModelPath);
@@ -175,7 +177,8 @@ int main(int argc, char ** argv){
     const string& metric = p.first;
     float coef = get<0>(p.second);
     float expo = get<1>(p.second);
-    float scale = get<2>(p.second);
+    float minVal = get<2>(p.second);
+    float range = get<3>(p.second);
 
     float score = metrics[metric]->calculate();
     outFile << metric << "\t" << score;
@@ -195,7 +198,8 @@ int main(int argc, char ** argv){
       }
     }
     outFile << endl;
-    result += coef * powf(max(score/scale, 0.0f), expo);
+    if(score >= minVal) //dont do negative
+      result += coef * pow((score-minVal)/range, expo);
   }
   outFile << "PolyMultiple\t" << result << endl;
 
