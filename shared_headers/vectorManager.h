@@ -23,7 +23,10 @@ public:
       tag2lbls[getTag(lbl)].insert(lbl);
     for(const auto& p : tag2lbls){
       char tag = p.first;
-      if(! hasTag(tag)) throw runtime_error("Attempted to get vector for unregistered tag.");
+      if(! hasTag(tag)){
+        continue;
+        //throw runtime_error("Attempted to get vector for unregistered tag.");
+      }
       const unordered_set<string>& localLables = p.second;
 
       auto inSet = [&localLables](const string& line) -> bool {

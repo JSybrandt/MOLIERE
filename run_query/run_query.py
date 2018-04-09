@@ -338,7 +338,7 @@ def main():
             '-s', args.query_words[0],
             '-t', args.query_words[-1],
             verbose_flag]
-            + ['-h', args.hyperparam] if args.hyperparam is not None else []
+            + (['-h', args.hyperparam] if args.hyperparam is not None else [])
         )
     elif args.verbose:
         print("reusing: ", eval_path)
@@ -368,7 +368,7 @@ def main():
             '-t', args.query_words[-1],
             verbose_flag
         ])
-    elif args.verbose_flag:
+    elif args.verbose:
         print("Reusing: ", papers_path)
 
     checkFile(papers_path)

@@ -59,6 +59,7 @@ int main (int argc, char** argv){
   p.add<string>("negatives", 'n', "list of negative example eval files", true);
   p.add<string>("hyperparam", 'y', "input hyperparameter file", true);
   p.add<string>("output", 'o', "output param file", true);
+  p.add("force-above-midline", 'm', "always outputs so value is greater than midline");
   p.add("verbose", 'v', "outputs debug information");
 
   p.parse_check(argc, argv);
@@ -67,6 +68,7 @@ int main (int argc, char** argv){
   string negativesPath =  p.get<string>("negatives");
   string hyperParamPath =  p.get<string>("hyperparam");
   string outPath =  p.get<string>("output");
+  bool forceAboveMidline = p.exist("force-above-midline");
   ::verbose = p.exist("verbose");
 
   list<Eval> evalList;
@@ -114,8 +116,15 @@ int main (int argc, char** argv){
   };
   xys.clear();
   auc = calcROC(evals, e2c, &xys);
+  if(auc < 0.5 && forceAboveMidline){
+    auto e2c = [&param](const Eval& e) -> float {
+      return - e.polyMulti(param);
+    };
+    xys.clear();
+    auc = calcROC(evals, e2c, &xys);
+  }
   vout << "AUC:" << auc << endl;
-  writeRes(outFile, "PolyMulti", auc, xys);
+  writeRes(outFile, "PolyMultiple", auc, xys);
 
   for(const string& name : SCORE_NAMES){
     vout << "Writing " << name << endl;
@@ -124,6 +133,13 @@ int main (int argc, char** argv){
     };
     xys.clear();
     auc = calcROC(evals, e2c, &xys);
+    if(auc < 0.5 && forceAboveMidline){
+      auto e2c = [&name](const Eval& e) -> float {
+        return - e.getScore(name);
+      };
+      xys.clear();
+      auc = calcROC(evals, e2c, &xys);
+    }
     vout << "AUC:" << auc << endl;
     writeRes(outFile, name, auc, xys);
   }
