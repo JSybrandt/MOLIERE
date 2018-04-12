@@ -1,18 +1,18 @@
 [submodule "external/porter2_stemmer"]
 	path = external/porter2_stemmer
-	url = git@github.com:smassung/porter2_stemmer.git
+	url = https://github.com/smassung/porter2_stemmer.git
 [submodule "external/AutoPhrase"]
 	path = external/AutoPhrase
-	url = git@github.com:shangjingbo1226/AutoPhrase.git
+	url = https://github.com/shangjingbo1226/AutoPhrase.git
 [submodule "external/fastText"]
 	path = external/fastText
-	url = git@github.com:facebookresearch/fastText.git
+	url = https://github.com/facebookresearch/fastText.git
 [submodule "external/pugixml"]
 	path = external/pugixml
-	url = git@github.com:zeux/pugixml.git
+	url = https://github.com/zeux/pugixml.git
 [submodule "external/networkit"]
 	path = external/networkit
-	url = git@github.com:kit-parco/networkit.git
+	url = https://github.com/kit-parco/networkit.git
 [submodule "external/flann"]
 	path = external/flann
-	url = git@github.com:mariusmuja/flann.git
+	url = https://github.com/mariusmuja/flann.git

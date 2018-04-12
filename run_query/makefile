@@ -52,7 +52,7 @@ $B/evaluate: $S/evaluate/main.cpp $(NETWORKIT)/libNetworKit.a
 
 $(NETWORKIT)/libNetworKit.a:
 	cd $(NETWORKIT)
-	scons --optimize=Opt --target=Lib --std=c++1
+	scons --optimize=Opt --target=Lib --std=c++11
 	# We intentionally do not clean this lib, it takes forever to build
 
 clean:

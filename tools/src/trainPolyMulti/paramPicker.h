@@ -19,7 +19,7 @@ using std::max;
 #include"eval.h"
 
 const pair<float, float> COEF_RANGE = {-1, 2};
-const pair<float, float> POW_RANGE = {-1, 2};
+const pair<float, float> POW_RANGE = {-1, 4};
 
 class ParamPicker{
 public:
