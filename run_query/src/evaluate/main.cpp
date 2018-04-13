@@ -35,7 +35,7 @@ bool verbose;
 
 typedef tuple<float, float, float, float> FourFloats;
 
-const unordered_map<string, FourFloats> DEFAULT_CONFIG = {
+constexpr unordered_map<string, FourFloats> DEFAULT_CONFIG = {
   {"L2",                {-0.9746f, 1.5492f, 0.0f, 13.1183f}},
   {"BestCentrL2",       {+0.5131f, 2.6658f, 0.0f, 0.62918f}},
   {"BestTopicPerWord",  {+0.0717f, 2.7610f, 0.0f, 0.869151f}},
