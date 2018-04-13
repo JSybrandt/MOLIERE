@@ -35,15 +35,16 @@ bool verbose;
 
 typedef tuple<float, float, float, float> FourFloats;
 
+const unordered_map<string, FourFloats> DEFAULT_CONFIG = {
+  {"L2",                {-0.9746f, 1.5492f, 0.0f, 13.1183f}},
+  {"BestCentrL2",       {+0.5131f, 2.6658f, 0.0f, 0.62918f}},
+  {"BestTopicPerWord",  {+0.0717f, 2.7610f, 0.0f, 0.869151f}},
+  {"TopicCorr",         {-0.2275f, 1.9070f, 0.0f, 0.999596f}},
+  {"TopicWalkBtwn",     {-0.3946f, 1.1746f, 0.0f, 3019.73f}},
+  {"TopicNetCCoef",     {-0.4087f, 2.0228f, 0.0f, 0.607236f}}
+};
+
 unordered_map<string, FourFloats> getHParam(const string& path){
-  static const unordered_map<string, FourFloats> DEFAULT_CONFIG = {
-    {"L2",                make_tuple(-0.9746f, 1.5492f, 0.0f, 13.1183f)},
-    {"BestCentrL2",       make_tuple(+0.5131f, 2.6658f, 0.0f, 0.62918f)},
-    {"BestTopicPerWord",  make_tuple(+0.0717f, 2.7610f, 0.0f, 0.869151f)},
-    {"TopicCorr",         make_tuple(-0.2275f, 1.9070f, 0.0f, 0.999596f)},
-    {"TopicWalkBtwn",     make_tuple(-0.3946f, 1.1746f, 0.0f, 3019.73f)},
-    {"TopicNetCCoef",     make_tuple(-0.4087f, 2.0228f, 0.0f, 0.607236f)}
-  };
   if(isFile(path)){
     vout << "Loading Hyper Param from " << path << endl;
     unordered_map<string, FourFloats> param;

@@ -11,7 +11,7 @@ INCLUDE_PATHS=-I$(NETWORKIT)/include
 INCLUDE_PATHS+=-I$H
 LINK_PATHS=-B$(NETWORKIT)
 LIB=-lNetworKit -fopenmp
-CPPV=-std=c++11
+CPPV=-std=c++14
 WARN=-Wall
 OPT=-O3
 
