@@ -36,12 +36,12 @@ bool verbose;
 typedef tuple<float, float, float, float> FourFloats;
 
 const unordered_map<string, FourFloats> DEFAULT_CONFIG = {
-  {"L2",                {-0.9746, 1.5492, 0, 13.1183}},
-  {"BestCentrL2",       {+0.5131, 2.6658, 0, 0.62918}},
-  {"BestTopicPerWord",  {+0.0717, 2.7610, 0, 0.869151}},
-  {"TopicCorr",         {-0.2275, 1.9070, 0, 0.999596}},
-  {"TopicWalkBtwn",     {-0.3946, 1.1746, 0, 3019.73}},
-  {"TopicNetCCoef",     {-0.4087, 2.0228, 0, 0.607236}}
+  {"L2",                {-0.9746, 1.5492, 0.0, 13.1183}},
+  {"BestCentrL2",       {+0.5131, 2.6658, 0.0, 0.62918}},
+  {"BestTopicPerWord",  {+0.0717, 2.7610, 0.0, 0.869151}},
+  {"TopicCorr",         {-0.2275, 1.9070, 0.0, 0.999596}},
+  {"TopicWalkBtwn",     {-0.3946, 1.1746, 0.0, 3019.73}},
+  {"TopicNetCCoef",     {-0.4087, 2.0228, 0.0, 0.607236}}
 };
 
 unordered_map<string, FourFloats> getHParam(const string& path){
