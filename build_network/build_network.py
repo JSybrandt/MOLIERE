@@ -317,7 +317,7 @@ if __name__ == "__main__":
         vprint("Removing trailing periods from phrase file")
         subprocess.call([
             'sed',
-            '-i', '-E', '-e', "'s/\s?\.\s?$//g'",
+            '-i', '-E', r"'s/\s\.//g'",
             phrase_path])
     else:
         vprint("Reusing", phrase_path)
