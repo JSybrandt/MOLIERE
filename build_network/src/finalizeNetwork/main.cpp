@@ -14,12 +14,12 @@
 #include<cstdio>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h> // for truncate
+// #include <unistd.h> // for truncate
 
 #include"cmdln.h"
 #include"parallelFileOp.h"
 #include"getUniqueLabels.h"
-#include"appendParallelEdges.h"
+// #include"appendParallelEdges.h"
 #include"util.h"
 #include"files.h"
 
