@@ -6,6 +6,7 @@ H=../shared_headers
 CC=g++
 
 LINK_PATHS=-L $B
+LINK_PATHS+=-L $E/flann/build/lib
 INCLUDE_PATHS=-I$H
 INCLUDE_PATHS+=-I$E/pugixml/src
 INCLUDE_PATHS+=-I$E/porter2_stemmer
