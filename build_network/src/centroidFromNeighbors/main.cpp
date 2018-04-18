@@ -40,8 +40,11 @@ vector<float> getWeightedCentroid(const list<pair<string, float>>& neighborData,
 
   float weightSum = 0;
   for(const auto& p : neighborData){
-    res += word2vec.at(p.first);
-    weightSum += p.second;
+    // REMEBER! the network edge weight is inverse TF-IDF
+    // Warning, float accuracy?
+    float weight = 1/p.second;
+    res += word2vec.at(p.first) * weight;
+    weightSum += weight;
   }
   res /= weightSum;
   return res;
