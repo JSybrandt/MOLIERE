@@ -258,7 +258,7 @@ if __name__ == "__main__":
                          ". Run again with '--download'")
 
     # ABSTRACT FILE
-    ab_raw_path = "{}/processedText/abstract.raw.txt".format(data_home)
+    ab_raw_path = "{}/processedText/abstracts.raw.txt".format(data_home)
     if shouldRemake(ab_raw_path, args):
         cmd = getCmdStr(linkPath, "parseXML")
 
@@ -378,19 +378,27 @@ if __name__ == "__main__":
         vprint("Reusing", ngram_vec_path)
     checkFile(ngram_vec_path)
 
-    abstract_path = "{}/processedText/abstracts.txt".format(data_home)
-    if shouldRemake(abstract_path, args):
+    # all abstracts post-processed
+    all_ab_path = "{}/processedText/abstracts.all.txt".format(data_home)
+    if shouldRemake(all_ab_path, args):
         cmd = getCmdStr(linkPath, "filterWordsByCount")
-        vprint("Filtering words and removeing periods")
+        vprint("Filtering words and removing periods")
         subprocess.call([
             cmd,
             '-i', ab_pre_path,
-            '-o', abstract_path+".tmp",
+            '-o', all_ab_path,
             '-m', args.min_count,
             '--skip-second',
             '--remove-period',
             '-v' if VERBOSE else ''
         ])
+    else:
+        vprint("Reusing", all_ab_path)
+    checkFile(all_ab_path)
+
+    # remove short abstracts
+    abstract_path = "{}/processedText/abstracts.txt".format(data_home)
+    if shouldRemake(abstract_path, args):
         vprint("Removing short abstracts")
         subprocess.call([
             'awk', 'NF>={}'.format(args.min_doc_length),
