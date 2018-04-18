@@ -46,9 +46,6 @@ $B/apHighlight2Underscore: $S/apHighlight2Underscore/main.cpp
 $B/filterWordsByCount: $S/filterWordsByCount/main.cpp
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
 
-$B/makeCentroid: $S/makeCentroid/main.cpp
-	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
-
 $B/centroidFromNeighbors: $S/centroidFromNeighbors/main.cpp
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
 
