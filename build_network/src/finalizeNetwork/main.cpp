@@ -26,10 +26,7 @@
 bool verbose = false;
 #define vout if(::verbose) cout
 
-
 using namespace std;
-
-typedef tuple<string, string, float> rawEdge;
 
 rawEdge line2raw(const string& line){
   stringstream ss(line);

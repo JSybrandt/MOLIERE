@@ -396,6 +396,23 @@ if __name__ == "__main__":
         vprint("Reusing", abstract_path)
     checkFile(abstract_path)
 
+    # WE SHOULD USE TF-IDF TO MAKE CENTROIDS
+    pmid_ngram_edges_path = "{}/network/pmid2ngram.edges"\
+                            .format(data_path)
+    if(shouldRemake(pmid_ngram_edges_path, args)):
+        cmd = getCmdStr(linkPath, "makeDocumentEdges")
+        vprint("Creating edges from docs to keywords")
+        subprocess.call([
+            cmd,
+            '-i', abstract_path,
+            '-o', pmid_ngram_edges_path,
+            '--skip-second',
+            '-v' if VERBOSE else ''
+        ])
+    else:
+        vprint("Reusing", pmid_ngram_edges_path)
+    checkFile(pmid_ngram_edges_path)
+
     pmid_vec_path = "{}/fastText/pmid.vec".format(data_path)
     if shouldRemake(pmid_vec_path, args):
         cmd = getCmdStr(linkPath, "makeCentroid")
@@ -443,22 +460,6 @@ if __name__ == "__main__":
     else:
         vprint("Reusing", ngram_network_path)
     checkFile(ngram_network_path)
-
-    pmid_ngram_edges_path = "{}/network/pmid2ngram.edges"\
-                            .format(data_path)
-    if(shouldRemake(pmid_ngram_edges_path, args)):
-        cmd = getCmdStr(linkPath, "makeDocumentEdges")
-        vprint("Creating edges from docs to keywords")
-        subprocess.call([
-            cmd,
-            '-i', abstract_path,
-            '-o', pmid_ngram_edges_path,
-            '--skip-second',
-            '-v' if VERBOSE else ''
-        ])
-    else:
-        vprint("Reusing", pmid_ngram_edges_path)
-    checkFile(pmid_ngram_edges_path)
 
     if args.umls_dir is not None:
         umls_text_path = "{}/processedText/umls.txt".format(data_path)

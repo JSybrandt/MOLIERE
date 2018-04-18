@@ -20,7 +20,7 @@ NO_COLOR=\x1b[0m
 WARN_COLOR=\x1b[33;01m
 
 
-all: $B/parseXML $B/fasttext $B/cleanRawText $B/apHighlight2Underscore $B/makeCentroid $B/parseUmlsText $B/parseUmlsEdges $B/makeApproxNNN $B/makeDocumentEdges $B/finalizeNetwork $B/filterWordsByCount
+all: $B/parseXML $B/fasttext $B/cleanRawText $B/apHighlight2Underscore $B/makeCentroid $B/parseUmlsText $B/parseUmlsEdges $B/makeApproxNNN $B/makeDocumentEdges $B/finalizeNetwork $B/filterWordsByCount $B/centroidFromNeighbors
 
 $B/parseXML: $S/parseXML/main.cpp $B/pugixml.o $B/porter2_stemmer.o
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
@@ -47,6 +47,9 @@ $B/filterWordsByCount: $S/filterWordsByCount/main.cpp
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
 
 $B/makeCentroid: $S/makeCentroid/main.cpp
+	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
+
+$B/centroidFromNeighbors: $S/centroidFromNeighbors/main.cpp
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $^ $(LIB)
 
 $B/makeDocumentEdges: $S/makeDocumentEdges/main.cpp
