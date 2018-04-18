@@ -26,6 +26,7 @@ using std::unordered_set;
 using std::pair;
 using std::numeric_limits;
 using std::ostream;
+using std::tuple;
 
 #define EPS 0.000000000001
 
@@ -268,6 +269,8 @@ ostream& operator<<(ostream& out, const edge& e){
   out << e.a << " " << e.b << " " << e.weight;
   return out;
 }
+
+typedef tuple<string, string, float> rawEdge;
 
 void string2vec(const string& line, string& label, vector<float>& vec){
   stringstream ss(line);
