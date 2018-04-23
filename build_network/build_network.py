@@ -164,7 +164,7 @@ if __name__ == "__main__":
                         help="min number of times for a word to occur")
     parser.add_argument("-M", "--min-doc-length",
                         action="store",
-                        default="15",
+                        default="20",
                         help="min number of (post-processed) tokens per doc.")
     parser.add_argument("--plugin-config",
                         action="store",
@@ -400,10 +400,15 @@ if __name__ == "__main__":
     abstract_path = "{}/processedText/abstracts.txt".format(data_home)
     if shouldRemake(abstract_path, args):
         vprint("Removing short abstracts")
+        cmd = getCmdStr(linkPath, "removeShortDocuments")
         subprocess.call([
-            'awk', 'NF>={}'.format(args.min_doc_length),
-            abstract_path+".tmp"
-        ], stdout=open(abstract_path, 'w'))
+            cmd,
+            '-i', all_ab_path,
+            '-o', abstract_path,
+            '-m', args.min_count,
+            '--skip-second',
+            '-v' if VERBOSE else ''
+        ])
     else:
         vprint("Reusing", abstract_path)
     checkFile(abstract_path)
