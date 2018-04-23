@@ -36,18 +36,31 @@ rawEdge line2raw(const string& line){
   return {a, b, w};
 }
 
-edge raw2edge(const rawEdge& raw, const unordered_map<string, nodeIdx>& label2idx){
+edge raw2edge(const rawEdge& raw,
+              const unordered_map<string, nodeIdx>& label2idx){
   nodeIdx a = label2idx.at(get<0>(raw));
   nodeIdx b = label2idx.at(get<1>(raw));
   float w = get<2>(raw);
   return edge(a, b, w);
 }
 
-void addLabel(const string& str, unordered_map<string, nodeIdx>& label2idx){
+void addGlobalLabel(const string& str,
+              unordered_map<string, nodeIdx>& label2idx,
+              fstream& labelFile){
   if(label2idx.find(str) == label2idx.end()){
     label2idx[str] = label2idx.size();
+    labelFile << str << endl;
   }
 }
+
+      // add to local if not in global
+void cacheLocalLabel(const string& s,
+                     const unordered_map<string, nodeIdx>& label2idx,
+                     unordered_set<string>& local){
+  if(label2idx.find(s) == label2idx.end()){
+    local.insert(s);
+  }
+};
 
 int main (int argc, char** argv){
 
@@ -105,6 +118,7 @@ int main (int argc, char** argv){
   //
   string edgePath = outPath + ".bin.edges";
   fstream edgeFile(edgePath, ios::out|ios::binary);
+  fstream labelFile(outPath + ".labels", ios::out);
 
   unordered_map<string, nodeIdx> label2idx;
 
@@ -126,15 +140,16 @@ int main (int argc, char** argv){
     #pragma omp parallel
     {
       unordered_set<string> localLabels;
-      #pragma omp for schedule(dynamic) nowait
+      #pragma omp for schedule(dynamic)
       for(size_t i = 0; i < rawEdgeVec.size(); ++i){
-        localLabels.insert(get<0>(rawEdgeVec[i]));
-        localLabels.insert(get<1>(rawEdgeVec[i]));
+        cacheLocalLabel(get<0>(rawEdgeVec[i]), label2idx, localLabels);
+        cacheLocalLabel(get<1>(rawEdgeVec[i]), label2idx, localLabels);
       }
+      // I need the implcit block here
       #pragma omp critical
       {
         for(const string& s : localLabels){
-          addLabel(s, label2idx);
+          addGlobalLabel(s, label2idx, labelFile);
         }
       }
     }
@@ -190,6 +205,7 @@ int main (int argc, char** argv){
     }
   }
   edgeFile.close();
+  labelFile.close();
 
   return 0;
 }
