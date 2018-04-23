@@ -32,7 +32,7 @@ int main (int argc, char** argv){
   p.add<string>("input", 'i', "each line of this file is a record", true);
   p.add<string>("output", 'o', "output file", true);
   p.add<size_t>("min-length", 'm', "documents with wordcount above this will be automatically included", false, 20);
-  p.add<float>("common-fraction", 'c', "fraction [0-1] determining the ratio of common to rare words. Higher = more common words", false, 0.2f);
+  p.add<float>("common-fraction", 'c', "fraction [0-1] determining the ratio of common to rare words. Higher = more common words", false, 0.15f);
   p.add("verbose", 'v', "outputs debug information");
   p.add("skip-second", 's', "skips the second word of each record (in addition to the first)");
   p.add<size_t>("min-rare-count", 'r', "number of rare words needed for a short doc to count.", false, 2);
@@ -46,6 +46,9 @@ int main (int argc, char** argv){
   verbose = p.exist("verbose");
   bool skipSecond = p.exist("skip-second");
   size_t minRareCount = p.get<size_t>("min-rare-count");
+
+  if(commonFraction <= 0 || commonFraction >= 1)
+    throw runtime_error("Invalid option for common-fraction");
 
   vout << "Processing" << endl;
   auto line2occurBow = [&skipSecond](const string& line) -> Bow{
@@ -83,6 +86,7 @@ int main (int argc, char** argv){
   // sort in reverse order
   sort(counts.begin(), counts.end(), std::greater<size_t>());
 
+
   // for a word to be "rare" it needs to occur less than the cutoff
   size_t commonCutoff = counts[int(counts.size()*commonFraction)];
 
@@ -104,6 +108,8 @@ int main (int argc, char** argv){
       if(word_count > minLength) return true;
       if(rare_count > minRareCount) return true;
     }
+    #pragma omp critical
+    vout << "Removing: " << line << endl;
     return false;
   };
   auto identity = [](const string& line) -> string {return line;};
