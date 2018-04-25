@@ -16,3 +16,6 @@
 [submodule "external/flann"]
 	path = external/flann
 	url = https://github.com/mariusmuja/flann.git
+[submodule "external/ToPMine"]
+	path = external/ToPMine
+	url = https://github.com/JSybrandt/ToPMine.git
