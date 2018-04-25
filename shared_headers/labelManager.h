@@ -75,6 +75,12 @@ private:
     }
   }
 
+  void cacheAll(){
+    for(size_t i = 0; i < idx2lbl.size(); ++i){
+      lbl2idxCache[idx2lbl[i]] = i;
+    }
+  }
+
   void fastLoadLabels(const string& filePath){
 
     //get properties of abstract path
