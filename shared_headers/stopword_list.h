@@ -221,6 +221,7 @@ const std::unordered_set<std::string> STOP_WORDS {
   "on",
   "only",
   "onto",
+  "or",
   "other",
   "others",
   "otherwise",
