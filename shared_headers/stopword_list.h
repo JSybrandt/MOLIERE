@@ -4,6 +4,7 @@
 #include<string>
 
 const std::unordered_set<std::string> STOP_WORDS {
+  ".",
   "1st",
   "2nd",
   "3rd",
