@@ -113,13 +113,20 @@ def main():
     if args.verbose:
         print(args)
 
-    if args.hyperparam is not None:
-        checkFile(args.hyperparam)
-
     if args.data_path is not None:
         data_path = args.data_path
     if data_path is None:
         raise ValueError("Must either supply MOLIERE_DATA through env or cmd")
+
+    default_h_param = os.path.join(data_path, 'hyper.param')
+
+    if args.hyperparam is not None:
+        checkFile(args.hyperparam)
+    elif os.path.isfile(default_h_param):
+        if args.verbose:
+            print("Using default hyper param file MOLIERE_DATA:",
+                  default_h_param)
+        args.hyperparam = default_h_param
 
     if len(args.query_words) < 2:
         raise ValueError("Must supply at least 2 query words!")
