@@ -285,23 +285,28 @@ struct TopicNetworkMetricData{
                                         topicModel,
                                         topicCentroids,
                                         word2vec);
-    Graph graph = move(graphPath.first);
+    simpleGraph = move(graphPath.first);
     queryWordPath = move(graphPath.second);
 
-    //our graph is loaded, need to convert to nk graph
-    for(size_t i = 0; i < graph.numNodes(); ++i){
+    //our simpleGraph is loaded, need to convert to nk::Graph
+    for(size_t i = 0; i < simpleGraph.numNodes(); ++i){
       nkGraph.addNode();
     }
-    for(edge& e : graph.toEdgeList()){
+    for(edge& e : simpleGraph.toEdgeList()){
       nkGraph.addEdge(e.a, e.b, e.weight);
     }
   }
+
+  const Graph& getSimpleGraph(){return simpleGraph;}
+  const vector<nodeIdx>& getTopicPath(){return queryWordPath;}
+
 
   const pair<string, string>& queryWords;
   const vector<Topic>& topicModel;
   const vector<vector<float>>& topicCentroids;
   const unordered_map<string, vector<float>>& word2vec;
 
+  Graph simpleGraph;
   NetworKit::Graph nkGraph;
   vector<nodeIdx> queryWordPath;
 };

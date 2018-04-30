@@ -83,6 +83,7 @@ int main(int argc, char ** argv){
   p.add<size_t>("reported-topics", 'r', "Number of topics to report", false, 5);
   p.add<size_t>("topic-cutoff", 'f', "number of words to be reported per topic", false, 5);
   p.add<string>("hyper-parameter-config", 'h', "file describing coef. and exp. for metric.", false, "");
+  p.add<string>("topic-network", 'n', "Where to write topic nn network to.", false, "");
 
   p.parse_check(argc, argv);
 
@@ -99,6 +100,7 @@ int main(int argc, char ** argv){
   size_t numReportedTopics = p.get<size_t>("reported-topics");
   size_t topicCutoff = p.get<size_t>("topic-cutoff");
   string hyperParamPath = p.get<string>("hyper-parameter-config");
+  string topicNetworkPath = p.get<string>("topic-network");
 
   unordered_map<string, FourFloats> hyperParam = getHParam(hyperParamPath);
 
@@ -153,6 +155,32 @@ int main(int argc, char ** argv){
 
   vout << "Creating network data" << endl;
   TopicNetworkMetricData netData(queryWords, topicModel, topicCentroids, word2vec);
+
+  if(topicNetworkPath != ""){
+    vout << "Writing topic network" << endl;
+
+    const vector<nodeIdx> path = netData.getTopicPath();
+    unordered_set<nodeIdx> importantTopics(path.begin(), path.end());
+
+    // idx to human readable text, star means along path
+    auto idx2name = [&sourceLabel, &targetLabel, &importantTopics](nodeIdx i) -> string{
+      if(i==0) return sourceLabel;
+      if(i==1) return targetLabel;
+      stringstream ss;
+      ss << "Topic_" << i-2;
+      if(importantTopics.find(i) != importantTopics.end()){
+        ss << "*";
+      }
+      return ss.str();
+    };
+
+    fstream topNetFile(topicNetworkPath, ios::out);
+    topNetFile << "Source,Target,Weight" << endl;
+    for(const edge& e : netData.getSimpleGraph().toEdgeList()){
+      topNetFile << idx2name(e.a) << "," << idx2name(e.b) << "," << e.weight << endl;
+    }
+    topNetFile.close();
+  }
 
   vout << "Creating Metric Map" << endl;
   // want order

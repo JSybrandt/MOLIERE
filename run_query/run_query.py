@@ -97,6 +97,9 @@ def main():
                         action="store",
                         default="5000",
                         help="Number of abstracts per node in cloud.")
+    parser.add_argument("--write-topic-network",
+                        action="store_true",
+                        help="if set, write topic nnn while evaluating.")
     parser.add_argument("-v", "--verbose",
                         action="store_true",
                         help="if set, run pipeline with verbose flags.")
@@ -123,6 +126,9 @@ def main():
 
     if int(args.cloud_size) <= 0:
         raise ValueError("Cloud-size must be a positive number")
+
+    if int(args.num_topics) <= 0:
+        raise ValueError("Num-topics must be a positive number")
 
     hadToRebuild = False
     graph_path = "{}/network/final.bin.edges".format(data_path)
@@ -322,6 +328,21 @@ def main():
     eval_ext = "{}.eval".format(args.num_topics)
     eval_path, reuse = createOrRecoverFile(args, query_name,
                                            query_name, eval_ext)
+    topic_net_flags = []
+    if args.write_topic_network:
+        topic_nn_ext = "{}.topic_net.edges".format(args.num_topics)
+        topic_nn_path, n_re = createOrRecoverFile(args, query_name,
+                                                  query_name, topic_nn_ext)
+        # only reuse if the topic net file is also already built
+        reuse = reuse and n_re
+        topic_net_flags.append('-n')
+        topic_net_flags.append(topic_nn_path)
+
+    hyper_flags = []
+    if args.hyperparam is not None:
+        hyper_flags.append('-h')
+        hyper_flags.append(args.hyperparam)
+
     if not reuse or hadToRebuild:
         hadToRebuild = True
         if args.verbose:
@@ -338,12 +359,15 @@ def main():
             '-s', args.query_words[0],
             '-t', args.query_words[-1],
             verbose_flag]
-            + (['-h', args.hyperparam] if args.hyperparam is not None else [])
+            + hyper_flags
+            + topic_net_flags
         )
     elif args.verbose:
         print("reusing: ", eval_path)
 
     checkFile(eval_path)
+    if args.write_topic_network:
+        checkFile(topic_nn_path)
 
     papers_ext = "{}.papers".format(args.num_topics)
     papers_path, reuse = createOrRecoverFile(args, query_name,
@@ -369,7 +393,7 @@ def main():
             verbose_flag
         ])
     elif args.verbose:
-        print("Reusing: ", papers_path)
+        print("reusing: ", papers_path)
 
     checkFile(papers_path)
 
