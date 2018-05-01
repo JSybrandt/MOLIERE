@@ -25,13 +25,58 @@ text {
   stroke-width: 1.5px;
 }
 
-/*#net {*/
-	/*width: 50%;*/
-	/*height: 100%;*/
-	/*position: absolute;*/
-	/*top: 0px;*/
-	/*left: 0px;*/
-/*}*/
+#net {
+  width: 100%;
+  height: 80%;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+}
+
+#topics {
+  width: 100%;
+  height: 20%;
+  position: absolute;
+  top: 80%;
+  left: 0px;
+}
+
+
+table#topics {
+  width: 100%;
+  text-align: left;
+}
+table#topics td, table#topics th {
+  border: 1px solid #AAAAAA;
+}
+table#topics tbody td {
+  font-size: 12px;
+}
+table#topics tr:nth-child(even) {
+  background: #F5C8BF;
+}
+table#topics thead {
+  background: #FF7F0E;
+}
+table#topics thead th {
+  font-size: 14px;
+  font-weight: bold;
+  color: #FFFFFF;
+  text-align: center;
+}
+table#topics tfoot td {
+  font-size: 13px;
+}
+table#topics tfoot .links {
+  text-align: right;
+}
+table#topics tfoot .links a{
+  display: inline-block;
+  background: #FFFFFF;
+  color: #A40808;
+  padding: 2px 8px;
+  border-radius: 5px;
+}
 
 /*#bubbles {*/
 	/*width: 50%;*/
