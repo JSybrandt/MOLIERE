@@ -92,13 +92,18 @@ buildGraph = function(){
       .force("link", d3.forceLink().id(function(d) { return d.id; })
                                    .distance(function(d){ return 10; })
             )
-      .force("charge", d3.forceManyBody())
+      .force("charge", d3.forceManyBody().strength(function(d){
+        if(d.group != 1)
+          return -50;
+        else
+          return -15;
+      }))
       .force("center", d3.forceCenter(
         window.innerWidth / 2,
         (window.innerHeight * heightFract) / 2))
       .force('collision', d3.forceCollide()
-                            .radius(function(d){return size(d.group);})
-                            .strength(.4));
+                            .radius(function(d){return size(d.group) + 2;})
+                            .strength(.9));
 
   d3.select(window)
     .on('resize', function(){
@@ -171,6 +176,7 @@ buildGraph = function(){
           .data(graph.nodes)
           .enter().append("g")
           .attr('id', function(d){ return d.id;})
+          .attr('class', 'class-node')
           .append("circle")
           .attr("r", function(d) { return size(d.group); })
           .attr("fill", function(d) { return color(d.group); })
@@ -250,8 +256,6 @@ buildGraph = function(){
             .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
         })
       }
-
-
     });
   });
 }
