@@ -27,20 +27,24 @@ text {
 
 #net {
   width: 100%;
-  height: 80%;
+  height: 70%;
   position: absolute;
   top: 0px;
   left: 0px;
 }
 
-#topics {
+#table-wrapper {
   width: 100%;
-  height: 20%;
+  height: 30%;
   position: absolute;
-  top: 80%;
+  top: 70%;
   left: 0px;
+  overflow: auto;
 }
 
+.topicTag {
+  font: 14px sans-serif;
+}
 
 table#topics {
   width: 100%;
@@ -52,9 +56,6 @@ table#topics td, table#topics th {
 table#topics tbody td {
   font-size: 12px;
 }
-table#topics tr:nth-child(even) {
-  background: #F5C8BF;
-}
 table#topics thead {
   background: #FF7F0E;
 }
@@ -63,19 +64,6 @@ table#topics thead th {
   font-weight: bold;
   color: #FFFFFF;
   text-align: center;
-}
-table#topics tfoot td {
-  font-size: 13px;
-}
-table#topics tfoot .links {
-  text-align: right;
-}
-table#topics tfoot .links a{
-  display: inline-block;
-  background: #FFFFFF;
-  color: #A40808;
-  padding: 2px 8px;
-  border-radius: 5px;
 }
 
 /*#bubbles {*/

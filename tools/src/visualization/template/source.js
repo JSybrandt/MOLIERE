@@ -23,7 +23,6 @@ buildTable = function(){
         importantTopics.push(nodes[idx].id);
       }
     }
-    console.log(importantTopics);
 
     // Center Header
     thead.append('tr').append('th').attr('colspan', importantTopics.length)
@@ -57,12 +56,13 @@ buildTable = function(){
 
 buildGraph = function(){
 
-	var BUBBLE_SIZE = 100;
+	var BUBBLE_SIZE = 80;
+  var heightFract = 0.8;
 
   // Network vis
   var netSvg = d3.select("#net"),
       width = +window.innerWidth,
-      height = +window.innerWidth * 0.8,
+      height = +window.innerWidth * heightFract,
       format = d3.format(",d");
 
 
@@ -90,22 +90,22 @@ buildGraph = function(){
 
   var simulation = d3.forceSimulation()
       .force("link", d3.forceLink().id(function(d) { return d.id; })
-                                   .distance(function(d){ return BUBBLE_SIZE / 2; })
+                                   .distance(function(d){ return 10; })
             )
       .force("charge", d3.forceManyBody())
       .force("center", d3.forceCenter(
         window.innerWidth / 2,
-        (window.innerHeight * 0.8) / 2))
+        (window.innerHeight * heightFract) / 2))
       .force('collision', d3.forceCollide()
-                            .radius(function(d){return size(d.group) + 10;})
-                            .strength(.3));
+                            .radius(function(d){return size(d.group);})
+                            .strength(.4));
 
   d3.select(window)
     .on('resize', function(){
       netSvg.attr('width', window.innerWidth)
-            .attr('height', window.innerHeight * 0.8)
+            .attr('height', window.innerHeight * heightFract)
       simulation.force('center').x(window.innerWidth / 2)
-                                .y(window.innerHeight * 0.8 / 2)
+                                .y(window.innerHeight * heightFract / 2)
     });
 
   function dragstarted(d) {
@@ -187,6 +187,15 @@ buildGraph = function(){
           .attr("class", "topic_circle")
           .each(function(d){
             var g = d3.select('#'+d.id);
+
+            g.append('text')
+              .attr('class', 'topicTag')
+              .attr("transform", function(d) {
+                console.log(d)
+                return "translate(0," + (-BUBBLE_SIZE) + ")";
+              })
+              .text(function(d){return d.id;});
+
             var data = topic2data[d.id];
             var root = d3.hierarchy(data)
               .sum(function(d) { return d.size; })
@@ -210,7 +219,8 @@ buildGraph = function(){
 
             subNode.filter(function(d) { return !d.children; }).append("text")
               .attr("dy", "0.3em")
-              .text(function(d) { return d.data.name.substring(0, d.r / 3); });
+              // .text(function(d) { return d.data.name.substring(0, d.r / 3); });
+              .text(function(d){ return d.data.name; })
           });
 
       node.filter(function(d){ return d.group == 3; })
