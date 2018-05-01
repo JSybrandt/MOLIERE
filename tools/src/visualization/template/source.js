@@ -3,7 +3,7 @@ $( document ).ready(function() {
   var NET_FILE = "network.json";
   var TOPIC_FILE = "topics.json";
 
-	var BUBBLE_SIZE = 100;
+	var BUBBLE_SIZE = 75;
 
   // Network vis
   var netSvg = d3.select("#net"),
@@ -34,10 +34,14 @@ $( document ).ready(function() {
   }
 
   var simulation = d3.forceSimulation()
-      .force("link", d3.forceLink().id(function(d) { return d.id; }))
+      .force("link", d3.forceLink().id(function(d) { return d.id; })
+                                   .distance(function(d){ return BUBBLE_SIZE * d.value / 2; })
+            )
       .force("charge", d3.forceManyBody())
       .force("center", d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius(BUBBLE_SIZE/2));
+      .force('collision', d3.forceCollide()
+                            .radius(function(d){return size(d.group) + 10;})
+                            .strength(.3));
 
   function dragstarted(d) {
     if (!d3.event.active) simulation.alphaTarget(0.3).restart();
@@ -112,13 +116,11 @@ $( document ).ready(function() {
 
       node.append("title").text(function(d) { return d.id; });
 
+
       //make the topic nodes bubble charts
 			node.filter(function(d){ return d.group == 2; })
           .attr("class", "topic_circle")
-          .append('g')
-          .attr('class', 'root')
           .each(function(d){
-            console.log(d);
             var g = d3.select('#'+d.id);
             var data = topic2data[d.id];
             var root = d3.hierarchy(data)
@@ -126,10 +128,10 @@ $( document ).ready(function() {
               .sort(function(a, b) { return b.value - a.value; });
             var subNode = g.selectAll(".node")
               .data(pack(root).descendants())
-              .enter().append('g')
+              .enter()
               .filter(function(d){ return !d.children; })
+              .append('g')
               .attr("class",  "leaf node")
-              //.attr("class", function(d) { return d.children ? "node" : "leaf node"; })
               .attr("transform", function(d) {
                 return "translate(" + (d.x - BUBBLE_SIZE) + "," + (d.y - BUBBLE_SIZE) + ")";
               });
@@ -145,6 +147,14 @@ $( document ).ready(function() {
               .attr("dy", "0.3em")
               .text(function(d) { return d.data.name.substring(0, d.r / 3); });
           });
+
+      node.filter(function(d){ return d.group == 3; })
+          .each(function(d) {
+            var n = d3.select("#"+d.id);
+            n.append('text')
+             .attr("dy", "0.3em")
+             .text(function(d) { return d.id; });
+          })
 
       simulation
         .nodes(graph.nodes)
