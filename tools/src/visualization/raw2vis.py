@@ -218,6 +218,9 @@ if __name__ == "__main__":
                                         args.num_topics,
                                         'topic_net.edges')
 
+    args.max_papers_per_topic = int(args.max_papers_per_topic)
+    args.max_words_per_topic = int(args.max_words_per_topic)
+
     template_dir_path = args.template_dir
     if not os.path.isdir(template_dir_path):
         raise RuntimeError("Failed to find template dir.")
