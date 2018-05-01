@@ -9,6 +9,7 @@ import shutil
 
 import requests
 from html.parser import HTMLParser
+from multiprocessing import Pool
 
 HOME_ENV = "MOLIERE_HOME"
 
@@ -71,14 +72,29 @@ def parse_eval(path):
     return res
 
 
-def parse_papers(path):
-    pmids = []
+def parse_papers(path, max_papers):
+    res = {}
+    uniq_pmids = set()
     with open(path) as file:
         for line in file:
-            pmid, version = line.strip().split('_')
-            pmid = pmid[4:]  # removes PMID
-            pmids.append(pmid)
-    return pmids
+            tokens = line.strip().split()
+            topic = tokens[0]
+            res[topic] = {}
+            pmids = [p[4:].split('_')[0] for p in tokens[1:]]
+            pmids = pmids[:max_papers]
+            res[topic]['papers'] = [
+                {"pmid": pmid, "title": None}
+                for pmid in pmids]
+            uniq_pmids = uniq_pmids.union(set(pmids))
+    pmids = list(uniq_pmids)
+    with Pool() as p:
+        content = p.map(get_paper_content, pmids)
+    pmid2title = {pmid: c['title'] for pmid, c in zip(pmids, content)}
+    for topic in res:
+        for paper in res[topic]['papers']:
+            paper['title'] = pmid2title[paper['pmid']]
+
+    return res
 
 
 def get_paper_content(pmid):
@@ -90,6 +106,7 @@ def get_paper_content(pmid):
     res = {}
     res['pmid'] = pmid
     res['title'] = parser.title
+    print("Received", pmid)
     return res
 
 
@@ -177,6 +194,9 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--max-words-per-topic',
                         default=7,
                         help="max words per topic in bubble vis")
+    parser.add_argument('-p', '--max-papers-per-topic',
+                        default=3,
+                        help="max papers per topic in json")
     parser.add_argument('-o', '--out-dir',
                         default="./vis")
     parser.add_argument('-t', '--template-dir',
@@ -215,9 +235,8 @@ if __name__ == "__main__":
                                                 args.max_words_per_topic)))
 
     with open(join(args.out_dir, "papers.json"), 'w') as file:
-        papers = [get_paper_content(pmid) for pmid
-                  in parse_papers(papers_path)]
-        file.write(json.dumps(papers))
+        file.write(json.dumps(parse_papers(papers_path,
+                                           args.max_papers_per_topic)))
 
     with open(join(args.out_dir, "eval.json"), 'w') as file:
         file.write(json.dumps(parse_eval(eval_path)))

@@ -48,8 +48,7 @@ int main(int argc, char ** argv){
   p.add<string>("source-label", 's', "Source Label", true);
   p.add<string>("target-label", 't', "Target Label", true);
   p.add("verbose", 'v', "Output debug info.");
-  p.add<size_t>("num-best-topics", 'X', "Number of best topics to get papers from.", false, 3);
-  p.add<size_t>("num-per-mix", 'Y', "Number of papers per mix.", false, 2);
+  p.add<size_t>("papers-per-topic", 'X', "Num. pmid per topic", false, 5);
 
 
   p.parse_check(argc, argv);
@@ -67,8 +66,7 @@ int main(int argc, char ** argv){
   string sourceLabel = p.get<string>("source-label");
   string targetLabel = p.get<string>("target-label");
   ::verbose = p.exist("verbose");
-  size_t numBestTopics = p.get<size_t>("num-best-topics");
-  size_t numPerMix = p.get<size_t>("num-per-mix");
+  size_t papersPerTopic = p.get<size_t>("papers-per-topic");
 
   vout << "Loading Labels:";
   LabelManager labels(labelPath);
@@ -89,49 +87,49 @@ int main(int argc, char ** argv){
   }
   vout << "  -- Done --" << endl;
 
-  vout << "Getting Necessary Vectors";
-  VectorManager vectors;
-  vectors.registerTag(ngramVecsPath);
-  vectors.registerTag(pmidVecsPath, 'P');
-  vectors.registerTag(umlsVecsPath, 'C');
-  unordered_map<string, vector<float>> word2vec = vectors.getVectors(wordsInTopicModel);
-  vout << "  -- Done --" << endl;
+  //vout << "Getting Necessary Vectors";
+  //VectorManager vectors;
+  //vectors.registerTag(ngramVecsPath);
+  //vectors.registerTag(pmidVecsPath, 'P');
+  //vectors.registerTag(umlsVecsPath, 'C');
+  //unordered_map<string, vector<float>> word2vec = vectors.getVectors(wordsInTopicModel);
+  //vout << "  -- Done --" << endl;
 
-  vout << "Getting Topic Centroids";
-  vector<vector<float>> topicCentroids;
-  topicCentroids.reserve(topicModel.size());
-  for(const Topic& t: topicModel){
-    topicCentroids.push_back(getCentroid(t, word2vec));
-  }
-  vout << "  -- Done --" << endl;
+  //vout << "Getting Topic Centroids";
+  //vector<vector<float>> topicCentroids;
+  //topicCentroids.reserve(topicModel.size());
+  //for(const Topic& t: topicModel){
+    //topicCentroids.push_back(getCentroid(t, word2vec));
+  //}
+  //vout << "  -- Done --" << endl;
 
-  pair<string, string> queryWords = {sourceLabel, targetLabel};
+  //pair<string, string> queryWords = {sourceLabel, targetLabel};
 
-  vout << "Checking query word vectors exist. Making estimates if not";
-  if(word2vec.find(sourceLabel) == word2vec.end()){
-    vout << " MISSING: " << sourceLabel;
-    word2vec[sourceLabel] = estimateVector(sourceLabel, graphPath, vectors, labels);
-  }
-  if(word2vec.find(targetLabel) == word2vec.end()){
-    vout << " MISSING: " << targetLabel;
-    word2vec[targetLabel] = estimateVector(targetLabel, graphPath, vectors, labels);
-  }
-  vout << "  -- Done --" << endl;
+  //vout << "Checking query word vectors exist. Making estimates if not";
+  //if(word2vec.find(sourceLabel) == word2vec.end()){
+    //vout << " MISSING: " << sourceLabel;
+    //word2vec[sourceLabel] = estimateVector(sourceLabel, graphPath, vectors, labels);
+  //}
+  //if(word2vec.find(targetLabel) == word2vec.end()){
+    //vout << " MISSING: " << targetLabel;
+    //word2vec[targetLabel] = estimateVector(targetLabel, graphPath, vectors, labels);
+  //}
+  //vout << "  -- Done --" << endl;
 
-  vout << "Creating NN Net";
-  // NOTE: query words are idx 0 and 1, 2-n are the topics (0-(n-2))
-  vector<nodeIdx> topicPath = simpleTopicNetData(queryWords,
-                                                 topicModel,
-                                                 topicCentroids,
-                                                 word2vec).second;
-  vout << "  -- Done --" << endl;
+  //vout << "Creating NN Net";
+  //// NOTE: query words are idx 0 and 1, 2-n are the topics (0-(n-2))
+  //vector<nodeIdx> topicPath = simpleTopicNetData(queryWords,
+                                                 //topicModel,
+                                                 //topicCentroids,
+                                                 //word2vec).second;
+  //vout << "  -- Done --" << endl;
 
-  vout << "Getting best topics from L2";
-  BestCentrL2Metric topicMet(queryWords, topicModel, topicCentroids, word2vec);
-  vout << "  -- Done --" << endl;
+  //vout << "Getting best topics from L2";
+  //BestCentrL2Metric topicMet(queryWords, topicModel, topicCentroids, word2vec);
+  //vout << "  -- Done --" << endl;
 
   // list of topic idx to score, sorted.
-  vector<pair<size_t, float>> bestTopics = topicMet.getBestTopics();
+  //vector<pair<size_t, float>> bestTopics = topicMet.getBestTopics();
 
   vout << "Loading inferences";
   unordered_map<string, vector<float>> pmid2mix;
@@ -144,9 +142,12 @@ int main(int argc, char ** argv){
     stringstream ss(line);
     vector<float> mix;
     mix.reserve(topicModel.size());
+    float sum = 0;
     while(ss >> tmp){
       mix.push_back(tmp);
+      sum += tmp;
     }
+    mix /= sum; // normalize to prob func
     const string& pmid = labels[id];
     pmid2mix[pmid] = move(mix);
   }
@@ -155,51 +156,44 @@ int main(int argc, char ** argv){
   vout << "  -- Done --" << endl;
 
 
-  vout << "Determining best paper topic mixtures";
-  vector<vector<float>> desiredMixes;
-  // the best mixes for each best topic is just that topic
-  for(size_t i = 0; i < min(topicModel.size(), numBestTopics); ++i){
-    vector<float> mix(topicModel.size(), 0.0f);
-    mix[bestTopics[i].first] = 1;
-    desiredMixes.emplace_back(move(mix));
-  }
+  //vout << "Determining papers per topic";
+  //vector<vector<float>> desiredMixes;
+  //// the best mixes for each best topic is just that topic
+  //for(size_t i = 0; i < topicModel.size(); ++i){
+    //vector<float> mix(topicModel.size(), 0.0f);
+    //mix[i] = 1;
+    //desiredMixes.emplace_back(move(mix));
+  //}
 
-  for(size_t i = 1; i < topicPath.size()-1; ++i){
-    for(size_t j = i+1; j < topicPath.size()-1; ++j){
-      vector<float> mix(topicModel.size(), 0.0f);
-      for(size_t x = i; x < j; ++x){
-        mix[x] = 1;
-      }
-      desiredMixes.emplace_back(move(mix));
-    }
-  }
+  //for(size_t i = 1; i < topicPath.size()-1; ++i){
+    //for(size_t j = i+1; j < topicPath.size()-1; ++j){
+      //vector<float> mix(topicModel.size(), 0.0f);
+      //for(size_t x = i; x < j; ++x){
+        //mix[x] = 1;
+      //}
+      //desiredMixes.emplace_back(move(mix));
+    //}
+  //}
   vout << "  -- Done --" << endl;
 
   vout << "Determining best papers for mixtures";
-  vector<pQueue<string, float>> bestPapersPerMix(desiredMixes.size());
+  vector<pQueue<string, float>> bestPapersPerMix(topicModel.size());
 
   for(auto& pmidMix : pmid2mix){
-    for(size_t i = 0 ; i < desiredMixes.size(); ++i){
-      // intentionally biased towards long documents
-      // push in neg sim because we want high values to come out first
-      float res = 0; //, total=0;
-      for(size_t j = 0; j < desiredMixes[i].size(); ++j){
-        res += pmidMix.second[j] * desiredMixes[i][j];
-        // total += pmidMix.second[j];
-      }
-      bestPapersPerMix[i].push(pmidMix.first, -res);
+    for(size_t i = 0 ; i < topicModel.size(); ++i){
+      bestPapersPerMix[i].push(pmidMix.first, -pmidMix.second[i]);
     }
   }
   vout << "  -- Done --" << endl;
 
-  vout << "Collecting Papers";
-  unordered_set<string> selectPmid;
-  for(pQueue<string, float> paperQ : bestPapersPerMix){
-    for(size_t i = 0; i < min(paperQ.size(), numPerMix); ++i){
-      selectPmid.insert(paperQ.pop().first);
-    }
-  }
-  vout << "  -- Done --" << endl;
+  //vout << "Collecting Papers";
+  //unordered_set<string> selectPmid;
+  //for(pQueue<string, float> paperQ : bestPapersPerMix){
+    //for(size_t i = 0; i < min(paperQ.size(), numPerMix); ++i){
+      //selectPmid.insert(paperQ.pop().first);
+    //}
+  //}
+  //vout << "  -- Done --" << endl;
 
   //vout << "Finding Abstract Text";
   //list<string> abstracts;
@@ -214,8 +208,13 @@ int main(int argc, char ** argv){
   //fastProcFile<string>(abstractPath, abstracts, get, selectPmidFun);
 
   fstream outFile(outPath, ios::out);
-  for(string s : selectPmid)
-    outFile << s << endl;
+  for(size_t i = 0; i < bestPapersPerMix.size(); ++i){
+    outFile << "Topic_" << i << " ";
+    for(size_t j = 0; j < papersPerTopic && bestPapersPerMix[i].size() > 0; ++j){
+      outFile << bestPapersPerMix[i].pop().first << " ";
+    }
+    outFile << endl;
+  }
   outFile.close();
   // vout << "  -- Done --" << endl;
 
