@@ -3,7 +3,7 @@ $( document ).ready(function() {
   var NET_FILE = "network.json";
   var TOPIC_FILE = "topics.json";
 
-	var BUBBLE_SIZE = 75;
+	var BUBBLE_SIZE = 100;
 
   // Network vis
   var netSvg = d3.select("#net"),
@@ -35,7 +35,7 @@ $( document ).ready(function() {
 
   var simulation = d3.forceSimulation()
       .force("link", d3.forceLink().id(function(d) { return d.id; })
-                                   .distance(function(d){ return BUBBLE_SIZE * d.value / 2; })
+                                   .distance(function(d){ return BUBBLE_SIZE / 2; })
             )
       .force("charge", d3.forceManyBody())
       .force("center", d3.forceCenter(width / 2, height / 2))
