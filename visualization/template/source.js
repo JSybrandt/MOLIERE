@@ -45,8 +45,13 @@ buildTable = function(){
       for(j = 0 ; j < numPapersPer ; j++){
         var row = tbody.append('tr');
         for (i in importantTopics){
+          var d = paperData[importantTopics[i]].papers[j];
           row.append('td')
-             .text(paperData[importantTopics[i]].papers[j].title)
+             .append('a')
+               .attr('href',
+                     "https://www.ncbi.nlm.nih.gov/pubmed/?term="
+                     + d.pmid)
+               .text(d.title);
         }
       }
     });
