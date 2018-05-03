@@ -97,6 +97,9 @@ def main():
                         action="store",
                         default="5000",
                         help="Number of abstracts per node in cloud.")
+    parser.add_argument("--num-papers-per-topic",
+                        default="10",
+                        help="Determines size of *.papers file.")
     parser.add_argument("--write-topic-network",
                         action="store_true",
                         help="if set, write topic nnn while evaluating.")
@@ -136,6 +139,9 @@ def main():
 
     if int(args.num_topics) <= 0:
         raise ValueError("Num-topics must be a positive number")
+
+    if int(args.num_papers_per_topic) <= 0:
+        raise ValueError("num-papers-per-topic must be a positive number")
 
     hadToRebuild = False
     graph_path = "{}/network/final.bin.edges".format(data_path)
@@ -387,16 +393,10 @@ def main():
             PAPERS.format(link_path),
             '-c', cloud_path,
             '-i', inf_path,
-            # '-a', abstract_path,
             '-l', label_path,
-            '-g', graph_path,
             '-o', papers_path,
             '-m', view_path,
-            '-N', ngram_vec_path,
-            '-P', pmid_vec_path,
-            '-U', umls_vec_path,
-            '-s', args.query_words[0],
-            '-t', args.query_words[-1],
+            '-X', args.num_papers_per_topic,
             verbose_flag
         ])
     elif args.verbose:
