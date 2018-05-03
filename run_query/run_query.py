@@ -79,14 +79,12 @@ def main():
     parser.add_argument("-y", "--hyperparam",
                         help="specifies a hyper parameter file for eval.")
     parser.add_argument("-n", "--num-topics",
-                        default="20",
+                        default=20,
+                        type=int,
                         help="specifies the number of topics to generate.")
     parser.add_argument("-!", "--no-analysis",
                         action="store_true",
                         help="If set, don't create any analysis files.")
-    parser.add_argument("-m", "--move-here",
-                        action="store_true",
-                        help="move topic / analysis files to working dir")
     parser.add_argument("-r", "--reconstruct",
                         action="store_true",
                         help="if set, do not reuse existing cached files.")
@@ -95,10 +93,12 @@ def main():
                         help="if set, do not check for input in labels.")
     parser.add_argument("--cloud-size",
                         action="store",
-                        default="5000",
+                        default=5000,
+                        type=int,
                         help="Number of abstracts per node in cloud.")
     parser.add_argument("--num-papers-per-topic",
-                        default="10",
+                        default=10,
+                        type=int,
                         help="Determines size of *.papers file.")
     parser.add_argument("--write-topic-network",
                         action="store_true",
@@ -134,13 +134,13 @@ def main():
     if len(args.query_words) < 2:
         raise ValueError("Must supply at least 2 query words!")
 
-    if int(args.cloud_size) <= 0:
+    if args.cloud_size <= 0:
         raise ValueError("Cloud-size must be a positive number")
 
-    if int(args.num_topics) <= 0:
+    if args.num_topics <= 0:
         raise ValueError("Num-topics must be a positive number")
 
-    if int(args.num_papers_per_topic) <= 0:
+    if args.num_papers_per_topic <= 0:
         raise ValueError("num-papers-per-topic must be a positive number")
 
     hadToRebuild = False
@@ -233,7 +233,7 @@ def main():
             FIND_CLOUD.format(link_path),
             '-g', graph_path,
             '-l', label_path,
-            '-A', args.cloud_size,
+            '-A', str(args.cloud_size),
             '-p', path_path,
             '-o', cloud_path,
             verbose_flag
@@ -282,7 +282,7 @@ def main():
         subprocess.call([
             'mpiexec', '-n', str(psutil.cpu_count()),
             PLDA.format(link_path),
-            '--num_topics', args.num_topics,
+            '--num_topics', str(args.num_topics),
             '--alpha', '1',
             '--beta', '0.01',
             '--training_data_file', bag_path,
@@ -299,7 +299,7 @@ def main():
                 print("Writing paper inferences for later analysis.")
             subprocess.call([
                 INFER_MODEL.format(link_path),
-                '--num_topics', args.num_topics,
+                '--num_topics', str(args.num_topics),
                 '--alpha', '1',
                 '--beta', '0.01',
                 '--training_data_file', bag_path,
@@ -327,11 +327,6 @@ def main():
         print("reusing: ", view_path)
 
     checkFile(view_path)
-
-    if args.move_here:
-        if args.verbose:
-            print("Moving", view_path, " to local dir")
-        subprocess.call(['cp', view_path, './'])
 
     if args.no_analysis:
         if args.verbose:
@@ -396,21 +391,13 @@ def main():
             '-l', label_path,
             '-o', papers_path,
             '-m', view_path,
-            '-X', args.num_papers_per_topic,
+            '-X', str(args.num_papers_per_topic),
             verbose_flag
         ])
     elif args.verbose:
         print("reusing: ", papers_path)
 
     checkFile(papers_path)
-
-    if args.move_here:
-        if args.verbose:
-            print("Moving", eval_path, " to local dir")
-        subprocess.call(['cp', eval_path, './'])
-        if args.verbose:
-            print("Moving", papers_path, " to local dir")
-        subprocess.call(['cp', papers_path, './'])
 
 
 if __name__ == "__main__":
