@@ -117,6 +117,7 @@ buildGraph = function(){
     if (!d3.event.active) simulation.alphaTarget(0.3).restart();
     d.fx = d.x;
     d.fy = d.y;
+    d.fixed=true;
   }
 
   function dragged(d) {
@@ -126,8 +127,6 @@ buildGraph = function(){
 
   function dragended(d) {
     if (!d3.event.active) simulation.alphaTarget(0);
-    d.fx = null;
-    d.fy = null;
   }
 
   var pack = d3.pack().size([2*BUBBLE_SIZE	, 2*BUBBLE_SIZE]);
