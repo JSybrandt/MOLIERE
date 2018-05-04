@@ -218,7 +218,7 @@ int main(int argc, char ** argv){
       for(size_t t = 0; t < min(topicModel.size(), numReportedTopics); ++t){
         size_t topicIdx = topic2score[t].first;
         // print topic number
-        outFile << "\tT" << topicIdx;
+        outFile << "\tTopic_" << topicIdx;
         for(size_t w = 0; w < min(topicCutoff, topicModel[topicIdx].size()); ++w){
           // print topic words
           outFile << " " << topicModel[topicIdx][w].first;
