@@ -2,11 +2,75 @@ $( document ).ready(function() {
 
   buildGraph();
   buildTable();
+  buildEval();
 });
 
 var PAPERS_FILE = "papers.json"
 var NET_FILE = "network.json";
 var TOPIC_FILE = "topics.json";
+var EVAL_FILE = "eval.json";
+
+focusTopic = function(topicName){
+  //remove stuff inside div
+
+  d3.json(TOPIC_FILE, function(error, topicRec){
+    if (error) throw error;
+    for (idx in topicRec){
+      if(topicRec[idx].name === topicName){
+        var topicDeltailDiv = d3.select("#topic-details");
+        topicDeltailDiv.selectAll("table").remove();
+        topicDeltailDiv.selectAll('h3').remove();
+        var detailsTable = topicDeltailDiv.append("table")
+          , thead = detailsTable.append('thead')
+          , tbody = detailsTable.append('tbody');
+
+
+        thead.append('tr').append('th')
+          .attr('colspan', '2')
+            .text(topicName);
+
+        var header = thead.append('tr');
+        header.classed('table-sub-header', true);
+        header.append('th')
+          .text("Word");
+        header.append('th')
+          .text("Count");
+
+        var terms = topicRec[idx].children;
+        console.log(terms)
+        for (childIdx in terms){
+          var row = tbody.append('tr');
+          row.append('td').text(terms[childIdx].name);
+          row.append('td').text(terms[childIdx].size);
+        }
+        break;
+      }
+    }
+  });
+}
+
+
+buildEval = function(){
+  var evalTabel = d3.select("#eval").append('table')
+    , thead = evalTabel.append('thead')
+    , tbody =evalTabel.append('tbody');
+
+  d3.json(EVAL_FILE, function(error, evalData){
+    if (error) throw error;
+    var sortAscending = false;
+    var header = thead.append('tr');
+    header.classed('table-sub-header', true);
+    header.append('th').text("Metric");
+    header.append('th').text("Score");
+
+    for (i in evalData){
+      var row = tbody.append('tr');
+      row.append('td').text(evalData[i].name);
+      row.append('td').text(evalData[i].score);
+    }
+
+  });
+}
 
 buildTable = function(){
 
@@ -39,7 +103,6 @@ buildTable = function(){
     d3.json(PAPERS_FILE, function(error, paperData){
       if (error) throw error;
       var data = [];
-      console.log(paperData);
       var numPapersPer = paperData[importantTopics[0]].papers.length;
 
       for(j = 0 ; j < numPapersPer ; j++){
@@ -63,26 +126,21 @@ buildGraph = function(){
 
 	var BUBBLE_SIZE = 80;
   var heightFract = 0.8;
+  var widthFract = 0.85;
+
+  var getWidth = function(){
+      return +window.innerWidth * widthFract;
+  }
+
+  var getHeight = function(){
+      return +window.innerHeight * heightFract;
+  }
 
   // Network vis
   var netSvg = d3.select("#net"),
-      width = +window.innerWidth,
-      height = +window.innerWidth * heightFract,
       format = d3.format(",d");
 
 
-  var color = function(group) {
-    if(group === 1){
-      // Regular Topic
-      return d3.rgb("#3182bd");
-    } else if (group === 2){
-      // Path Topic
-      return d3.rgb("#e6550d");
-    } else if (group === 3){
-      // Keyword
-      return d3.rgb("#e6550d");
-    }
-  }
 
   var size = function(group) {
 		if( group == 1 )
@@ -103,19 +161,17 @@ buildGraph = function(){
         else
           return -15;
       }))
-      .force("center", d3.forceCenter(
-        window.innerWidth / 2,
-        (window.innerHeight * heightFract) / 2))
+      .force("center", d3.forceCenter(getWidth()/2, getHeight()/2))
       .force('collision', d3.forceCollide()
                             .radius(function(d){return size(d.group) + 2;})
                             .strength(.9));
 
   d3.select(window)
     .on('resize', function(){
-      netSvg.attr('width', window.innerWidth)
-            .attr('height', window.innerHeight * heightFract)
-      simulation.force('center').x(window.innerWidth / 2)
-                                .y(window.innerHeight * heightFract / 2)
+      netSvg.attr('width', getWidth())
+            .attr('height', getHeight())
+      simulation.force('center').x(getWidth() / 2)
+                                .y(getHeight() / 2)
     });
 
   function dragstarted(d) {
@@ -142,7 +198,9 @@ buildGraph = function(){
     if (error) throw error;
 		var topic2data = {};
 		for( idx in topicList ){
-			topic2data[topicList[idx]['name']] = topicList[idx];
+      var name = topicList[idx]['name'];
+			topic2data[name] = topicList[idx];
+      topic2data[name].children = topic2data[name].children.slice(0, 8);
 		}
 
     d3.json(NET_FILE, function(error, graph) {
@@ -183,25 +241,33 @@ buildGraph = function(){
           .attr('class', 'class-node')
           .append("circle")
           .attr("r", function(d) { return size(d.group); })
-          .attr("fill", function(d) { return color(d.group); })
+          .attr("fill", function(d) { return colorByGroup(d.group); })
           .call(d3.drag()
                 .on("start", dragstarted)
                 .on("drag", dragged)
-                .on("end", dragended));
+                .on("end", dragended))
+
+          .on("click", function(d){ focusTopic(d.id);});
 
       node.append("title").text(function(d) { return d.id; });
 
 
+      var first = true;
       //make the topic nodes bubble charts
 			node.filter(function(d){ return d.group == 2; })
           .attr("class", "topic_circle")
           .each(function(d){
             var g = d3.select('#'+d.id);
 
+            // focus one of the d2 nodes auto
+            if (first){
+              first = false;
+              focusTopic(d.id);
+            }
+
             g.append('text')
               .attr('class', 'topicTag')
               .attr("transform", function(d) {
-                console.log(d)
                 return "translate(0," + (-BUBBLE_SIZE) + ")";
               })
               .text(function(d){return d.id;});
@@ -262,4 +328,17 @@ buildGraph = function(){
       }
     });
   });
+
+  var colorByGroup = function(group) {
+    if(group === 1){
+      // Regular Topic
+      return d3.rgb("#3182bd");
+    } else if (group === 2){
+      // Path Topic
+      return d3.rgb("#e6550d");
+    } else if (group === 3){
+      // Keyword
+      return d3.rgb("#e6550d");
+    }
+  }
 }

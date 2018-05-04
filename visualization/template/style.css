@@ -1,3 +1,100 @@
+#net {
+  width: 85%;
+  height: 70%;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  border-bottom:solid thin;
+}
+
+#topic-wrapper {
+  width: 85%;
+  height: 30%;
+  position: absolute;
+  top: 70%;
+  left: 0px;
+  overflow: auto;
+}
+
+#sidebar {
+  width: 15%;
+  height: 100%;
+  position: absolute;
+  top: 0%;
+  left: 85%;
+  padding-left:5px;
+  border-left:solid thin;
+}
+
+#eval {
+  width: 100%;
+  height: 20%;
+  position: relative;
+  top: 0%;
+  left: 0%;
+  overflow: auto;
+  border-bottom:solid thin;
+}
+
+
+#eval table  {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: auto;
+}
+
+#eval table tbody {
+  font-size: 12px;
+}
+
+
+#topic-details {
+  width: 100%;
+  height: 80%;
+  position: relative;
+  top: 0%;
+  left: 0%;
+  overflow: auto;
+}
+
+#topic-details table  {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+#topic-details table tbody {
+  font-size: 12px;
+}
+
+
+#topics td, #topics th {
+  border: 1px solid #AAAAAA;
+}
+#topics tbody td {
+  font-size: 12px;
+}
+#topics thead {
+  background: #FF7F0E;
+}
+
+#topics thead th {
+  font-size: 14px;
+  font-weight: bold;
+  color: #FFFFFF;
+  text-align: center;
+}
+
+.table-sub-header {
+  text-align: left;
+}
+
+
+.topicTag {
+  font: 14px sans-serif;
+}
+
 .topic_circle {
   fill: rgb(31, 119, 180);
   fill-opacity: .25;
@@ -25,53 +122,3 @@ text {
   stroke: #fff;
   stroke-width: 1.5px;
 }
-
-#net {
-  width: 100%;
-  height: 70%;
-  position: absolute;
-  top: 0px;
-  left: 0px;
-}
-
-#table-wrapper {
-  width: 100%;
-  height: 30%;
-  position: absolute;
-  top: 70%;
-  left: 0px;
-  overflow: auto;
-}
-
-.topicTag {
-  font: 14px sans-serif;
-}
-
-table#topics {
-  width: 100%;
-  text-align: left;
-}
-table#topics td, table#topics th {
-  border: 1px solid #AAAAAA;
-}
-table#topics tbody td {
-  font-size: 12px;
-}
-table#topics thead {
-  background: #FF7F0E;
-}
-table#topics thead th {
-  font-size: 14px;
-  font-weight: bold;
-  color: #FFFFFF;
-  text-align: center;
-}
-
-/*#bubbles {*/
-	/*width: 50%;*/
-	/*height: 100%;*/
-	/*position: absolute;*/
-	/*top: 0px;*/
-	/*left: 50%;*/
-/*}*/
-
