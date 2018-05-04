@@ -50,7 +50,7 @@ def get_path_from_meta(res, num_topics, ext):
 
 
 def parse_eval(path):
-    res = {}
+    metrics = []
     with open(path) as file:
         for line in file:
             tokens = line.strip().split()
@@ -67,11 +67,12 @@ def parse_eval(path):
                             topics[curr_top] = []
                         else:
                             topics[curr_top].append(tok)
-            res[tokens[0]] = {
+            metrics.append({
+               'name': tokens[0],
                'score': float(tokens[1]),
                'topics': topics
-            }
-    return res
+            })
+    return metrics
 
 
 def parse_papers(path):
