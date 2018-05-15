@@ -20,6 +20,45 @@ jsybran [at] clemson [dot] edu
 
 Or just leave an issue in this repo.
 
+
+## Installation
+
+First, make sure you clone this project with the `--recursive` flag.
+This initializes my submodules present in the `./external` directory.
+
+Then, make sure you have the following dependencies:
+
+```
+  gcc >= 5.4
+  python 3
+  java 1.8     (for AutoPhrase)
+  scons        (for NetworKit)
+  google test  (for NetworKit)
+  mpich 3.1.4  (for PLDA)
+```
+
+Ideally, a simple `make` while in the project directory should do the trick.
+Often, errors are due to our NetworKit dependency, so please refer to their readme if you have any issues.
+
+## Runtime Requirements
+
+If you are constructing the Moliere Knowledge Network, please note that our code is extremely memory intensive if you choose to follow the default construction parameters.
+After downloading MEDLINE and performing an initial parsing, the `build_network.py` script then sends all text through AutoPhrase.
+This often requires over 1 terabyte of memory to complete.
+Then, we send the text through fasttext in order to define embeddings for each word.
+This too is memory intensive, on the order of 100's of Gb.
+
+*Note:* If you do not have the resources to construct the Moliere Knowledge Network, we keep our latest public release [Available Online][moliere_data].
+
+When running a query, we expect the knowledge network data to be stored on a filesystem that allows for parallel reads.
+If this is not available, you may need to set the environment variable `OMP_NUM_THREADS=1` in order to disable our multi-threaded reads.
+We rely on a parallel file system in order to keep query-time memory usage down by "skimming" our large network files in an efficient manner.
+This way, we only keep relevant information in memory, which drastically improves runtime.
+
+*Note:* If you do not have the resources to run a query, we allow for query requests [Available Online][moliere_query].
+
+## Citation
+
 If you use or reference any of this work, please cite the following paper:
 
     @inproceedings{Sybrandt:2017:MAB:3097983.3098057,
@@ -42,3 +81,4 @@ If you use or reference any of this work, please cite the following paper:
 
 [moliere_logo]:http://sybrandt.com/img/logo/moliere_logo.png
 [moliere_query]:http://sybrandt.com/post/moliere-run-query/
+[moliere_data]:https://drive.google.com/open?id=1mHTcKvt6EhkHhDjQlHZ7S0T3WGZZ6K5E
