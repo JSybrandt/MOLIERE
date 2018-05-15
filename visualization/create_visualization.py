@@ -193,7 +193,7 @@ if __name__ == "__main__":
     parser.add_argument('-n', '--num-topics',
                         help="number of topics to gen vis.")
     parser.add_argument('-m', '--max-words-per-topic',
-                        default=7,
+                        default=100,
                         help="max words per topic in bubble vis")
     parser.add_argument('-o', '--out-dir',
                         default="./vis")

@@ -11,7 +11,7 @@ INCLUDE_PATHS=-I$(NETWORKIT)/include
 INCLUDE_PATHS+=-I$H
 LINK_PATHS=-B$(NETWORKIT)
 LIB=-lNetworKit -fopenmp
-CPPV=-std=c++14
+CPPV=-std=c++11
 WARN=-Wall
 OPT=-O3
 
@@ -51,8 +51,7 @@ $B/evaluate: $S/evaluate/main.cpp $(NETWORKIT)/libNetworKit.a
 	$(CC) -o $@ $(CPPV) $(WARN) $(OPT) $(INCLUDE_PATHS) $(LINK_PATHS) $< $(LIB)
 
 $(NETWORKIT)/libNetworKit.a:
-	cd $(NETWORKIT)
-	scons --optimize=Opt --target=Lib --std=c++11
+	cd $(NETWORKIT); scons --optimize=Opt --target=Lib --std=c++11
 	# We intentionally do not clean this lib, it takes forever to build
 
 clean:
