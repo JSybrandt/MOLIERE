@@ -33,7 +33,7 @@ rawEdge line2raw(const string& line){
   string a, b;
   float w;
   ss >> a >> b >> w;
-  return {a, b, w};
+  return rawEdge(a, b, w);
 }
 
 edge raw2edge(const rawEdge& raw,
