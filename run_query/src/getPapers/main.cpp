@@ -17,6 +17,7 @@
 #include<omp.h>
 #include<limits>
 #include<algorithm>
+#include <functional>
 
 #include"cmdln.h"
 #include"util.h"
@@ -88,7 +89,8 @@ int main(int argc, char ** argv){
       mix.push_back(tmp);
       sum += tmp;
     }
-    mix /= sum; // normalize to prob func
+    //    mix /= sum; // normalize to prob func
+    assert(mix.size() == topicModel.size());
     const string& pmid = labels[id];
     pmid2mix[label2pmid(pmid)] = move(mix);
   }
@@ -98,24 +100,26 @@ int main(int argc, char ** argv){
 
 
   vout << "Determining best papers for mixtures";
-  vector<pQueue<string, float>> bestPapersPerMix(topicModel.size());
-
-  for(auto& pmidMix : pmid2mix){
-    for(size_t i = 0 ; i < topicModel.size(); ++i){
-      // push in negative score for lower priority (pops our based on lower)
-      bestPapersPerMix[i].push(pmidMix.first, -pmidMix.second[i]);
-    }
-  }
-  vout << "  -- Done --" << endl;
 
   fstream outFile(outPath, ios::out);
-  for(size_t i = 0; i < bestPapersPerMix.size(); ++i){
-    outFile << "Topic_" << i << " ";
-    for(size_t j = 0; j < papersPerTopic && bestPapersPerMix[i].size() > 0; ++j){
-      outFile << bestPapersPerMix[i].pop().first << " ";
+  for(size_t topic_idx = 0; topic_idx < topicModel.size(); ++topic_idx){
+    vector<pair<float, string>> score_pmid;
+    score_pmid.reserve(pmid2mix.size());
+    for(const auto& pmid_scores : pmid2mix){
+      const string& pmid = pmid_scores.first;
+      float score = pmid_scores.second[topic_idx];
+      score_pmid.push_back({score, pmid});
+    }
+    //sort in reverse
+    sort(score_pmid.begin(), score_pmid.end(), greater<pair<float, string>>());
+    outFile << "Topic_" << topic_idx << " ";
+    for(size_t i = 0; i < min(papersPerTopic, score_pmid.size()); ++i){
+      outFile << score_pmid[i].second << " ";
+      cout << score_pmid[i].second << " " << score_pmid[i].first << endl;
     }
     outFile << endl;
   }
+
   outFile.close();
 
   return 0;
