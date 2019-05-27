@@ -106,6 +106,9 @@ def main():
     parser.add_argument("-v", "--verbose",
                         action="store_true",
                         help="if set, run pipeline with verbose flags.")
+    parser.add_argument("--path-only",
+                        action="store_true",
+                        help="If set, only generate shortest path.")
     parser.add_argument("query_words",
                         nargs=argparse.REMAINDER,
                         help="(at least 2) query words." +
@@ -222,6 +225,9 @@ def main():
         print("reusing: ", path_path)
 
     checkFile(path_path)
+
+    if(args.path_only):
+      return 0
 
     cloud_path, reuse = createOrRecoverFile(args, query_name,
                                             query_name, "cloud")
