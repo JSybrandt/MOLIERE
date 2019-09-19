@@ -1,6 +1,6 @@
 # Important Update
 
-We've moved development of Moliere over to the new [PyMoliere][https://github.com/JSybrandt/PyMoliere] repo! This new version is faster, uses updated technology, and is easier to use.
+We've moved development of Moliere over to the new [PyMoliere](https://github.com/JSybrandt/PyMoliere) repo! This new version is faster, uses updated technology, and is easier to use.
 
 
 ![moliere_logo][moliere_logo]
