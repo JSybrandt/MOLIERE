@@ -1,6 +1,6 @@
 # Important Update
 
-We've moved development of Moliere over to the new [PyMoliere](https://github.com/JSybrandt/PyMoliere) repo! This new version is faster, uses updated technology, and is easier to use.
+We've moved development of Moliere over to the new [Agatha](https://github.com/JSybrandt/Agatha) repo! This new version is faster, uses updated technology, and is easier to use.
 
 
 ![moliere_logo][moliere_logo]
@@ -83,6 +83,8 @@ If you use or reference any of this work, please cite the following paper:
      address = {New York, NY, USA},
      keywords = {hypothesis generation, mining scientific publications, topic modeling, undiscovered public knowledge},
     }
+
+Copyright Clemson University, (2017-2020)
 
 [moliere_logo]:http://sybrandt.com/img/logo/moliere_logo.png
 [moliere_query]:http://sybrandt.com/post/moliere-run-query/
